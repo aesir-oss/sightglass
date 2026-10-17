@@ -8,10 +8,11 @@ covers what is specific here.
 ## Status
 
 Scaffolding. These exist: the root pixi workspace, the Python backend in `backend/`, the Rust crates in
-`backend/crates/` and the React frontend in `frontend/`. CI comes next (Foundation milestone).
+`backend/crates/`, the React frontend in `frontend/`, and CI in `.github/workflows/ci.yml`.
 
 - Python tasks run with `cwd = "backend"`; pre-commit points ruff and mypy at `backend/pyproject.toml`.
 - After a Rust change, `pixi run develop` rebuilds `sightglass._core`; the Python test tasks run it first.
+- pixi environments `py312` and `py313` exist for the CI matrix; `default` is 3.14. Actions are pinned to commit SHAs.
 - Frontend tasks run with `cwd = "frontend"` through pnpm, with Node from pixi.
 
 ## Layout

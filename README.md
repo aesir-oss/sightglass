@@ -1,5 +1,7 @@
 # Sightglass
 
+[![CI](https://github.com/aesir-oss/sightglass/actions/workflows/ci.yml/badge.svg)](https://github.com/aesir-oss/sightglass/actions/workflows/ci.yml)
+
 See what a package release actually ships.
 
 Sightglass compares the files people install from a package index with the previous release and with the project's
@@ -39,6 +41,7 @@ pixi run bootstrap   # installs the pre-commit hooks
 | `pixi run fmt-web` / `lint-web` / `check-web` / `test-web` / `cov-web` | prettier, eslint, tsc, vitest, vitest coverage (90% gate) |
 | `pixi run build-web` | Production frontend bundle in `frontend/dist/` |
 | `pixi run ci` | Everything above plus pre-commit and the build; must pass before a commit |
+| `pixi run -e py312 ci` | The same against Python 3.12 (also `py313`); CI runs all three |
 
 Layout: `backend/` holds the Python package (`backend/src/sightglass/`), its tests, and the Rust crates
 (`backend/crates/`, exposed to Python as `sightglass._core`); `frontend/` holds the React app
