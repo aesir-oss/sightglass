@@ -1,5 +1,6 @@
 """FastAPI application factory."""
 
+import os
 from typing import Literal
 
 from fastapi import FastAPI
@@ -8,6 +9,9 @@ from pydantic import BaseModel
 from sightglass import __version__
 from sightglass.api import files, pairs, releases
 from sightglass.api.frontend import mount_frontend
+from sightglass.log import configure_logging
+
+LOG_LEVEL_ENV = "SIGHTGLASS_LOG_LEVEL"
 
 
 class Health(BaseModel):
@@ -40,3 +44,9 @@ def create_app(*, serve_frontend: bool = True) -> FastAPI:
     if serve_frontend:
         mount_frontend(app)
     return app
+
+
+def serve() -> FastAPI:
+    """The app as served by uvicorn: logging configured first, so every line is structured JSON."""
+    configure_logging(os.environ.get(LOG_LEVEL_ENV, "info"))
+    return create_app()
