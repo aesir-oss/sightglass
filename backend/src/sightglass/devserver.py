@@ -28,16 +28,7 @@ def commands() -> list[tuple[str, list[str], Path | None]]:
     return [
         (
             "api",
-            [
-                python,
-                "-m",
-                "uvicorn",
-                "sightglass.api.app:create_app",
-                "--factory",
-                "--reload",
-                "--port",
-                str(API_PORT),
-            ],
+            [python, "-m", "sightglass.api", "--reload", "--port", str(API_PORT)],
             None,
         ),
         ("worker", [python, "-m", "sightglass.worker"], None),
