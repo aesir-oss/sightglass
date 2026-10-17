@@ -175,7 +175,7 @@ footer { color: var(--muted); font-size: 13px; padding-block: 0 32px; }
     <div class="tl"><svg class="timeline" id="timeline" role="img" aria-label="Timeline of orbit-client releases"></svg></div>
     <div class="legend">
       <span><i class="sw" style="background:var(--accent);border-color:var(--accent)"></i>Trusted publisher</span>
-      <span><i class="sw" style="background:var(--surface);border-color:var(--rm)"></i>API token</span>
+      <span><i class="sw" style="background:var(--surface);border-color:var(--rm)"></i>Not attested</span>
       <span><b style="font-size:10px">ATT</b> provenance attestation</span>
       <span>Faded releases have no file data in this mockup</span>
     </div>
@@ -520,7 +520,7 @@ function trustedRun(v) {
 
 function computeSignals(from, to, pf) {
   const A = REL[from], B = REL[to], s = [];
-  if (A.trusted && !B.trusted) s.push({ l: "hi", t: `Uploaded with an API token. The previous ${trustedRun(to)} releases came from the trusted publisher.` });
+  if (A.trusted && !B.trusted) s.push({ l: "hi", t: `Not from the trusted publisher that attested the previous ${trustedRun(to)} releases.` });
   if (A.attest && !B.attest) s.push({ l: "hi", t: `No provenance attestation. ${from} had one.` });
   const notTag = pf.filter(f => f.fb && f.fb.inTag === false).map(f => f.k);
   if (notTag.length) s.push({ l: "hi", t: `${notTag.map(p => "`" + p + "`").join(", ")} is in the wheel but not in the v${to} git tag.` });
@@ -580,12 +580,12 @@ function renderTimeline() {
   for (const y of [2025, 2026]) { const x = X(new Date(`${y}-01-01T00:00:00Z`)); out += `<line class="tl-tick" x1="${x}" x2="${x}" y1="${AX + 20}" y2="${AX + 30}"/><text class="tl-year" x="${x + 4}" y="${AX + 39}">${y}</text>`; }
   RELEASES.forEach((r, i) => {
     const x = X(r.date), up = i % 2 === 0, end = r.v === from || r.v === to;
-    out += `<g class="tl-g ${r.data ? "data" : "nodata"} ${end ? "end" : ""}" data-v="${r.v}" ${r.data ? 'tabindex="0" role="button"' : ""} aria-label="${r.v}, ${fmtDate(r.date)}, ${r.trusted ? "trusted publisher" : "API token"}${r.attest ? ", attestation" : ", no attestation"}">
+    out += `<g class="tl-g ${r.data ? "data" : "nodata"} ${end ? "end" : ""}" data-v="${r.v}" ${r.data ? 'tabindex="0" role="button"' : ""} aria-label="${r.v}, ${fmtDate(r.date)}, ${r.trusted ? "trusted publisher" : "not attested"}${r.attest ? ", attestation" : ", no attestation"}">
       <circle class="tl-ring" cx="${x}" cy="${AX}" r="11"/>
       <circle class="tl-dot ${r.trusted ? "trusted" : "token"}" cx="${x}" cy="${AX}" r="${end ? 7 : 5.5}"/>
       <text class="tl-lbl" x="${x}" y="${up ? AX - 20 : AX + 28}" text-anchor="middle">${r.v}</text>
       <text class="tl-att ${r.attest ? "" : "no"}" x="${x}" y="${up ? AX - 32 : AX + 40}" text-anchor="middle">${r.attest ? "ATT" : "NO ATT"}</text>
-      <title>${r.v} · ${fmtDate(r.date)} · ${r.trusted ? "trusted publisher" : "API token"}</title></g>`;
+      <title>${r.v} · ${fmtDate(r.date)} · ${r.trusted ? "trusted publisher" : "not attested"}</title></g>`;
   });
   svg.innerHTML = out;
   svg.querySelectorAll(".tl-g.data").forEach(g => {
@@ -718,7 +718,7 @@ function renderFacts() {
   const whl = F => Object.values(F).map(fsig).join("|");
   const rows = [
     ["Published", `${fmtDate(A.date)} (${ago(A.date)})`, `${fmtDate(B.date)} (${ago(B.date)})`, daysAgo(B.date) < 7],
-    ["Uploaded by", A.trusted ? "Trusted publisher: release.yml" : "API token: relay-ops", B.trusted ? "Trusted publisher: release.yml" : "API token: relay-ops", A.trusted && !B.trusted],
+    ["Published by", A.trusted ? "Trusted publisher: release.yml" : "Not attested", B.trusted ? "Trusted publisher: release.yml" : "Not attested", A.trusted && !B.trusted],
     ["Attestation", A.attest ? "Signed by the release workflow" : "None", B.attest ? "Signed by the release workflow" : "None", A.attest && !B.attest],
     ["Build tool", generator(FA), generator(FB), generator(FA).split(" ")[0] !== generator(FB).split(" ")[0]],
     ["Files", String(Object.keys(FA).length), String(Object.keys(FB).length)],
