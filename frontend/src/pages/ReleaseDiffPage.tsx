@@ -1,15 +1,16 @@
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { ApiError, artifactFromSearch } from "../api/client";
 import { usePairAnalysis, useReleaseHistory } from "../api/queries";
+import { Files } from "../release/Files";
 import { Header } from "../release/Header";
 import { Signals } from "../release/Signals";
 import { Timeline } from "../release/Timeline";
-import { pairPath } from "../release/urls";
+import { artifactLabel, pairPath } from "../release/urls";
 
 /** The release diff page for `/:ecosystem/:package/:versions`. Its sections arrive with the page issues. */
 export function ReleaseDiffPage() {
   const { ecosystem = "", package: pkg = "", versions = "" } = useParams();
-  const [search] = useSearchParams();
+  const [search, setSearch] = useSearchParams();
   const pair = usePairAnalysis(ecosystem, pkg, versions, artifactFromSearch(search));
   const history = useReleaseHistory(ecosystem, pkg);
   const data = pair.data;
@@ -71,7 +72,22 @@ export function ReleaseDiffPage() {
             </p>
           )}
         </div>
-        {data?.status === "done" && <Signals signals={data.signals} source={data.source} />}
+        {data?.status === "done" && (
+          <>
+            <Signals signals={data.signals} source={data.source} />
+            <Files
+              files={data.files}
+              artifactLabel={artifactLabel(data.artifact).toLowerCase()}
+              selected={search.get("file")}
+              onSelect={(path) => {
+                const next = new URLSearchParams(search);
+                next.set("file", path);
+                next.delete("line");
+                setSearch(next);
+              }}
+            />
+          </>
+        )}
       </main>
     </>
   );

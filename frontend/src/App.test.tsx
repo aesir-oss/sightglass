@@ -75,11 +75,31 @@ test("a finished analysis is summarized, and the artifact choice is passed to th
       },
     },
     [`${PAIR}?kind=sdist`]: {
-      body: { ...BASE, status: "done", ruleset_version: "rs-1", signals: [], files: [{}, {}] },
+      body: {
+        ...BASE,
+        status: "done",
+        ruleset_version: "rs-1",
+        signals: [],
+        files: [
+          {
+            path: "orbit/__init__.py",
+            status: "changed",
+            text: true,
+            compiled: false,
+            old_size: 10,
+            new_size: 12,
+            old_sha256: null,
+            new_sha256: null,
+            flagged: false,
+          },
+        ],
+      },
     },
   });
   const router = renderAt("/pypi/orbit-client/2.4.1...2.5.0?kind=sdist");
   expect((await screen.findByRole("region", { name: "Signals" })).textContent).toContain("No signals for this pair");
+  fireEvent.click(screen.getByRole("button", { name: /^orbit\/__init__\.py, changed/ }));
+  expect(router.state.location.search).toBe("?kind=sdist&file=orbit%2F__init__.py");
   expect(requests).toContain(`${PAIR}?kind=sdist`);
   expect(requests).toContain("/api/pypi/orbit-client/releases");
   expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("orbit-client 2.4.1 → 2.5.0");
