@@ -336,3 +336,109 @@ svg.map {
 .more {
   margin: 0 14px 14px;
 }
+
+.diffhead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: baseline;
+  padding: 0 14px 10px;
+}
+
+.diffhead .path {
+  font: 600 14px var(--mono);
+  overflow-wrap: anywhere;
+}
+
+.diffhead .cmp {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.diffhead .stat {
+  font: 12.5px var(--mono);
+  margin-left: auto;
+}
+
+.diff {
+  margin: 0 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-x: auto;
+  background: var(--bg);
+}
+
+.diff table {
+  border-collapse: collapse;
+  width: 100%;
+  font: 12.5px/1.6 var(--mono);
+}
+
+.diff td {
+  padding: 0 10px;
+  white-space: pre;
+  vertical-align: top;
+}
+
+.diff td.n {
+  color: var(--muted);
+  text-align: right;
+  width: 1%;
+  user-select: none;
+  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.diff td.m {
+  width: 1%;
+  user-select: none;
+  padding: 0 4px;
+  color: var(--muted);
+}
+
+.diff tr.a td {
+  background: var(--add-soft);
+}
+
+.diff tr.a td.m {
+  color: var(--add);
+}
+
+.diff tr.d td {
+  background: var(--rm-soft);
+}
+
+.diff tr.d td.m {
+  color: var(--rm);
+}
+
+.diff tr.hit td.c {
+  box-shadow: inset 3px 0 0 var(--rm);
+}
+
+.diff tr.target td {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.diff tr.gap td {
+  background: var(--sunk);
+  color: var(--muted);
+  font-family: var(--body);
+  padding: 3px 10px;
+}
+
+.note {
+  margin: 0 14px 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
