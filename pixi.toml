@@ -74,6 +74,13 @@ lint-rs = { cmd = "cargo clippy --workspace --all-targets -- -D warnings", cwd =
 test-rs = { cmd = "cargo test --workspace --exclude sightglass-py", cwd = "backend" }
 # The bindings crate can't link libpython under cargo test; the Python tests cover it.
 cov-rs = { cmd = "cargo llvm-cov --workspace --exclude sightglass-py --fail-under-lines 90", cwd = "backend" }
+# Fuzzing needs rustup's nightly toolchain and cargo-fuzz, outside pixi; see backend/fuzz/README.md.
+# New inputs go to backend/fuzz/work (ignored); corpus/ is the committed seed set.
+fuzz-zip = { cmd = "bash run.sh unpack_zip {{ seconds }}", cwd = "backend/fuzz", args = [{ arg = "seconds", default = "60" }] }
+fuzz-tar = { cmd = "bash run.sh unpack_tar {{ seconds }}", cwd = "backend/fuzz", args = [{ arg = "seconds", default = "60" }] }
+fuzz-tar-gz = { cmd = "bash run.sh unpack_tar_gz {{ seconds }}", cwd = "backend/fuzz", args = [{ arg = "seconds", default = "60" }] }
+fuzz = { depends-on = ["fuzz-zip", "fuzz-tar", "fuzz-tar-gz"] }
+fuzz-seeds = { cmd = "bash run.sh seeds", cwd = "backend/fuzz" }
 install-web = { cmd = "pnpm install --frozen-lockfile", cwd = "frontend" }
 dev-web = { cmd = "pnpm run dev", cwd = "frontend", depends-on = ["install-web"] }
 fmt-web = { cmd = "pnpm run fmt", cwd = "frontend", depends-on = ["install-web"] }

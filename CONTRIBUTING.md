@@ -43,6 +43,13 @@ dependencies go through pnpm inside `frontend/`, which only resolves versions at
    commit-msg hook checks it. Don't use `--no-verify`.
 7. Open a pull request against `main` that says what changed and how you verified it, and links the issue.
 
+## Fuzzing
+
+The archive unpacker is fuzzed with cargo-fuzz, which needs nightly Rust from rustup; it's the only tool outside pixi
+and never part of `pixi run ci`. Setup, tasks (`pixi run fuzz`) and what to do with a crash are in
+[backend/fuzz/README.md](backend/fuzz/README.md). A crash input becomes a file in `backend/fuzz/regressions/`, which
+the normal test suite replays.
+
 ## Code style
 
 - Python: PEP 8 at 120 columns, full type hints (mypy strict), Google-style docstrings, `X | Y` and `list[X]` syntax.

@@ -1,0 +1,50 @@
+[package]
+name = "sightglass-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+license = "Apache-2.0"
+
+[package.metadata]
+cargo-fuzz = true
+
+# Separate from the main workspace: it builds only with nightly Rust through cargo-fuzz.
+[workspace]
+members = ["."]
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+sightglass-core = { path = "../crates/sightglass-core" }
+zip = { version = "7.3.0", default-features = false, features = ["deflate-flate2"] }
+tar = { version = "0.4.46", default-features = false }
+flate2 = { version = "1.1.10", default-features = false, features = ["rust_backend"] }
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "make-seeds"
+path = "src/bin/make_seeds.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "unpack_zip"
+path = "fuzz_targets/unpack_zip.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "unpack_tar"
+path = "fuzz_targets/unpack_tar.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "unpack_tar_gz"
+path = "fuzz_targets/unpack_tar_gz.rs"
+test = false
+doc = false
+bench = false
