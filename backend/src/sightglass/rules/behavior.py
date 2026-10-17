@@ -42,7 +42,7 @@ def _span(r: range) -> str:
     return str(r.start) if len(r) == 1 else f"{r.start}-{r[-1]}"
 
 
-@RULES.rule("behavior.import_time_code", 2, "New code that runs at import time in __init__.py")
+@RULES.rule("behavior.import_time_code", 3, "New code that runs at import time in __init__.py")
 def import_time_code(analysis: PairAnalysis) -> list[Signal]:
     """Report added module-level statements in ``__init__.py`` files that call something when the package is imported.
 

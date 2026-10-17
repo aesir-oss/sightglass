@@ -17,9 +17,13 @@ _DEFERRED = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)
 
 
 def parse(text: str, path: str) -> ast.Module | None:
-    """Parse Python source, or return None (and log why) when it can't be parsed."""
+    """Parse Python source, or return None (and log why) when it can't be parsed.
+
+    A leading UTF-8 byte-order mark, which Python accepts in source files but not in a string given to the parser, is
+    dropped first.
+    """
     try:
-        return ast.parse(text, filename=path)
+        return ast.parse(text.removeprefix("\ufeff"), filename=path)
     except (SyntaxError, ValueError, RecursionError, MemoryError) as exc:
         log.warning("python_parse_failed", path=path, error=type(exc).__name__)
         return None

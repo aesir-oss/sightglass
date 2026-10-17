@@ -63,7 +63,7 @@ def _hook_level(analysis: PairAnalysis, pair: FilePair) -> Level:
     return "high" if pair.status == "added" or patterns.risky_added(analysis, pair) else "check"
 
 
-@RULES.rule("hooks.setup_py", 2, "New or changed setup.py in the sdist")
+@RULES.rule("hooks.setup_py", 3, "New or changed setup.py in the sdist")
 def setup_py(analysis: PairAnalysis) -> list[Signal]:
     """Report a new ``setup.py``, or a changed one whose code (not just its literal values) changed."""
     pair = _pair(analysis, "setup.py")
@@ -106,7 +106,7 @@ def _backend_files(build_system: dict[str, Any]) -> list[str]:
     return out
 
 
-@RULES.rule("hooks.build_backend", 2, "New or changed in-tree build backend")
+@RULES.rule("hooks.build_backend", 3, "New or changed in-tree build backend")
 def build_backend(analysis: PairAnalysis) -> list[Signal]:
     """Report an in-tree build backend that is new, moved, or whose code changed."""
     new = _build_system(analysis, "new")
