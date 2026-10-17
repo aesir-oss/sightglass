@@ -53,3 +53,30 @@ def test_unknown_level_raises() -> None:
     """An unknown level name is rejected with the valid names in the message."""
     with pytest.raises(ValueError, match="expected one of debug"):
         configure_logging("verbose")
+
+
+def test_library_stdlib_records_are_structured() -> None:
+    """Records from libraries that use stdlib logging come out as the same JSON, with their extras."""
+    import logging
+
+    stream = io.StringIO()
+    configure_logging("info", stream=stream)
+    library = logging.getLogger("procrastinate.worker")
+    library.debug("hidden")
+    library.warning("Job failed", extra={"action": "job_error", "job_id": 7})
+
+    [record] = [json.loads(line) for line in stream.getvalue().splitlines()]
+    assert (record["event"], record["level"], record["logger"]) == ("Job failed", "warning", "procrastinate.worker")
+    assert (record["action"], record["job_id"]) == ("job_error", 7)
+    assert record["timestamp"].endswith("Z")
+
+
+def test_loggers_created_before_configuration_follow_it() -> None:
+    """Module-level loggers are created at import, before configure_logging; they still use its renderer."""
+    early = get_logger("sightglass.early")
+    stream = io.StringIO()
+    configure_logging(stream=stream)
+    early.info("ready", step=1)
+    record = json.loads(stream.getvalue())
+    assert (record["event"], record["logger"], record["step"]) == ("ready", "sightglass.early", 1)
+    assert "_sightglass_logger" not in record

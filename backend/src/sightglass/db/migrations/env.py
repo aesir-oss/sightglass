@@ -3,6 +3,7 @@
 from alembic import context
 
 from sightglass.db.engine import make_engine
+from sightglass.db.migrations import include_object
 from sightglass.db.models import Base
 
 
@@ -11,7 +12,12 @@ def run_migrations_online() -> None:
     url = context.config.get_main_option("sqlalchemy.url")
     engine = make_engine(url)
     with engine.connect() as connection:
-        context.configure(connection=connection, target_metadata=Base.metadata, compare_server_default=True)
+        context.configure(
+            connection=connection,
+            target_metadata=Base.metadata,
+            compare_server_default=True,
+            include_object=include_object,
+        )
         with context.begin_transaction():
             context.run_migrations()
     engine.dispose()

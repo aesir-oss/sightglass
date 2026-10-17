@@ -19,4 +19,4 @@ repos:
       - id: mypy
         args: [--config-file=backend/pyproject.toml]
         files: ^backend/src/
-        additional_dependencies: [structlog, fastapi, sqlalchemy, alembic, psycopg, httpx, cryptography, packaging]
+        additional_dependencies: [structlog, fastapi, sqlalchemy, alembic, psycopg, httpx, cryptography, packaging, procrastinate==3.10.0]
