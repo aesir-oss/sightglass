@@ -100,6 +100,10 @@ class PairAnalysis:
     # Line diffs of package files that differ from the source, by package path: old is the source, new the package.
     source_diffs: dict[str, _core.FileDiff] = field(default_factory=dict)
     sdist: SourceComparison | None = None
+    # Paths in the new release's sdist with its top-level directory removed; None when there is no sdist.
+    sdist_files: frozenset[str] | None = None
+    # When the analysis ran, for rules about how recent a release is.
+    analyzed_at: datetime | None = None
     # Releases before `old` with what is known about them, oldest first.
     history: tuple[ReleaseFacts, ...] = ()
 

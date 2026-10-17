@@ -51,6 +51,8 @@ def test_wheels_pair_and_check_against_sdist(tmp_path: Path) -> None:
         "orbit/__init__.py": ("changed", True),
         "orbit/_fast.so": ("same", False),
     }
+    fast = pairs["orbit/_fast.so"].new
+    assert fast is not None and fast.compiled
 
     source = strip_top_level(indexed(src))
     link = next(f for f in source if f.path == "LICENSE")
