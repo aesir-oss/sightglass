@@ -202,8 +202,12 @@ flowchart LR
   server-sent events.
 - **Workers.** Python processes that run analysis jobs: fetch, unpack, diff, run signal rules, store results. Unpacking,
   hashing, file typing and line diffs run in the Rust core (`sightglass._core`). No job runs package code.
-- **Job queue.** Postgres-backed (for example procrastinate) so the first deployment needs only Postgres and a blob
-  store, not Redis.
+- **Job queue.** [procrastinate](https://procrastinate.readthedocs.io/) on the application database, so the first
+  deployment needs only Postgres and a blob store, not Redis. One job per release pair: a queueing lock deduplicates
+  requests for a pair already queued, and a lock on the same key keeps two workers off one pair. Transient failures
+  (an index or GitHub down) retry with exponential backoff; worker heartbeats let jobs from a crashed worker be
+  requeued. Chosen over a hand-written `SKIP LOCKED` table for the heartbeats, LISTEN/NOTIFY pickup and periodic
+  jobs it already has.
 - **Postgres.** Packages, releases, artifacts, file indexes, analyses, signals, pull request reviews and decisions.
 - **Blob store.** Unpacked file contents keyed by sha256. Local disk at first; S3-compatible storage later.
 
@@ -308,7 +312,7 @@ Sightglass processes hostile input by design, so the workers are the main attack
 |---|---|---|
 | Environment and tasks | pixi | One environment for Python, Rust and Node, conda-forge first |
 | Backend | Python 3.14 only, FastAPI, structlog | Fast to build; the analysis libraries are in Python. A hosted service fixes its own runtime, so there's no version matrix |
-| Jobs | Postgres-backed queue | One fewer service to run |
+| Jobs | procrastinate on Postgres | One fewer service to run; crashed-worker recovery and periodic jobs built in |
 | Database | Postgres | Relational data with JSON evidence columns |
 | Lockfile parsing | py-rattler for `pixi.lock`; small parsers for others | Reuse pixi's own parser |
 | Frontend | React, Vite and TypeScript, built with Node from conda-forge and pnpm | Node as a build tool only |

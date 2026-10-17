@@ -158,6 +158,7 @@ def test_archive_kept_in_work_dir_and_limits_apply(github: GitHubClient, tmp_pat
     )
     assert isinstance(kept, SourceSnapshot)
     assert (tmp_path / f"kestrel-weather-orbit-client-{COMMIT}.tar.gz").read_bytes() == SOURCE
+    assert kept.archive == tmp_path / f"kestrel-weather-orbit-client-{COMMIT}.tar.gz"
 
     limited = fetch_source(
         github,
@@ -211,3 +212,14 @@ def test_archive_without_top_level_directory_keeps_paths(github: GitHubClient) -
     result = fetch_source(github, project="orbit-client", version="2.5.0", repository=ORBIT, attested_commit=COMMIT)
     assert isinstance(result, SourceSnapshot)
     assert (result.prefix, sorted(result.relative_path(e) for e in result.entries)) == ("", ["a.py", "pkg/b.py"])
+
+
+@pytest.mark.integration
+@respx.mock
+def test_archive_already_downloaded_is_reused(github: GitHubClient, tmp_path: Path) -> None:
+    """A commit's archive in the work directory is used without another request."""
+    route = respx.get(ARCHIVE_URL).respond(200, content=SOURCE)
+    first = github.download_archive(ORBIT, COMMIT, tmp_path)
+    second = github.download_archive(ORBIT, COMMIT, tmp_path)
+    assert route.call_count == 1
+    assert (second.path, second.sha256, second.size) == (first.path, hashlib.sha256(SOURCE).hexdigest(), len(SOURCE))

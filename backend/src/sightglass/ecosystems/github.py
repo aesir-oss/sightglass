@@ -10,6 +10,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from sightglass import _core
 from sightglass.ecosystems.http import Fetcher, HttpError
 from sightglass.log import get_logger
 
@@ -120,7 +121,7 @@ class GitHubClient:
     def download_archive(
         self, repo: Repository, commit: str, dest_dir: Path, max_size: int = DEFAULT_MAX_ARCHIVE_SIZE
     ) -> SourceArchive:
-        """Download the ``.tar.gz`` archive of one commit into ``dest_dir``.
+        """Download the ``.tar.gz`` archive of one commit into ``dest_dir``, reusing one already there.
 
         Args:
             repo: The repository.
@@ -138,6 +139,12 @@ class GitHubClient:
         """
         if not _COMMIT_RE.match(commit):
             raise ValueError(f"not a full commit SHA: {commit!r}")
+        dest = dest_dir / f"{repo.owner}-{repo.name}-{commit}.tar.gz"
+        if dest.is_file():
+            # A commit's archive never changes, and it is only renamed into place once complete.
+            digest, existing = _core.hash_file(dest)
+            log.debug("github_archive_reused", repository=repo.slug, commit=commit)
+            return SourceArchive(dest, digest, existing)
         url = f"https://codeload.github.com/{repo.slug}/tar.gz/{commit}"
         fd, tmp_name = tempfile.mkstemp(dir=dest_dir, prefix=".source-")
         tmp_path = Path(tmp_name)
@@ -151,7 +158,6 @@ class GitHubClient:
                         raise ArchiveTooLargeError(f"{repo.slug}@{commit} archive exceeds {max_size} bytes")
                     hasher.update(chunk)
                     out.write(chunk)
-            dest = dest_dir / f"{repo.owner}-{repo.name}-{commit}.tar.gz"
             os.replace(tmp_path, dest)
         finally:
             tmp_path.unlink(missing_ok=True)

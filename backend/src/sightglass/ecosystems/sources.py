@@ -156,6 +156,8 @@ class SourceSnapshot:
     archive_sha256: str
     entries: tuple[_core.ArchiveEntry, ...] = field(repr=False)
     prefix: str = ""
+    # The downloaded archive, when it was kept in a work directory.
+    archive: Path | None = None
 
     def relative_path(self, entry: _core.ArchiveEntry) -> str:
         """An entry's path with the archive's top-level ``<repo>-<commit>/`` directory removed."""
@@ -249,6 +251,7 @@ def fetch_source(
         archive_sha256=archive.sha256,
         entries=tuple(entries),
         prefix=_common_prefix(entries),
+        archive=archive.path if work_dir else None,
     )
 
 

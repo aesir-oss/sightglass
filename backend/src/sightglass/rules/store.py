@@ -65,3 +65,26 @@ def save_analysis(session: Session, from_id: int, to_id: int, ruleset_version: s
     )
     session.flush()
     return analysis_id
+
+
+def fail_analysis(session: Session, from_id: int, to_id: int, ruleset_version: str, reason: str) -> int:
+    """Record that analyzing a pair failed for a reason that retrying won't fix; returns the analysis id."""
+    stmt = (
+        insert(models.Analysis)
+        .values(
+            from_artifact_id=from_id,
+            to_artifact_id=to_id,
+            ruleset_version=ruleset_version,
+            status="failed",
+            error=reason,
+            finished_at=func.now(),
+        )
+        .on_conflict_do_update(
+            index_elements=["from_artifact_id", "to_artifact_id", "ruleset_version"],
+            set_={"status": "failed", "error": reason, "finished_at": func.now()},
+        )
+        .returning(models.Analysis.id)
+    )
+    analysis_id = int(session.execute(stmt).scalar_one())
+    session.execute(delete(models.Signal).where(models.Signal.analysis_id == analysis_id))
+    return analysis_id

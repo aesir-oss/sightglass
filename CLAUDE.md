@@ -20,6 +20,10 @@ Scaffolding. These exist: the root pixi workspace, the Python backend in `backen
   (`pixi run db-revision -m "..."` against a scratch database, then review it). The integration tests fail if the
   migrations and models drift. They start their own Postgres from conda-forge over TCP, since macOS temp paths are
   too long for its Unix socket.
+- The job queue's schema is procrastinate's own, vendored at 3.10.0 in `sightglass/db/migrations/sql/` and applied by
+  revision 0003. Upgrading procrastinate needs a new revision that runs its `procrastinate/sql/migrations/` files for
+  the versions in between. procrastinate is a PyPI dependency until it is on conda-forge.
+- `pixi run worker` processes analysis jobs (`SIGHTGLASS_DATABASE_URL`; downloads cached in `SIGHTGLASS_CACHE_DIR`).
 - After changing an API route or model, run `pixi run gen-api-types` and commit `frontend/src/api/`. CI's
   `check-api-types` fails when the committed schema or types are stale.
 - Frontend tasks run with `cwd = "frontend"` through pnpm, with Node from pixi.

@@ -127,7 +127,8 @@ def _wheels(release: PypiRelease) -> list[_Wheel]:
     return out
 
 
-def _sdist(release: PypiRelease) -> PypiFile | None:
+def preferred_sdist(release: PypiRelease) -> PypiFile | None:
+    """The release's sdist to analyze: the ``.tar.gz`` one when there are several."""
     sdists = [f for f in release.files if f.kind == "sdist"]
     return min(sdists, key=lambda f: (not f.filename.endswith(".tar.gz"), f.filename), default=None)
 
@@ -163,7 +164,7 @@ def select_artifacts(old: PypiRelease, new: PypiRelease) -> Selection:
     Returns:
         The sdist pair, every wheel pair best first, and the files of each release that are in no pair.
     """
-    old_sdist, new_sdist = _sdist(old), _sdist(new)
+    old_sdist, new_sdist = preferred_sdist(old), preferred_sdist(new)
     sdist = ArtifactPair("sdist", old_sdist, new_sdist) if old_sdist and new_sdist else None
     wheels = tuple(_wheel_pairs(_wheels(old), _wheels(new)))
     paired_old = {p.old.filename for p in (*wheels, *([sdist] if sdist else []))}
