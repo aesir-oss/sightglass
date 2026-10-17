@@ -1,5 +1,7 @@
 """Storing rule results: one analysis per artifact pair and rule-set version, with its signals."""
 
+from typing import Any
+
 from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
@@ -23,7 +25,14 @@ def current_analysis(session: Session, from_id: int, to_id: int, ruleset_version
     )
 
 
-def save_analysis(session: Session, from_id: int, to_id: int, ruleset_version: str, signals: list[Signal]) -> int:
+def save_analysis(
+    session: Session,
+    from_id: int,
+    to_id: int,
+    ruleset_version: str,
+    signals: list[Signal],
+    report: dict[str, Any] | None = None,
+) -> int:
     """Store a finished analysis and its signals, replacing any earlier result for the same key.
 
     Args:
@@ -32,6 +41,7 @@ def save_analysis(session: Session, from_id: int, to_id: int, ruleset_version: s
         to_id: The later artifact.
         ruleset_version: :attr:`RuleSet.version` of the rules that ran.
         signals: What the rules reported.
+        report: File pairs, source check and facts for the page.
 
     Returns:
         The analysis id.
@@ -44,10 +54,11 @@ def save_analysis(session: Session, from_id: int, to_id: int, ruleset_version: s
             ruleset_version=ruleset_version,
             status="done",
             finished_at=func.now(),
+            report=report,
         )
         .on_conflict_do_update(
             index_elements=["from_artifact_id", "to_artifact_id", "ruleset_version"],
-            set_={"status": "done", "error": None, "finished_at": func.now()},
+            set_={"status": "done", "error": None, "finished_at": func.now(), "report": report},
         )
         .returning(models.Analysis.id)
     )
@@ -81,7 +92,7 @@ def fail_analysis(session: Session, from_id: int, to_id: int, ruleset_version: s
         )
         .on_conflict_do_update(
             index_elements=["from_artifact_id", "to_artifact_id", "ruleset_version"],
-            set_={"status": "failed", "error": reason, "finished_at": func.now()},
+            set_={"status": "failed", "error": reason, "finished_at": func.now(), "report": None},
         )
         .returning(models.Analysis.id)
     )

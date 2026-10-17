@@ -41,10 +41,85 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/{ecosystem}/{package}/{versions}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Pair Analysis
+     * @description The analysis of one artifact pair of two releases; ``202`` while it is queued or running.
+     */
+    get: operations["getPairAnalysis"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /**
+     * ArtifactRef
+     * @description One artifact pair the page can show.
+     */
+    ArtifactRef: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "sdist" | "wheel";
+      /**
+       * Match
+       * @enum {string}
+       */
+      match: "same_tag" | "platform_changed";
+      /** New Filename */
+      new_filename: string;
+      /** Old Filename */
+      old_filename: string;
+    };
+    /**
+     * Facts
+     * @description Release facts before and after.
+     */
+    Facts: {
+      new: components["schemas"]["ReleaseFacts"];
+      old: components["schemas"]["ReleaseFacts"];
+    };
+    /**
+     * FileEntry
+     * @description One path across the two artifacts.
+     */
+    FileEntry: {
+      /** Compiled */
+      compiled: boolean;
+      /** Flagged */
+      flagged: boolean;
+      /** New Sha256 */
+      new_sha256: string | null;
+      /** New Size */
+      new_size: number | null;
+      /** Old Sha256 */
+      old_sha256: string | null;
+      /** Old Size */
+      old_size: number | null;
+      /** Path */
+      path: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "added" | "removed" | "changed" | "same";
+      /** Text */
+      text: boolean;
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -64,6 +139,73 @@ export interface components {
       version: string;
     };
     /**
+     * PairAnalysis
+     * @description A finished (or failed) analysis of one artifact pair.
+     */
+    PairAnalysis: {
+      /** Alternatives */
+      alternatives: components["schemas"]["ArtifactRef"][];
+      artifact: components["schemas"]["ArtifactRef"];
+      /**
+       * Ecosystem
+       * @constant
+       */
+      ecosystem: "pypi";
+      /** Error */
+      error?: string | null;
+      facts?: components["schemas"]["Facts"] | null;
+      /**
+       * Files
+       * @default []
+       */
+      files: components["schemas"]["FileEntry"][];
+      /** From Version */
+      from_version: string;
+      /** Package */
+      package: string;
+      /** Ruleset Version */
+      ruleset_version: string;
+      sdist?: components["schemas"]["SdistCheck"] | null;
+      /**
+       * Signals
+       * @default []
+       */
+      signals: components["schemas"]["SignalOut"][];
+      source?: components["schemas"]["SourceCheck"] | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "done" | "failed";
+      /** To Version */
+      to_version: string;
+    };
+    /**
+     * PairPending
+     * @description The analysis is queued or running; poll again after ``Retry-After`` seconds.
+     */
+    PairPending: {
+      /** Alternatives */
+      alternatives: components["schemas"]["ArtifactRef"][];
+      artifact: components["schemas"]["ArtifactRef"];
+      /**
+       * Ecosystem
+       * @constant
+       */
+      ecosystem: "pypi";
+      /** From Version */
+      from_version: string;
+      /** Package */
+      package: string;
+      /**
+       * Status
+       * @constant
+       */
+      status: "pending";
+      /** To Version */
+      to_version: string;
+    };
+    /**
      * Publisher
      * @description Who published a release, from its attestation.
      */
@@ -76,6 +218,32 @@ export interface components {
       repository: string | null;
       /** Workflow */
       workflow: string | null;
+    };
+    /**
+     * ReleaseFacts
+     * @description One side of the before-and-after table.
+     */
+    ReleaseFacts: {
+      /** Artifact Sha256 */
+      artifact_sha256: string;
+      /**
+       * Attestation
+       * @enum {string}
+       */
+      attestation: "present" | "absent" | "unknown";
+      /** Build Tool */
+      build_tool: string | null;
+      /** File Count */
+      file_count: number;
+      /** Published At */
+      published_at: string | null;
+      publisher: components["schemas"]["Publisher"] | null;
+      /** Requires Dist */
+      requires_dist: string[] | null;
+      /** Total Size */
+      total_size: number;
+      /** Version */
+      version: string;
     };
     /**
      * ReleaseHistory
@@ -111,6 +279,91 @@ export interface components {
       version: string;
       /** Yanked */
       yanked: boolean;
+    };
+    /**
+     * SdistCheck
+     * @description The wheel compared with the release's sdist.
+     */
+    SdistCheck: {
+      /** Excluded */
+      excluded: string[];
+      /** Files */
+      files: components["schemas"]["SourceFile"][];
+      /** Root */
+      root: string;
+    };
+    /**
+     * SignalOut
+     * @description A signal with its evidence items.
+     */
+    SignalOut: {
+      /** Evidence */
+      evidence: {
+        [key: string]: unknown;
+      }[];
+      /**
+       * Level
+       * @enum {string}
+       */
+      level: "high" | "check" | "note" | "clean";
+      /** Message */
+      message: string;
+      /** Rule Id */
+      rule_id: string;
+    };
+    /**
+     * SourceCheck
+     * @description The source check: compared with a tag or commit, couldn't compare, or unknown.
+     */
+    SourceCheck: {
+      /** Commit */
+      commit?: string | null;
+      /** Detail */
+      detail?: string | null;
+      /**
+       * Excluded
+       * @default []
+       */
+      excluded: string[];
+      /**
+       * Files
+       * @default []
+       */
+      files: components["schemas"]["SourceFile"][];
+      /** Label */
+      label?: string | null;
+      /** Origin */
+      origin?: ("attestation" | "tag") | null;
+      /** Reason */
+      reason?: string | null;
+      /** Ref */
+      ref?: string | null;
+      /** Repository */
+      repository?: string | null;
+      /** Root */
+      root?: string | null;
+      /**
+       * State
+       * @enum {string}
+       */
+      state: "compared" | "could_not_compare" | "unknown";
+    };
+    /**
+     * SourceFile
+     * @description Where a package file was found in the source.
+     */
+    SourceFile: {
+      /** Path */
+      path: string;
+      /** Source Path */
+      source_path: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "matches" | "differs" | "missing";
+      /** Text */
+      text: boolean;
     };
     /** ValidationError */
     ValidationError: {
@@ -178,6 +431,70 @@ export interface operations {
         };
       };
       /** @description Unknown ecosystem or package */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description The index is unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getPairAnalysis: {
+    parameters: {
+      query?: {
+        /** @description Which artifact kind to show */
+        kind?: ("wheel" | "sdist") | null;
+        /** @description The new release's wheel to compare, from `alternatives` */
+        wheel?: string | null;
+      };
+      header?: never;
+      path: {
+        /** @description Package ecosystem; only pypi for now */
+        ecosystem: string;
+        /** @description Package name, in any spelling */
+        package: string;
+        /** @description `<from>...<to>`, or one version to compare with its predecessor */
+        versions: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PairAnalysis"] | components["schemas"]["PairPending"];
+        };
+      };
+      /** @description Queued or running; poll again after Retry-After seconds */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PairPending"];
+        };
+      };
+      /** @description Unknown ecosystem, package, version or artifact */
       404: {
         headers: {
           [name: string]: unknown;

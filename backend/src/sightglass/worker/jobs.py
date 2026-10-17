@@ -46,19 +46,31 @@ def make_app(url: str | None = None) -> procrastinate.App:
     return app
 
 
-def pair_key(ecosystem: str, package: str, from_version: str, to_version: str) -> str:
-    """The lock key for a release pair, with the package name normalized."""
-    return f"{ecosystem}:{normalize_name(ecosystem, package)}:{from_version}...{to_version}"
+def pair_key(ecosystem: str, package: str, from_version: str, to_version: str, wheel: str | None = None) -> str:
+    """The lock key for a release pair (and a chosen wheel), with the package name normalized."""
+    key = f"{ecosystem}:{normalize_name(ecosystem, package)}:{from_version}...{to_version}"
+    return f"{key}:{wheel}" if wheel else key
 
 
 def enqueue_analysis(
-    app: procrastinate.App, ecosystem: str, package: str, from_version: str, to_version: str
+    app: procrastinate.App,
+    ecosystem: str,
+    package: str,
+    from_version: str,
+    to_version: str,
+    wheel: str | None = None,
 ) -> int | None:
-    """Queue an analysis of a release pair; returns the job id, or None when the pair is already queued."""
-    key = pair_key(ecosystem, package, from_version, to_version)
+    """Queue an analysis of a release pair; returns the job id, or None when the pair is already queued.
+
+    With ``wheel``, only that wheel pair is analyzed instead of the default sdist and wheel pairs.
+    """
+    key = pair_key(ecosystem, package, from_version, to_version, wheel)
     deferrer = app.configure_task(TASK, lock=key, queueing_lock=key)
+    kwargs = {"ecosystem": ecosystem, "package": package, "from_version": from_version, "to_version": to_version}
+    if wheel:
+        kwargs["wheel"] = wheel
     try:
-        job_id = deferrer.defer(ecosystem=ecosystem, package=package, from_version=from_version, to_version=to_version)
+        job_id = deferrer.defer(**kwargs)
     except AlreadyEnqueued:
         log.info("analysis_already_queued", key=key)
         return None
@@ -77,7 +89,12 @@ def _engine() -> Engine:
 
 
 def analyze_pair(
-    context: procrastinate.JobContext, ecosystem: str, package: str, from_version: str, to_version: str
+    context: procrastinate.JobContext,
+    ecosystem: str,
+    package: str,
+    from_version: str,
+    to_version: str,
+    wheel: str | None = None,
 ) -> None:
     """Run the pipeline for a release pair; a pair that can't be analyzed at all fails without retrying."""
     if ecosystem != "pypi":
@@ -86,7 +103,9 @@ def analyze_pair(
     final = job.attempts >= MAX_ATTEMPTS
     with Session(_engine()) as session:
         try:
-            results = analyze_release_pair(session, _services(), package, from_version, to_version, final_attempt=final)
+            results = analyze_release_pair(
+                session, _services(), package, from_version, to_version, final_attempt=final, wheel=wheel
+            )
         except PipelineError as exc:
             log.error("analysis_impossible", reason=exc.reason, error=str(exc), job_id=job.id)
             raise

@@ -70,7 +70,7 @@ def test_worker_runs_the_pipeline(app: tuple[procrastinate.App, InMemoryConnecto
     application, connector, calls = app
     jobs.enqueue_analysis(application, "pypi", "orbit-client", "2.4.1", "2.5.0")
     application.run_worker(wait=False)
-    assert calls == [{"package": "orbit-client", "from": "2.4.1", "to": "2.5.0", "final_attempt": False}]
+    assert calls == [{"package": "orbit-client", "from": "2.4.1", "to": "2.5.0", "final_attempt": False, "wheel": None}]
     assert [j["status"] for j in connector.jobs.values()] == ["succeeded"]
 
 
@@ -120,3 +120,16 @@ def test_worker_entry_point(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(entry, "configure_logging", lambda: ran.append("logging"))
     entry.main()
     assert ran == ["logging", "worker"]
+
+
+def test_a_chosen_wheel_is_its_own_job(app: tuple[procrastinate.App, InMemoryConnector, list[Any]]) -> None:
+    """Picking a wheel queues a separate job, keyed by it, that analyzes only that wheel."""
+    application, connector, calls = app
+    jobs.enqueue_analysis(application, "pypi", "orbit-client", "2.4.1", "2.5.0")
+    chosen = jobs.enqueue_analysis(
+        application, "pypi", "orbit-client", "2.4.1", "2.5.0", "orbit_client-2.5.0-cp314.whl"
+    )
+    assert chosen is not None and len(connector.jobs) == 2
+    assert jobs.pair_key("pypi", "orbit-client", "2.4.1", "2.5.0", "x.whl") == "pypi:orbit-client:2.4.1...2.5.0:x.whl"
+    application.run_worker(wait=False)
+    assert sorted(str(c["wheel"]) for c in calls) == ["None", "orbit_client-2.5.0-cp314.whl"]

@@ -16,3 +16,25 @@ def test_index_is_shared_and_session_is_per_request(monkeypatch: pytest.MonkeyPa
     assert all(isinstance(s, Session) and s.get_bind() is engine for s in sessions)
     assert sessions[0] is not sessions[1]
     engine.dispose()
+
+
+def test_enqueue_opens_the_queue_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Queued analyses go through one procrastinate app per process, opened on first use."""
+    opened: list[object] = []
+    queued: list[tuple[object, ...]] = []
+
+    class FakeApp:
+        def open(self) -> None:
+            opened.append(self)
+
+    monkeypatch.setattr(deps, "make_app", FakeApp)
+    monkeypatch.setattr(deps, "enqueue_analysis", lambda app, *args: queued.append((app, *args)) or 3)
+    deps._queue.cache_clear()
+    enqueue = deps.get_enqueue()
+    assert enqueue("pypi", "orbit-client", "1.0", "1.1", None) == 3
+    assert enqueue("pypi", "orbit-client", "1.1", "1.2", "x.whl") == 3
+    assert len(opened) == 1 and [q[1:] for q in queued] == [
+        ("pypi", "orbit-client", "1.0", "1.1", None),
+        ("pypi", "orbit-client", "1.1", "1.2", "x.whl"),
+    ]
+    deps._queue.cache_clear()

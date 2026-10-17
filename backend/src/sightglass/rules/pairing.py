@@ -35,6 +35,7 @@ class IndexedFile:
     text: bool
     link_target: str | None = None
     compiled: bool = False
+    size: int = 0
 
     @classmethod
     def from_entry(cls, entry: _core.ArchiveEntry, prefix: str = "") -> IndexedFile:
@@ -46,6 +47,7 @@ class IndexedFile:
             category in _TEXT_CATEGORIES,
             entry.link_target,
             category == "compiled",
+            entry.size,
         )
 
     def same_content(self, other: IndexedFile) -> bool:
