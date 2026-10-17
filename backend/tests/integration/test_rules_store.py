@@ -44,7 +44,7 @@ def test_saved_analysis_is_current_only_for_its_ruleset(db_session: Session) -> 
     old, new = artifact_pair(db_session)
     assert current_analysis(db_session, old, new, "rs-1") is None
 
-    analysis_id = save_analysis(db_session, old, new, "rs-1", SIGNALS)
+    analysis_id = save_analysis(db_session, old, new, "rs-1", SIGNALS, {"version": 1})
 
     found = current_analysis(db_session, old, new, "rs-1")
     assert found is not None and found.id == analysis_id and found.finished_at is not None
@@ -89,3 +89,13 @@ def test_steps_are_recorded_until_done(db_session: Session) -> None:
     mark_step(db_session, old, new, "rs-2", "source")
     failed = db_session.scalars(select(Analysis).where(Analysis.ruleset_version == "rs-2")).one()
     assert (failed.status, failed.step, failed.error) == ("running", "source", None)
+
+
+@pytest.mark.integration
+def test_analysis_without_a_report_is_stale(db_session: Session) -> None:
+    """An analysis stored before reports existed isn't current, so the pipeline recomputes it."""
+    old, new = artifact_pair(db_session)
+    save_analysis(db_session, old, new, "rs-1", SIGNALS)
+    assert current_analysis(db_session, old, new, "rs-1") is None
+    save_analysis(db_session, old, new, "rs-1", SIGNALS, {"version": 1})
+    assert current_analysis(db_session, old, new, "rs-1") is not None

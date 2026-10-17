@@ -248,3 +248,15 @@ def test_retry_a_failed_analysis(world: tuple[TestClient, list[Any], dict[str, i
     db_session.refresh(row)
     assert (row.status, row.error) == ("pending", None)
     assert client.get("/api/pypi/orbit-client/2.4.1...2.5.0").status_code == 202
+
+
+@pytest.mark.integration
+def test_an_analysis_without_a_report_is_queued_again(
+    world: tuple[TestClient, list[Any], dict[str, int]], db_session: Session
+) -> None:
+    """A done analysis stored before reports existed is treated as missing: the pair is queued."""
+    client, queued, ids = world
+    save_analysis(db_session, ids[WHEEL_OLD], ids[WHEEL_NEW], RULES.version, [])
+    db_session.commit()
+    assert client.get("/api/pypi/orbit-client/2.4.1...2.5.0").status_code == 202
+    assert queued == [("pypi", "orbit-client", "2.4.1", "2.5.0", None)]

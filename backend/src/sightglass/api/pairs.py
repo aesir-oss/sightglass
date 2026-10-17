@@ -10,7 +10,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from sightglass.api.deps import Enqueue, Index, get_enqueue, get_index, get_session
@@ -238,6 +238,8 @@ def find_analysis(
             models.Analysis.to_artifact_id == ids[pair.new.filename],
             models.Analysis.ruleset_version == RULES.version,
             models.Analysis.status.in_(statuses),
+            # A done analysis from before reports existed is recomputed, like one that is missing.
+            or_(models.Analysis.status != "done", models.Analysis.report.is_not(None)),
         )
     )
 
