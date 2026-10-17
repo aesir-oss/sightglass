@@ -39,3 +39,9 @@ backend/src/sightglass/*.pyd
 
 # Frontend
 frontend/coverage/
+
+# Fuzzing (backend/fuzz): build output, working corpora and crash artifacts
+backend/fuzz/target/
+backend/fuzz/work/
+backend/fuzz/artifacts/
+backend/fuzz/coverage/

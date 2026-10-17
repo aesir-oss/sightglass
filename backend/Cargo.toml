@@ -1,6 +1,8 @@
 [workspace]
 resolver = "3"
 members = ["crates/sightglass-core", "crates/sightglass-py"]
+# The fuzz crate needs nightly Rust and has its own workspace; see fuzz/README.md.
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.1.0"

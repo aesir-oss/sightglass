@@ -484,6 +484,30 @@ fn unreadable_and_unsupported_archives() {
 }
 
 #[test]
+fn index_reader_from_memory_with_or_without_format() {
+    let wheel = zip_of(&[("orbit/__init__.py", b"x = 1\n")]);
+    let len = wheel.len() as u64;
+    let detected = index_reader(Cursor::new(&wheel), len, None, &Limits::default()).unwrap();
+    let forced = index_reader(
+        Cursor::new(&wheel),
+        len,
+        Some(Format::Zip),
+        &Limits::default(),
+    )
+    .unwrap();
+    assert_eq!(detected, forced);
+    let wrong = index_reader(
+        Cursor::new(&wheel),
+        len,
+        Some(Format::Tar),
+        &Limits::default(),
+    );
+    assert!(wrong.is_err());
+    let junk = index_reader(Cursor::new(b"junk"), 4, None, &Limits::default()).unwrap_err();
+    assert!(matches!(junk, Error::Unsupported(_)));
+}
+
+#[test]
 fn path_rules() {
     assert_eq!(safe_path(b"./pkg//mod.py").unwrap(), "pkg/mod.py");
     assert!(matches!(

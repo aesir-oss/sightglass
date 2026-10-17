@@ -255,22 +255,50 @@ pub fn extract(archive: &Path, dest: &Path, limits: &Limits) -> Result<Vec<Entry
     result
 }
 
+/// Index an archive from any seekable reader, such as bytes in memory.
+///
+/// `len` is the archive's size, used for the compression-ratio limit. `format` skips detection when the caller
+/// already knows the container format.
+///
+/// # Errors
+///
+/// Returns an [`Error`] for unreadable, unsupported or refused archives.
+pub fn index_reader<R: Read + Seek>(
+    reader: R,
+    len: u64,
+    format: Option<Format>,
+    limits: &Limits,
+) -> Result<Vec<Entry>> {
+    walk_reader(reader, len, format, None, limits)
+}
+
 fn walk(archive: &Path, dest: Option<&Path>, limits: &Limits) -> Result<Vec<Entry>> {
-    let mut file = File::open(archive)?;
-    let compressed_len = file.metadata()?.len();
-    let mut head = Vec::with_capacity(512);
-    (&mut file).take(512).read_to_end(&mut head)?;
-    file.rewind()?;
-    let mut state = State::new(limits, compressed_len, dest);
-    match detect(&head) {
-        Some(Format::Zip) => walk_zip(BufReader::new(file), &mut state)?,
-        Some(Format::TarGz) => walk_tar(GzDecoder::new(BufReader::new(file)), &mut state)?,
-        Some(Format::Tar) => walk_tar(BufReader::new(file), &mut state)?,
-        None => {
-            return Err(Error::Unsupported(
-                "not a zip, tar or gzip archive".to_owned(),
-            ));
-        }
+    let file = File::open(archive)?;
+    let len = file.metadata()?.len();
+    walk_reader(BufReader::new(file), len, None, dest, limits)
+}
+
+fn walk_reader<R: Read + Seek>(
+    mut reader: R,
+    len: u64,
+    format: Option<Format>,
+    dest: Option<&Path>,
+    limits: &Limits,
+) -> Result<Vec<Entry>> {
+    let format = if let Some(f) = format {
+        f
+    } else {
+        let mut head = Vec::with_capacity(512);
+        (&mut reader).take(512).read_to_end(&mut head)?;
+        reader.rewind()?;
+        detect(&head)
+            .ok_or_else(|| Error::Unsupported("not a zip, tar or gzip archive".to_owned()))?
+    };
+    let mut state = State::new(limits, len, dest);
+    match format {
+        Format::Zip => walk_zip(reader, &mut state)?,
+        Format::TarGz => walk_tar(GzDecoder::new(reader), &mut state)?,
+        Format::Tar => walk_tar(reader, &mut state)?,
     }
     Ok(state.entries)
 }
