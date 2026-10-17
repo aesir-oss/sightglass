@@ -13,7 +13,8 @@ from sightglass.rules.base import Signal
 def current_analysis(session: Session, from_id: int, to_id: int, ruleset_version: str) -> models.Analysis | None:
     """Return the finished analysis of a pair under ``ruleset_version``, or None if it must be (re)computed.
 
-    Analyses under other rule-set versions are stale and are never returned.
+    Analyses under other rule-set versions are stale and are never returned, and so are analyses stored before
+    reports existed, which the page can't show.
     """
     return session.scalar(
         select(models.Analysis).where(
@@ -21,6 +22,7 @@ def current_analysis(session: Session, from_id: int, to_id: int, ruleset_version
             models.Analysis.to_artifact_id == to_id,
             models.Analysis.ruleset_version == ruleset_version,
             models.Analysis.status == "done",
+            models.Analysis.report.is_not(None),
         )
     )
 

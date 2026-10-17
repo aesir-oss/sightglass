@@ -230,7 +230,8 @@ class Analysis(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     finished_at: Mapped[datetime | None]
     # What the page shows besides signals: file pairs, the source check and release facts (sightglass.worker.report).
-    report: Mapped[dict[str, Any] | None]
+    # SQL NULL when there is no report (not JSON null), so queries can tell.
+    report: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
     # The pipeline step a running analysis is on (sightglass.worker.pipeline.STEPS), for the pending page.
     step: Mapped[str | None] = mapped_column(Text)
 
