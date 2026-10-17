@@ -105,7 +105,7 @@ def not_in_tag(analysis: PairAnalysis) -> list[Signal]:
     return signals
 
 
-@RULES.rule("source.differs_from_tag", 5, "A package file differs from the same path in the git tag")
+@RULES.rule("source.differs_from_tag", 6, "A package file differs from the same path in the git tag")
 def differs_from_tag(analysis: PairAnalysis) -> list[Signal]:
     """Report the package's text files whose content differs from the source, with the lines only the package has."""
     where = analysis.source_label or "the source"

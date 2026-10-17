@@ -207,3 +207,24 @@ def test_outside_package_with_the_wheel_known() -> None:
 def test_build_source(path: str, expected: bool) -> None:
     """Compiled sources and build scripts are build sources; ordinary Python isn't."""
     assert build_source(path) is expected
+
+
+SETUP = 'from setuptools import setup\n\nsetup(\n    name="orbit-client",\n    version="1.9.1",\n    url="https://example.net",\n)\n'
+
+
+@pytest.mark.parametrize(
+    ("package", "expected"),
+    [
+        (SETUP.replace("1.9.1", "1.9.2"), True),
+        (
+            SETUP.replace("from setuptools import setup", "from distutils.core import setup").replace("1.9.1", "2.0"),
+            False,
+        ),
+        (SETUP.replace("example.net", "collect.example.org"), False),
+        (SETUP.replace('version="1.9.1"', "version=get_version()"), False),
+        (SETUP.replace("setup(", "configure(").replace("1.9.1", "1.9.2"), False),
+    ],
+)
+def test_setup_version_argument_is_a_version_value(package: str, expected: bool) -> None:
+    """Only the literal version= argument of setup() may differ; other arguments and other calls may not."""
+    assert same_code(package, SETUP, "setup.py") is expected

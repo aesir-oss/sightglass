@@ -195,14 +195,31 @@ VERSION_NAMES = frozenset(
 )  # fmt: skip
 
 
+def _literal(value: ast.expr) -> bool:
+    """Whether an expression is only literal values: strings, numbers, and tuples or lists of them."""
+    return all(
+        isinstance(n, ast.Constant | ast.Tuple | ast.List | ast.UnaryOp)
+        for n in ast.walk(value)
+        if not isinstance(n, ast.expr_context | ast.unaryop)
+    )
+
+
+# Calls whose ``version=`` argument is the package's version: setuptools' and distutils' ``setup()``.
+_SETUP_CALLS = frozenset({"setup", "setuptools.setup", "distutils.core.setup"})
+
+
 def _without_version_values(tree: ast.Module) -> str:
+    names = pyast.aliases(tree)
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign | ast.AnnAssign):
             targets = node.targets if isinstance(node, ast.Assign) else [node.target]
             if node.value is not None and all(isinstance(t, ast.Name) and t.id in VERSION_NAMES for t in targets):
-                if all(isinstance(n, ast.Constant | ast.Tuple | ast.List | ast.UnaryOp) for n in ast.walk(node.value)
-                       if not isinstance(n, ast.expr_context | ast.unaryop)):  # fmt: skip
+                if _literal(node.value):
                     node.value = ast.Constant(None)
+        elif isinstance(node, ast.Call) and pyast.qualified_name(node.func, names) in _SETUP_CALLS:
+            for keyword in node.keywords:
+                if keyword.arg == "version" and _literal(keyword.value):
+                    keyword.value = ast.Constant(None)
     return ast.dump(tree)
 
 
