@@ -258,15 +258,15 @@ def _rule(rule_id: str, what: str) -> Callable[[PairAnalysis], list[Signal]]:
 
 
 SUMMARY = "{}; high when the previous release made no such call, check when it did, note outside the installed package"
-network_calls = RULES.rule("behavior.network", 2, SUMMARY.format("New network calls in added lines"))(
+network_calls = RULES.rule("behavior.network", 3, SUMMARY.format("New network calls in added lines"))(
     _rule("behavior.network", "network calls")
 )
-subprocess_calls = RULES.rule("behavior.subprocess", 2, SUMMARY.format("New subprocess or shell calls in added lines"))(
+subprocess_calls = RULES.rule("behavior.subprocess", 3, SUMMARY.format("New subprocess or shell calls in added lines"))(
     _rule("behavior.subprocess", "process calls")
 )
-dynamic_exec = RULES.rule("behavior.dynamic_exec", 2, SUMMARY.format("New exec, eval or compile calls in added lines"))(
+dynamic_exec = RULES.rule("behavior.dynamic_exec", 3, SUMMARY.format("New exec, eval or compile calls in added lines"))(
     _rule("behavior.dynamic_exec", "dynamic code execution")
 )
 encoded_payloads = RULES.rule(
-    "behavior.encoded_payload", 2, SUMMARY.format("New decoding calls or encoded blobs in added lines")
+    "behavior.encoded_payload", 3, SUMMARY.format("New decoding calls or encoded blobs in added lines")
 )(_rule("behavior.encoded_payload", "decoding or encoded data"))
