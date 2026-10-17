@@ -28,6 +28,7 @@
     "d3-scale": "^4.0.2",
     "openapi-fetch": "^0.17.0",
     "react": "^19.3.0",
+    "react-aria-components": "^1.22.1",
     "react-dom": "^19.3.0",
     "react-router": "^8.4.0"
   },
