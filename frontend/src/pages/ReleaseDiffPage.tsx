@@ -5,6 +5,7 @@ import { DiffViewer } from "../release/DiffViewer";
 import { Files, sortFiles } from "../release/Files";
 import { Header } from "../release/Header";
 import { Signals } from "../release/Signals";
+import { SourceCheck } from "../release/SourceCheck";
 import { Timeline } from "../release/Timeline";
 import { artifactLabel, pairPath } from "../release/urls";
 
@@ -104,6 +105,17 @@ export function ReleaseDiffPage() {
                 const next = new URLSearchParams(search);
                 if (base === "source") next.set("base", "source");
                 else next.delete("base");
+                setSearch(next);
+              }}
+            />
+            <SourceCheck
+              source={data.source}
+              sdist={data.sdist}
+              onSelect={(path) => {
+                const next = new URLSearchParams(search);
+                next.set("file", path);
+                next.delete("line");
+                next.set("base", "source");
                 setSearch(next);
               }}
             />

@@ -109,6 +109,9 @@ test("a finished analysis is summarized, and the artifact choice is passed to th
   expect(router.state.location.search).toBe("?kind=sdist&file=orbit%2F__init__.py&base=source");
   fireEvent.click(screen.getByRole("button", { name: "Previous release" }));
   expect(router.state.location.search).toBe("?kind=sdist&file=orbit%2F__init__.py");
+  fireEvent.click(screen.getByText("1 matching files"));
+  fireEvent.click(screen.getByRole("button", { name: /^matchesorbit\/__init__\.py/ }));
+  expect(router.state.location.search).toBe("?kind=sdist&file=orbit%2F__init__.py&base=source");
   expect(requests).toContain(`${PAIR}?kind=sdist`);
   expect(requests).toContain("/api/pypi/orbit-client/releases");
   expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("orbit-client 2.4.1 → 2.5.0");
