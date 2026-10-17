@@ -22,6 +22,12 @@ Scaffolding. These exist: the root pixi workspace, the Python backend in `backen
 
 | Path | What it is |
 |---|---|
+| `pixi.toml` | The one workspace: Python, Rust and Node from conda-forge, and every task |
+| `backend/src/sightglass/` | Python backend: `api/`, `worker/`, `rules/`, `ecosystems/`, `lockfiles/` |
+| `backend/crates/sightglass-core/` | Pure Rust: unpacking, hashing, file typing, line diffs |
+| `backend/crates/sightglass-py/` | PyO3 bindings, built by maturin as `sightglass._core` |
+| `backend/tests/` | `unit/` and `integration/` |
+| `frontend/` | React, Vite and TypeScript, managed with pnpm |
 | `docs/design.md` | The design: goals, signals, architecture, data model, phases, risks, open questions |
 | `docs/background.md` | Why this project was chosen over the other ideas |
 | `docs/naming.md` | Why the name, and every name that was considered |
@@ -37,7 +43,7 @@ Scaffolding. These exist: the root pixi workspace, the Python backend in `backen
 - `frontend/pnpm-workspace.yaml` sets `minimumReleaseAge` to 7 days. `pnpm add` picks the newest version that old, and an
   explicit range whose floor is newer fails to resolve. Don't add packages to `minimumReleaseAgeExclude` to get around it.
 - Dependency install scripts are blocked (`onlyBuiltDependencies: []`). Allow one only with a reason in the PR.
-
+- No AI or LLM features. The maintainer decided against them (2026-10-16).
 - Mockup data must stay invented. Never put fabricated findings about a real package, person or organization in a
   mockup, a test fixture or the docs.
 - `.claude/memory/` is committed and public. Nothing private or about the maintainer's employer goes in it.
