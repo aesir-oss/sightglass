@@ -18,7 +18,9 @@ def recent(analysis: PairAnalysis) -> list[Signal]:
   in [design.md](design.md#signals). Ids are permanent: stored signals and links refer to them.
 - Bump `version` whenever what a rule reports changes: when it fires, its level, its message or its evidence.
   Refactors that don't change any output keep the version.
-- The rule-set version (`RULES.version`) is a hash of every id and version. Analyses are stored under it, so a bump,
+- A rule that reads versioned data passes `data_version`, such as the date of the top-packages list
+  (`pixi run refresh-top-packages`). It is part of the rule-set version, so refreshing the data recomputes analyses.
+- The rule-set version (`RULES.version`) is a hash of every id, version and data version. Analyses are stored under it, so a bump,
   a new rule or a removed rule makes stored analyses stale, and they are recomputed.
 
 ## Unknown is not a finding
