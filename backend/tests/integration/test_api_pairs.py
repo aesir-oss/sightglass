@@ -200,7 +200,9 @@ def test_failed_analysis_and_errors(world: tuple[TestClient, list[Any], dict[str
     client, _, ids = world
     fail_analysis(db_session, ids[WHEEL_OLD], ids[WHEEL_NEW], RULES.version, "ArtifactIntegrityError: sha256 mismatch")
     db_session.commit()
-    failed = client.get("/api/pypi/orbit-client/2.4.1...2.5.0").json()
+    response = client.get("/api/pypi/orbit-client/2.4.1...2.5.0")
+    assert response.headers["cache-control"] == "no-store"
+    failed = response.json()
     assert (failed["status"], failed["error"]) == ("failed", "ArtifactIntegrityError: sha256 mismatch")
 
     assert client.get("/api/pypi/orbit-client/2.4.1...9.9.9").status_code == 404

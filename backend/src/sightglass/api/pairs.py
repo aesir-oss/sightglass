@@ -299,7 +299,8 @@ def get_pair_analysis(
     }
     row = find_analysis(session, project, pair)
     if row is not None:
-        response.headers["Cache-Control"] = "public, max-age=300"
+        # A done analysis never changes under its rule set; a failed one can be retried, so it isn't cached.
+        response.headers["Cache-Control"] = "public, max-age=300" if row.status == "done" else "no-store"
         return _result(session, row, {**base, "ruleset_version": RULES.version})
     return _queue(session, project, old, new, pair, base, enqueue, response)
 
