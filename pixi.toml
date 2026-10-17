@@ -11,6 +11,8 @@ structlog = ">=26.1.0,<27"
 # Build the Rust extension from the environment, not an isolated build env.
 rust = ">=1.99.0,<2"
 maturin = ">=1.15.0,<2"
+# `maturin develop` checks for pip even with --skip-install (fails on Linux CI without it); nothing installs with it.
+pip = ">=26.2.1,<27"
 # Node is a build tool for frontend/ only.
 nodejs = "24.*"
 pnpm = ">=12.4.1,<13"
