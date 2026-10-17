@@ -6,8 +6,7 @@ platforms = ["osx-arm64", "linux-64"]
 version = "0.1.0"
 
 [dependencies]
-# Each environment pins its own Python through a pyXYZ feature.
-python = ">=3.12"
+python = "3.14.*"
 structlog = ">=26.1.0,<27"
 # Build the Rust extension from the environment, not an isolated build env.
 rust = ">=1.99.0,<2"
@@ -21,15 +20,6 @@ sightglass = { path = "./backend", editable = true }
 
 [pypi-options]
 no-build-isolation = ["sightglass"]
-
-[feature.py312.dependencies]
-python = "3.12.*"
-
-[feature.py313.dependencies]
-python = "3.13.*"
-
-[feature.py314.dependencies]
-python = "3.14.*"
 
 [feature.test.dependencies]
 pytest = ">=9.1.1,<10"
@@ -51,10 +41,7 @@ git-cliff = ">=2.14.2,<3"
 act = ">=0.2.89,<0.3"
 
 [environments]
-default = ["py314", "test", "lint", "build", "dev"]
-# CI matrix floors; same checks as default, without the release tooling.
-py312 = ["py312", "test", "lint", "build"]
-py313 = ["py313", "test", "lint", "build"]
+default = ["test", "lint", "build", "dev"]
 
 [tasks]
 bootstrap = "pre-commit install --hook-type pre-commit --hook-type commit-msg"

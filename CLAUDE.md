@@ -12,7 +12,10 @@ Scaffolding. These exist: the root pixi workspace, the Python backend in `backen
 
 - Python tasks run with `cwd = "backend"`; pre-commit points ruff and mypy at `backend/pyproject.toml`.
 - After a Rust change, `pixi run develop` rebuilds `sightglass._core`; the Python test tasks run it first.
-- pixi environments `py312` and `py313` exist for the CI matrix; `default` is 3.14. Actions are pinned to commit SHAs.
+- Python 3.14 only, an exception to the global 3.12–3.14 matrix: Sightglass is a hosted service and its container image
+  fixes the runtime. mypy targets 3.14 and the extension is `abi3-py314`. A CLI published to PyPI (#76) would bring
+  back a matrix for that package only.
+- GitHub Actions are pinned to commit SHAs.
 - Frontend tasks run with `cwd = "frontend"` through pnpm, with Node from pixi.
 
 ## Layout
