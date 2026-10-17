@@ -24,6 +24,20 @@ export function ReleaseDiffPage() {
     search.get("file") ??
     (data?.status === "done" ? (sortFiles(data.files).find((f) => f.status !== "same")?.path ?? null) : null);
 
+  function update(change: (params: URLSearchParams) => void) {
+    const next = new URLSearchParams(search);
+    change(next);
+    setSearch(next);
+  }
+
+  function selectFile(path: string, base?: "source") {
+    update((params) => {
+      params.set("file", path);
+      params.delete("line");
+      if (base) params.set("base", base);
+    });
+  }
+
   return (
     <>
       {data ? (
@@ -40,90 +54,91 @@ export function ReleaseDiffPage() {
         <header className="top">
           <div className="wrap">
             <h1>
-              {pkg} <span>{versions.replace("...", " → ")}</span>
+              {pkg} <span className="vs">{versions.replace("...", " → ")}</span>
             </h1>
           </div>
         </header>
       )}
-      {data && history.data && (
-        <Timeline
-          pkg={data.package}
-          releases={history.data.releases}
-          from={data.from_version}
-          to={data.to_version}
-          onCompare={(from, to) => {
-            // Wheel files differ between versions, so only an sdist choice carries over.
-            const query = data.artifact.kind === "sdist" ? "?kind=sdist" : "";
-            void navigate(pairPath(ecosystem, data.package, from, to, query));
-          }}
-        />
-      )}
-      <main>
-        <div className="wrap">
-          {pair.isPending && <p role="status">Loading…</p>}
-          {pair.isError && (
-            <p className="notice" data-tone="warn" role="alert">
-              {pair.error instanceof ApiError && pair.error.status === 404
-                ? pair.error.message
-                : "Sightglass couldn't load this comparison. Try again shortly."}
-            </p>
-          )}
-          {data?.status === "pending" && <Progress pending={data} />}
-          {data?.status === "failed" && (
-            <Failed
-              ecosystem={ecosystem}
-              pkg={data.package}
-              versions={`${data.from_version}...${data.to_version}`}
-              artifact={artifactFromSearch(search)}
-              error={data.error}
-            />
-          )}
-        </div>
-        {data?.status === "done" && (
-          <>
-            <Signals signals={data.signals} source={data.source} />
-            <Files
-              files={data.files}
-              artifactLabel={artifactLabel(data.artifact).toLowerCase()}
-              selected={selectedFile}
-              onSelect={(path) => {
-                const next = new URLSearchParams(search);
-                next.set("file", path);
-                next.delete("line");
-                setSearch(next);
-              }}
-            />
-            <DiffViewer
-              ecosystem={ecosystem}
-              pkg={data.package}
-              versions={`${data.from_version}...${data.to_version}`}
-              artifact={artifactFromSearch(search)}
-              file={selectedFile}
-              line={Number(search.get("line")) || null}
-              base={search.get("base") === "source" ? "source" : "previous"}
-              inSource={data.source?.files.some((f) => f.path === selectedFile && f.source_path) ?? false}
-              onBase={(base) => {
-                const next = new URLSearchParams(search);
-                if (base === "source") next.set("base", "source");
-                else next.delete("base");
-                setSearch(next);
-              }}
-            />
+      <div className="wrap stack">
+        {data && history.data && (
+          <Timeline
+            pkg={data.package}
+            releases={history.data.releases}
+            from={data.from_version}
+            to={data.to_version}
+            onCompare={(from, to) => {
+              // Wheel files differ between versions, so only an sdist choice carries over.
+              const query = data.artifact.kind === "sdist" ? "?kind=sdist" : "";
+              void navigate(pairPath(ecosystem, data.package, from, to, query));
+            }}
+          />
+        )}
+        {pair.isPending && (
+          <p className="notice" role="status">
+            Loading…
+          </p>
+        )}
+        {pair.isError && (
+          <p className="notice" data-tone="warn" role="alert">
+            {pair.error instanceof ApiError && pair.error.status === 404
+              ? pair.error.message
+              : "Sightglass couldn't load this comparison. Try again shortly."}
+          </p>
+        )}
+        {data?.status === "pending" && <Progress pending={data} />}
+        {data?.status === "failed" && (
+          <Failed
+            ecosystem={ecosystem}
+            pkg={data.package}
+            versions={`${data.from_version}...${data.to_version}`}
+            artifact={artifactFromSearch(search)}
+            error={data.error}
+          />
+        )}
+        {data?.status === "done" && <Signals signals={data.signals} source={data.source} />}
+      </div>
+      {data?.status === "done" && (
+        <main className="wrap grid">
+          <Files
+            files={data.files}
+            artifactLabel={artifactLabel(data.artifact).toLowerCase()}
+            selected={selectedFile}
+            onSelect={(path) => {
+              selectFile(path);
+            }}
+          />
+          <DiffViewer
+            ecosystem={ecosystem}
+            pkg={data.package}
+            versions={`${data.from_version}...${data.to_version}`}
+            artifact={artifactFromSearch(search)}
+            file={selectedFile}
+            line={Number(search.get("line")) || null}
+            base={search.get("base") === "source" ? "source" : "previous"}
+            inSource={data.source?.files.some((f) => f.path === selectedFile && f.source_path) ?? false}
+            onBase={(base) => {
+              update((params) => {
+                if (base === "source") params.set("base", "source");
+                else params.delete("base");
+              });
+            }}
+          />
+          <div className="full twocol">
             <SourceCheck
               source={data.source}
               sdist={data.sdist}
               onSelect={(path) => {
-                const next = new URLSearchParams(search);
-                next.set("file", path);
-                next.delete("line");
-                next.set("base", "source");
-                setSearch(next);
+                selectFile(path, "source");
               }}
             />
             <ReleaseFacts facts={data.facts} />
-          </>
-        )}
-      </main>
+          </div>
+        </main>
+      )}
+      <footer className="wrap">
+        Sightglass compares the files people install from the index with the previous release and with the
+        project&apos;s source. It reads files and metadata only and never runs package code.
+      </footer>
     </>
   );
 }

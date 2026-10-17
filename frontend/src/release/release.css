@@ -9,7 +9,6 @@ header.top {
   border: 1px solid var(--line);
   border-radius: 10px;
   min-width: 0;
-  margin-top: 14px;
 }
 
 .panel > h2 {
@@ -570,4 +569,287 @@ details.more-files {
 .steps li[data-state="current"] {
   color: var(--ink);
   font-weight: 600;
+}
+
+/* Header */
+header.top .wrap {
+  padding-block: 18px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.titlerow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+}
+
+.titlerow h1,
+header.top h1 {
+  font: 700 clamp(22px, 2.6vw, 30px) / 1.15 var(--display);
+  margin: 0;
+  letter-spacing: -0.01em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+}
+
+h1 .vs {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 0.72em;
+  color: var(--muted);
+}
+
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.permalink {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.permalink .url {
+  font: 13px var(--mono);
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: min(46ch, 100%);
+  user-select: all;
+}
+
+.permalink [role="status"] {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.artifact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  font-size: 13.5px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* React Aria pickers */
+.picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.picker > div {
+  display: inline-flex;
+}
+
+.picker .react-aria-Input {
+  border: 1px solid var(--line);
+  border-right: 0;
+  background: var(--surface);
+  border-radius: 6px 0 0 6px;
+  padding: 4px 8px;
+  font: 13.5px var(--mono);
+  width: 11ch;
+  color: var(--ink);
+}
+
+.picker .react-aria-Input[data-focused] {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.picker .react-aria-Button,
+.artifact .react-aria-Button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 0 6px 6px 0;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.artifact .react-aria-Button {
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: 13.5px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.artifact .react-aria-Button::after {
+  content: "▾";
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.react-aria-Button[data-hovered] {
+  border-color: var(--accent);
+}
+
+.react-aria-Button[data-focus-visible] {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.react-aria-Popover {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
+  overflow: auto;
+  max-height: min(320px, 60vh);
+  min-width: var(--trigger-width);
+}
+
+.react-aria-ListBox {
+  padding: 4px;
+  outline: none;
+}
+
+.react-aria-ListBoxItem {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font: 13.5px var(--mono);
+  cursor: pointer;
+  outline: none;
+}
+
+.react-aria-Popover[data-trigger="Select"] .react-aria-ListBoxItem {
+  font-family: var(--body);
+}
+
+.react-aria-ListBoxItem[data-focused] {
+  background: var(--sunk);
+}
+
+.react-aria-ListBoxItem[data-selected] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Page layout */
+.stack {
+  display: grid;
+  gap: 14px;
+  padding-block: 14px 0;
+}
+
+main.grid {
+  display: grid;
+  gap: 14px;
+  padding-block: 14px 24px;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: start;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.twocol {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  main.grid,
+  .twocol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.stack .panel,
+main.grid .panel {
+  margin-top: 0;
+}
+
+/* List and source status colors */
+.flist .s[data-status="added"] {
+  color: var(--add);
+}
+
+.flist .s[data-status="removed"] {
+  color: var(--rm);
+}
+
+.flist .s[data-status="changed"] {
+  color: var(--up);
+}
+
+.diffhead .stat .a {
+  color: var(--add);
+}
+
+.diffhead .stat .r {
+  color: var(--rm);
+}
+
+.maplegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 0 14px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.maplegend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  vertical-align: -2px;
+  margin-right: 5px;
+}
+
+@media (max-width: 620px) {
+  .permalink {
+    margin-left: 0;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .permalink .url {
+    flex: 1 1 0;
+    max-width: none;
+  }
+
+  .permalink [role="status"]:empty {
+    display: none;
+  }
 }

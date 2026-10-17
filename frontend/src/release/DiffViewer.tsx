@@ -98,62 +98,60 @@ export function DiffViewer(props: DiffViewerProps) {
   const diff = query.data;
 
   return (
-    <section className="wrap" aria-label="Diff">
-      <div className="panel">
-        <h2>
-          <span className="grow">Diff</span>
-          <span className="seg" role="group" aria-label="Compare against">
-            <button
-              type="button"
-              aria-pressed={effectiveBase === "previous"}
-              onClick={() => {
-                onBase("previous");
-              }}
-            >
-              Previous release
-            </button>
-            <button
-              type="button"
-              aria-pressed={effectiveBase === "source"}
-              disabled={!inSource}
-              title={inSource ? undefined : "This file has no counterpart in the source"}
-              onClick={() => {
-                onBase("source");
-              }}
-            >
-              Source
-            </button>
-          </span>
-        </h2>
-        {file === null && <p className="note">Select a file in the map or list to see its diff.</p>}
-        {query.isLoading && (
-          <p className="note" role="status">
-            Loading the diff…
-          </p>
-        )}
-        {query.isError && (
-          <p className="note" role="alert">
-            {query.error instanceof ApiError ? query.error.message : "The diff couldn't be loaded."}
-          </p>
-        )}
-        {diff && (
-          <>
-            <div className="diffhead">
-              <span className="path">{diff.path}</span>
-              <span className="cmp">
-                compared with {diff.base === "source" ? diff.base_label : `release ${diff.base_label}`}
-                {diff.old_path && diff.old_path !== diff.path ? ` (${diff.old_path})` : ""}
+    <section className="panel" aria-label="Diff">
+      <h2>
+        <span className="grow">Diff</span>
+        <span className="seg" role="group" aria-label="Compare against">
+          <button
+            type="button"
+            aria-pressed={effectiveBase === "previous"}
+            onClick={() => {
+              onBase("previous");
+            }}
+          >
+            Previous release
+          </button>
+          <button
+            type="button"
+            aria-pressed={effectiveBase === "source"}
+            disabled={!inSource}
+            title={inSource ? undefined : "This file has no counterpart in the source"}
+            onClick={() => {
+              onBase("source");
+            }}
+          >
+            Source
+          </button>
+        </span>
+      </h2>
+      {file === null && <p className="note">Select a file in the map or list to see its diff.</p>}
+      {query.isLoading && (
+        <p className="note" role="status">
+          Loading the diff…
+        </p>
+      )}
+      {query.isError && (
+        <p className="note" role="alert">
+          {query.error instanceof ApiError ? query.error.message : "The diff couldn't be loaded."}
+        </p>
+      )}
+      {diff && (
+        <>
+          <div className="diffhead">
+            <span className="path">{diff.path}</span>
+            <span className="cmp">
+              compared with {diff.base === "source" ? diff.base_label : `release ${diff.base_label}`}
+              {diff.old_path && diff.old_path !== diff.path ? ` (${diff.old_path})` : ""}
+            </span>
+            {diff.diff === "shown" && (
+              <span className="stat" aria-label={`${String(diff.added)} added, ${String(diff.removed)} removed`}>
+                <span className="a">+{diff.added}</span> <span className="r">−{diff.removed}</span>
               </span>
-              {diff.diff === "shown" && (
-                <span className="stat">
-                  +{diff.added} −{diff.removed}
-                </span>
-              )}
-            </div>
-            {diff.diff === "shown" ? <DiffTable diff={diff} line={line} /> : <MetadataNote diff={diff} />}
-          </>
-        )}
-      </div>
+            )}
+          </div>
+          {diff.diff === "shown" ? <DiffTable diff={diff} line={line} /> : <MetadataNote diff={diff} />}
+        </>
+      )}
     </section>
   );
 }

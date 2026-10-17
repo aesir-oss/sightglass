@@ -82,3 +82,13 @@ test("a history with no dates draws no marks", () => {
   render(<Timeline pkg="x" releases={[releases[3] as ReleaseSummary]} from="2.6.0" to="2.6.0" onCompare={vi.fn()} />);
   expect(screen.queryAllByRole("button")).toEqual([]);
 });
+
+test("on a narrow screen the chart scrolls to the newer release of the pair", () => {
+  const scrollWidth = vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(760);
+  const clientWidth = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(320);
+  renderTimeline();
+  const tl = document.querySelector<HTMLDivElement>(".tl");
+  expect(tl?.scrollLeft).toBeGreaterThan(0);
+  scrollWidth.mockRestore();
+  clientWidth.mockRestore();
+});

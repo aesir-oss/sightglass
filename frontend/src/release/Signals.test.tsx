@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, expect, test } from "vitest";
 import type { SignalOut, SourceCheck } from "../api/types";
-import { fileHref, Signals } from "./Signals";
+import { evidenceValue, fileHref, Signals } from "./Signals";
 import { MessageText } from "./text";
 
 afterEach(cleanup);
@@ -100,4 +100,10 @@ test("file links replace an earlier line; message text is never HTML", () => {
   render(<MessageText text="calls `<img src=x>` and an unclosed `tick" />);
   expect(document.querySelector("img")).toBeNull();
   expect(screen.getByText("<img src=x>", { selector: "code" })).toBeTruthy();
+});
+
+test("timestamps in evidence show as dates", () => {
+  expect(evidenceValue("2020-06-25T19:09:43.103653+00:00")).toBe("2020-06-25");
+  expect(evidenceValue("2022-12-01T18:51:00Z")).toBe("2022-12-01");
+  expect(evidenceValue("release.yml")).toBe("release.yml");
 });
