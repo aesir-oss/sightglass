@@ -415,6 +415,23 @@ def _sdist_check(
     return check_source(wheel.files, sdist.files), frozenset(f.path for f in sdist.files)
 
 
+def _sdist_installed(run: _Run, sdist: _Unpacked) -> frozenset[str] | None:
+    """The new sdist's paths that the release's default wheel installs or its build runs; None without a wheel."""
+    pair = select_artifacts(run.old, run.new).wheel
+    if pair is None:
+        return None
+    try:
+        wheel = run.unpacked(pair.new)
+    except UnavailableError:
+        raise
+    except (HttpError, _core.ArchiveError, OSError) as exc:
+        log.warning("wheel_unavailable", filename=pair.new.filename, error=f"{type(exc).__name__}: {exc}")
+        return None
+    paths = {f.path for f in sdist.files}
+    found = {c.source_path for c in check_source(wheel.files, sdist.files).files if c.source_path is not None}
+    return scope.sdist_shipped(paths, found, lambda path: _decode(sdist.read(path)))
+
+
 def _signals(session: Session, analysis_id: int) -> tuple[dict[str, Any], ...]:
     rows = session.scalars(
         select(models.Signal).where(models.Signal.analysis_id == analysis_id).order_by(models.Signal.id)
@@ -467,6 +484,7 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
         sdist_check: SourceComparison | None = None
         old_sdist_check: SourceComparison | None = None
         sdist_files: frozenset[str] | None = frozenset(f.path for f in new.files)
+        installed = _sdist_installed(run, new) if pair.kind == "sdist" else None
         if pair.kind == "wheel":
             sdist_check, sdist_files = _sdist_check(run, run.new, new)
             if _mismatched(sdist_check):
@@ -491,6 +509,7 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
             history=run.history(pair.kind),
             analyzed_at=run.now,
             kind=pair.kind,
+            installed=installed,
             old_capabilities=run.capabilities(pair.old, pair.kind),
         )
         step("rules")
