@@ -10,7 +10,9 @@ lockfile.
 Status: design. No code yet.
 
 - [Design](docs/design.md)
-- Mockups (open the HTML files in a browser):
+- [Background](docs/background.md): why this project, and the ideas it was chosen over
+- [Naming](docs/naming.md)
+- [Mockups](docs/mockups/README.md) (open the HTML files in a browser):
   - [Release diff page](docs/mockups/release-diff.html), phase 1
   - [Pull request review page](docs/mockups/lockfile-lens.html), phase 2
 
