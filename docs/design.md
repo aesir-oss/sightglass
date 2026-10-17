@@ -6,7 +6,7 @@ Status: draft, 2026-10-16; stack and layout decided 2026-10-17. The project is s
 
 Sightglass shows what a package release actually ships. It compares the files people install from a package index
 with the previous release and with the project's git tag, and reports the differences that matter for supply chain
-security: a new uploader, a dropped attestation, files that aren't in the source, new code that runs on import.
+security: a different publisher, a dropped attestation, files that aren't in the source, new code that runs on import.
 
 It is a hosted web service with two parts:
 
@@ -133,6 +133,11 @@ Each signal has a level: **high** (look before merging), **check** (worth a glan
 | Provenance | Attestation present in the previous release, missing in this one | high | PyPI Integrity API (PEP 740) |
 | Provenance | Attestation's publisher identity changed (different repository or workflow) | high | Attestation contents |
 | Publisher | Not published through the trusted publisher that published recent releases | high | Attestation publisher, where available |
+| Provenance | Some files in the release are attested and others aren't | check | Simple API `provenance` per file |
+| Provenance | Built on a self-hosted runner where earlier releases used hosted runners | check | Certificate runner environment |
+| Provenance | Built from a pull request ref | check | Certificate source ref |
+| Provenance | Deployment environment removed from the publisher | check | Attestation publisher |
+| Provenance | Deployment environment added, or build trigger changed | note | Attestation publisher, certificate build trigger |
 | Source match | A package file in the wheel isn't in the git tag | high | Wheel contents vs. tag archive |
 | Source match | A package file differs from the same path in the git tag | high | Line diff |
 | Source match | The wheel contains a file the sdist doesn't | high | Wheel vs. sdist |
@@ -205,10 +210,12 @@ flowchart LR
 2. **Fetch.** Download each artifact once, verify its hash against the index, and record its size.
 3. **Unpack.** Extract into a file index, with each file's path, size, sha256 and type. Store each unique file
    content in the blob store once.
-4. **Fetch the source.** Find the repository from the project URLs, find the tag (`v{version}`, `{version}`, or a
-   project-specific pattern), and fetch the tag archive. Unpack it the same way.
-5. **Fetch provenance.** Query the PyPI Integrity API for each artifact's attestations and record the publisher
-   identity.
+4. **Fetch provenance.** Query the PyPI Integrity API for each artifact's attestations, verify the bundles, and record
+   the publisher identity and the certificate's source commit, ref, runner and trigger
+   ([research](research/pypi-publisher-data.md)).
+5. **Fetch the source.** When a verified attestation names the source commit, fetch that commit's archive. Otherwise
+   find the repository from the project URLs, find the tag ([research](research/tag-discovery.md)), and fetch the tag
+   archive. Unpack it the same way.
 6. **Diff.** Pair files by path (normalizing the `dist-info` directory name), classify each pair and compute line
    diffs for text files.
 7. **Run signal rules.** Each rule is a pure function from the pair analysis to zero or more signals with evidence.
@@ -237,7 +244,8 @@ Initial tables, simplified:
 | `package` | ecosystem, name (normalized) |
 | `release` | package, version, published_at, yanked |
 | `artifact` | release, filename, kind (wheel, sdist, conda), sha256, size, upload metadata |
-| `attestation` | artifact, publisher kind, repository, workflow, raw bundle |
+| `attestation` | artifact, publisher kind, repository, workflow, environment, service account email, source commit, source ref, runner environment, build trigger, run URL, verified, raw bundle |
+| `ownership_snapshot` | package, seen_at, organization, roles (account and role) |
 | `file` | artifact, path, sha256, size, type |
 | `blob` | sha256, size, storage location |
 | `source_snapshot` | package, ref (tag), commit, archive sha256 |
@@ -363,8 +371,11 @@ requests.
 
 ## Open questions
 
-1. **Publisher data.** How much upload information does PyPI expose per file beyond attestations? The mockups show an
-   uploader name, which may not be public. Design for attestations as the source of truth.
+1. **Publisher data.** Answered 2026-10-17 ([research](research/pypi-publisher-data.md)): no API names the uploading
+   account, so the mockups no longer show one. Attestations are the source of truth, and their certificates
+   name the commit a release was built from. 44% of the top 500 packages attest their latest release. Owners and
+   maintainers are public only as they are now, so Sightglass snapshots them. "Previous release" means the previous
+   version on the same release line, not the last upload.
 2. **Pattern rules.** Reuse GuardDog's rules, write our own, or both? Licensing and false-positive rate decide this.
 3. **Tag discovery.** Measured 2026-10-17 ([research](research/tag-discovery.md)): for the latest stable release of
    the top 500 PyPI packages, `v{version}` or `{version}` finds the tag 87% of the time, and a longer ordered list

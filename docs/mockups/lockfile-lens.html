@@ -243,7 +243,7 @@ const PKGS = [
   { id: "fastroute", parent: "root", name: "fastroute", eco: "pypi", kind: "up", from: "0.31.0", to: "0.32.1", level: "ok",
     why: "Minor release from the same trusted publisher, with an attestation that matches the git tag.",
     signals: [{ l: "info", t: "Same trusted publisher (GitHub Actions) as the last 22 releases" }],
-    facts: [["Published", "6 weeks ago", "9 days ago"], ["Uploaded by", "Trusted publisher", "Trusted publisher"], ["Provenance", "Attestation", "Attestation"], ["Matches git tag", "Yes", "Yes"], ["Network on import", "No", "No"]],
+    facts: [["Published", "6 weeks ago", "9 days ago"], ["Published by", "Trusted publisher", "Trusted publisher"], ["Provenance", "Attestation", "Attestation"], ["Matches git tag", "Yes", "Yes"], ["Network on import", "No", "No"]],
     files: [
       { p: "fastroute/routing.py", s: "mod", d: "+88 −41", hunk: [" def match(self, path: str) -> Route | None:", "-    for route in self._routes:", "-        if route.pattern.fullmatch(path):", "-            return route", "+    node = self._trie.walk(path)", "+    return node.route if node else None"] },
       { p: "fastroute/middleware/cors.py", s: "mod", d: "+12 −4" },
@@ -254,7 +254,7 @@ const PKGS = [
   { id: "schemata", parent: "root", name: "schemata", eco: "pypi", kind: "up", from: "2.9.2", to: "2.10.0", level: "ok",
     why: "Drops its old compatibility layer, which is why legacy-compat leaves the lockfile.",
     signals: [{ l: "info", t: "Removes dependency legacy-compat" }],
-    facts: [["Published", "4 months ago", "3 weeks ago"], ["Uploaded by", "Trusted publisher", "Trusted publisher"], ["Provenance", "Attestation", "Attestation"], ["Matches git tag", "Yes", "Yes"], ["Network on import", "No", "No"]],
+    facts: [["Published", "4 months ago", "3 weeks ago"], ["Published by", "Trusted publisher", "Trusted publisher"], ["Provenance", "Attestation", "Attestation"], ["Matches git tag", "Yes", "Yes"], ["Network on import", "No", "No"]],
     files: [
       { p: "schemata/_compat.py", s: "del", d: "−120" },
       { p: "schemata/fields.py", s: "mod", d: "+31 −18" },
@@ -265,13 +265,13 @@ const PKGS = [
     why: "No longer required by schemata 2.10.0. Nothing in your code imports it.",
     signals: [{ l: "info", t: "Removed packages can't add code to your build" }], facts: [], files: [] },
   { id: "orbit-client", parent: "root", name: "orbit-client", eco: "pypi", kind: "up", from: "2.4.1", to: "2.5.0", level: "hi",
-    why: "Uploaded with an API token instead of the project's trusted publisher, and the wheel contains a file that isn't in the v2.5.0 tag.",
+    why: "Not attested, unlike the project's recent releases from its trusted publisher, and the wheel contains a file that isn't in the v2.5.0 tag.",
     signals: [
-      { l: "hi", t: "Uploaded with an API token. The last 14 releases came from the trusted publisher." },
+      { l: "hi", t: "Not from the trusted publisher that attested the last 14 releases." },
       { l: "hi", t: "orbit_client/_telemetry.py is in the wheel but not in the v2.5.0 git tag" },
       { l: "hi", t: "Opens a network connection when the package is imported" },
       { l: "med", t: "Published 2 days ago" } ],
-    facts: [["Published", "5 months ago", "2 days ago", 1], ["Uploaded by", "Trusted publisher", "API token (relay-ops)", 1], ["Provenance", "Attestation", "None", 1], ["Matches git tag", "Yes", "1 extra file", 1], ["Network on import", "No", "Yes", 1], ["Wheel size", "182 KB", "191 KB"]],
+    facts: [["Published", "5 months ago", "2 days ago", 1], ["Published by", "Trusted publisher", "Not attested", 1], ["Provenance", "Attestation", "None", 1], ["Matches git tag", "Yes", "1 extra file", 1], ["Network on import", "No", "Yes", 1], ["Wheel size", "182 KB", "191 KB"]],
     files: [
       { p: "orbit_client/_telemetry.py", s: "add", d: "+19", flag: "Not in the git tag. Connects to telemetry.example.net when imported.", hunk: [
         "+import os", "+import platform", "+import socket", "+import threading", "+", "+_HOST = \"telemetry.example.net\"", "+",
@@ -290,7 +290,7 @@ const PKGS = [
   { id: "wirecodec", parent: "orbit-client", name: "wirecodec", eco: "pypi", kind: "up", from: "0.14.2", to: "0.16.0", level: "ok",
     why: "Skips 0.15. Changes are in header parsing; same publisher and attestation.",
     signals: [{ l: "info", t: "Skips one release (0.15.0)" }],
-    facts: [["Published", "8 months ago", "5 weeks ago"], ["Uploaded by", "Trusted publisher", "Trusted publisher"], ["Provenance", "Attestation", "Attestation"], ["Matches git tag", "Yes", "Yes"], ["Network on import", "No", "No"]],
+    facts: [["Published", "8 months ago", "5 weeks ago"], ["Published by", "Trusted publisher", "Trusted publisher"], ["Provenance", "Attestation", "Attestation"], ["Matches git tag", "Yes", "Yes"], ["Network on import", "No", "No"]],
     files: [{ p: "wirecodec/headers.py", s: "mod", d: "+57 −30" }, { p: "wirecodec/_abnf.py", s: "mod", d: "+6 −2" }],
     hold: 'pixi add --pypi "orbit-client==2.4.1"' },
   { id: "zstd-shim", parent: "orbit-client", name: "zstd-shim", eco: "pypi", kind: "add", to: "1.0.2", platforms: ["osx-arm64"], level: "med",
@@ -299,7 +299,7 @@ const PKGS = [
       { l: "med", t: "Only resolved for osx-arm64. CI runs on linux-64 and never installs it." },
       { l: "med", t: "Wheel ships a compiled library and there is no sdist to compare it against" },
       { l: "info", t: "Same maintainer account as orbit-client" } ],
-    facts: [["Published", "", "2 days ago", 1], ["Uploaded by", "", "API token (relay-ops)", 1], ["Provenance", "", "None", 1], ["Source", "", "No sdist", 1], ["Platforms", "", "osx-arm64 only"]],
+    facts: [["Published", "", "2 days ago", 1], ["Published by", "", "Not attested", 1], ["Provenance", "", "None", 1], ["Source", "", "No sdist", 1], ["Platforms", "", "osx-arm64 only"]],
     files: [
       { p: "zstd_shim/__init__.py", s: "add", d: "+11" },
       { p: "zstd_shim/_lib.cpython-313-darwin.so", s: "bin", d: "412 KB", flag: "Compiled library with no source in the release." } ],
@@ -308,7 +308,7 @@ const PKGS = [
   { id: "tidepool", parent: "root", name: "tidepool", eco: "pypi", kind: "up", from: "1.8.0", to: "1.9.2", level: "ok",
     why: "Skips four releases at once and adds a new dependency, rapidcsv-x, for its CSV export.",
     signals: [{ l: "info", t: "Skips 1.8.1 through 1.9.1" }, { l: "med", t: "Adds dependency rapidcsv-x, which needs a look" }],
-    facts: [["Published", "7 months ago", "11 days ago"], ["Uploaded by", "Trusted publisher", "Trusted publisher"], ["Provenance", "Attestation", "Attestation"], ["Matches git tag", "Yes", "Yes"], ["Network on import", "No", "No"]],
+    facts: [["Published", "7 months ago", "11 days ago"], ["Published by", "Trusted publisher", "Trusted publisher"], ["Provenance", "Attestation", "Attestation"], ["Matches git tag", "Yes", "Yes"], ["Network on import", "No", "No"]],
     files: [
       { p: "tidepool/export.py", s: "add", d: "+54", hunk: ["+from rapidcsv_x import Writer", "+", "+def export_csv(rows, path):", "+    with Writer(path) as w:", "+        w.write_rows(rows)"] },
       { p: "tidepool/pool.py", s: "mod", d: "+120 −77" },
@@ -321,7 +321,7 @@ const PKGS = [
       { l: "hi", t: "Name is one character off rapidcsv, which has about 2M downloads a month" },
       { l: "hi", t: "First published 9 days ago by one maintainer; 41 downloads so far" },
       { l: "med", t: "Prebuilt binary only. No sdist and no source repository listed." } ],
-    facts: [["Published", "", "9 days ago", 1], ["Uploaded by", "", "API token (csvdev77)", 1], ["Provenance", "", "None", 1], ["Source", "", "No repository", 1], ["Maintainers", "", "1"]],
+    facts: [["Published", "", "9 days ago", 1], ["Published by", "", "Not attested", 1], ["Provenance", "", "None", 1], ["Source", "", "No repository", 1], ["Maintainers", "", "1"]],
     files: [
       { p: "rapidcsv_x/__init__.py", s: "add", d: "+6" },
       { p: "rapidcsv_x/_core.cpython-313-x86_64-linux-gnu.so", s: "bin", d: "2.1 MB", flag: "Compiled library with no source in the release." },
