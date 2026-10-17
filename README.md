@@ -1,5 +1,7 @@
 # Sightglass
 
+[![CI](https://github.com/aesir-oss/sightglass/actions/workflows/ci.yml/badge.svg)](https://github.com/aesir-oss/sightglass/actions/workflows/ci.yml)
+
 See what a package release actually ships.
 
 Sightglass compares the files people install from a package index with the previous release and with the project's

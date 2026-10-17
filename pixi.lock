@@ -2389,4 +2389,4 @@ packages:
   timestamp: 1786599629846
 - pypi: ./backend
   name: sightglass
-  requires_python: '>=3.12'
+  requires_python: '>=3.14'
