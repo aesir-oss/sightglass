@@ -1,0 +1,11 @@
+[package]
+name = "sightglass-core"
+description = "Archive unpacking, hashing, file typing and line diffs for Sightglass"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true

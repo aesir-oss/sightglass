@@ -1,8 +1,8 @@
 # Python tool configuration. Runtime dependencies live in the root pixi.toml.
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["maturin>=1.15,<2"]
+build-backend = "maturin"
 
 [project]
 name = "sightglass"
@@ -11,8 +11,11 @@ description = "See what a package release actually ships."
 requires-python = ">=3.12"
 authors = [{ name = "Kevin Mills", email = "millsks@gmail.com" }]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/sightglass"]
+[tool.maturin]
+manifest-path = "crates/sightglass-py/Cargo.toml"
+python-source = "src"
+module-name = "sightglass._core"
+features = ["pyo3/extension-module"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
