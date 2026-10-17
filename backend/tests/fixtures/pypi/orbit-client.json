@@ -1,0 +1,90 @@
+{
+  "info": {
+    "name": "Orbit_Client",
+    "version": "2.5.0",
+    "home_page": null,
+    "project_urls": {
+      "Source": "https://github.com/kestrel-weather/orbit-client",
+      "Documentation": "https://orbit-client.example.net"
+    },
+    "summary": "Invented package for Sightglass tests"
+  },
+  "last_serial": 1234,
+  "ownership": {
+    "organization": null,
+    "roles": [
+      {"role": "Owner", "user": "kestrel-dev"},
+      {"role": "Maintainer", "user": "relay-ops"}
+    ]
+  },
+  "releases": {
+    "2.5.0": [
+      {
+        "filename": "orbit_client-2.5.0.tar.gz",
+        "url": "https://files.pythonhosted.org/packages/aa/bb/orbit_client-2.5.0.tar.gz",
+        "digests": {"sha256": "1111111111111111111111111111111111111111111111111111111111111111", "md5": "x"},
+        "size": 5120,
+        "upload_time_iso_8601": "2026-09-30T10:00:05.000000Z",
+        "packagetype": "sdist",
+        "requires_python": ">=3.10",
+        "yanked": false,
+        "yanked_reason": null
+      },
+      {
+        "filename": "orbit_client-2.5.0-py3-none-any.whl",
+        "url": "https://files.pythonhosted.org/packages/cc/dd/orbit_client-2.5.0-py3-none-any.whl",
+        "digests": {"sha256": "2222222222222222222222222222222222222222222222222222222222222222"},
+        "size": 4096,
+        "upload_time_iso_8601": "2026-09-30T10:00:00.000000Z",
+        "packagetype": "bdist_wheel",
+        "requires_python": ">=3.10",
+        "yanked": false,
+        "yanked_reason": null
+      }
+    ],
+    "2.4.1": [
+      {
+        "filename": "orbit_client-2.4.1-py3-none-any.whl",
+        "url": "https://files.pythonhosted.org/packages/ee/ff/orbit_client-2.4.1-py3-none-any.whl",
+        "digests": {"sha256": "3333333333333333333333333333333333333333333333333333333333333333"},
+        "size": 4000,
+        "upload_time_iso_8601": "2026-06-01T08:00:00.000000Z",
+        "packagetype": "bdist_wheel",
+        "yanked": false
+      },
+      {
+        "filename": "orbit_client-2.4.1-py3.9.egg",
+        "url": "https://files.pythonhosted.org/packages/ee/ff/orbit_client-2.4.1-py3.9.egg",
+        "digests": {"sha256": "4444444444444444444444444444444444444444444444444444444444444444"},
+        "size": 7000,
+        "upload_time_iso_8601": "2026-06-01T08:00:10.000000Z",
+        "packagetype": "bdist_egg",
+        "yanked": false
+      },
+      {
+        "filename": "orbit_client-2.4.1-legacy.zip",
+        "url": "https://files.pythonhosted.org/packages/ee/ff/orbit_client-2.4.1-legacy.zip",
+        "digests": {"md5": "only-md5"},
+        "size": 100,
+        "upload_time_iso_8601": "2026-06-01T08:00:20.000000Z",
+        "packagetype": "sdist",
+        "yanked": false
+      }
+    ],
+    "2.6.0rc1": [
+      {
+        "filename": "orbit_client-2.6.0rc1-py3-none-any.whl",
+        "url": "https://files.pythonhosted.org/packages/11/22/orbit_client-2.6.0rc1-py3-none-any.whl",
+        "digests": {"sha256": "5555555555555555555555555555555555555555555555555555555555555555"},
+        "size": 4200,
+        "upload_time_iso_8601": "2026-10-10T12:00:00.000000Z",
+        "packagetype": "bdist_wheel",
+        "yanked": true,
+        "yanked_reason": "broken build"
+      }
+    ],
+    "0.0.1": []
+  },
+  "urls": [],
+  "vulnerabilities": []
+}
