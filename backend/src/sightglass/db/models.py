@@ -27,6 +27,7 @@ ARTIFACT_KINDS = ("wheel", "sdist", "conda")
 ANALYSIS_STATUSES = ("pending", "running", "done", "failed")
 SIGNAL_LEVELS = ("high", "check", "note", "clean")
 SOURCE_ORIGINS = ("attestation", "tag")
+PROVENANCE_STATUSES = ("unknown", "absent", "present")
 
 SHA256_RE = "^[0-9a-f]{64}$"
 GIT_COMMIT_RE = "^[0-9a-f]{40}([0-9a-f]{24})?$"
@@ -104,6 +105,7 @@ class Artifact(Base):
         CheckConstraint(_one_of("kind", ARTIFACT_KINDS), name="kind"),
         CheckConstraint(f"sha256 ~ '{SHA256_RE}'", name="sha256_hex"),
         CheckConstraint("size >= 0", name="size_nonnegative"),
+        CheckConstraint(_one_of("provenance_status", PROVENANCE_STATUSES), name="provenance_status"),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
@@ -114,12 +116,17 @@ class Artifact(Base):
     size: Mapped[int] = mapped_column(BigInteger)
     uploaded_at: Mapped[datetime | None]
     requires_python: Mapped[str | None] = mapped_column(Text)
+    # Whether PyPI has PEP 740 attestations for this file: unknown until checked, then absent or present.
+    provenance_status: Mapped[str] = mapped_column(Text, server_default="unknown")
 
     release: Mapped[Release] = relationship(back_populates="artifacts")
 
 
 class Attestation(Base):
-    """A PEP 740 attestation for an artifact, with the claims from its signing certificate."""
+    """A PEP 740 attestation for an artifact, with the claims from its signing certificate.
+
+    ``verified`` means Sightglass verified the Sigstore bundle itself. PyPI already verifies attestations on upload.
+    """
 
     __tablename__ = "attestation"
     __table_args__ = (
