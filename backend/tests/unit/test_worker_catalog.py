@@ -22,6 +22,22 @@ class _Session:
 
     def flush(self) -> None: ...
 
+    def get_bind(self) -> object:
+        return None
+
+
+class _BlobSession:
+    def __init__(self, **_: object) -> None:
+        self.committed = False
+
+    def __enter__(self) -> _BlobSession:
+        return self
+
+    def __exit__(self, *_: object) -> None: ...
+
+    def commit(self) -> None:
+        self.committed = True
+
 
 class _Blobs:
     def __init__(self, entries: list[Any]) -> None:
@@ -39,6 +55,7 @@ def test_blobs_are_recorded_in_sha256_order(monkeypatch: pytest.MonkeyPatch, tmp
     ] + [SimpleNamespace(kind="dir", path="d", sha256=None, size=0, file_type=None)]
     recorded: list[str] = []
     monkeypatch.setattr(catalog, "record_blob", lambda session, blob: recorded.append(blob.sha256))
+    monkeypatch.setattr(catalog, "Session", _BlobSession)
     session = _Session()
     count = catalog.record_files(session, _Blobs(entries[:3]), tmp_path, entries, artifact_id=1)  # type: ignore[arg-type]
     assert recorded == ["aa" * 32, "bb" * 32, "cc" * 32]
