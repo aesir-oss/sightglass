@@ -1,0 +1,5 @@
+# Supply chain settings. Sightglass reviews other people's releases; its own installs follow the same caution.
+# Only resolve versions that have been public for at least 7 days (in minutes).
+minimumReleaseAge: 10080
+# Dependency install scripts stay blocked unless a package is listed here.
+onlyBuiltDependencies: []
