@@ -210,7 +210,10 @@ flowchart LR
 ### Analysis pipeline for a release pair
 
 1. **Resolve.** Look up both releases in the index. Pick the artifacts to compare: the same wheel tag in both releases
-   when possible (preferring `py3-none-any`, then the most common platform tag), and the sdist.
+   when possible (preferring `py3-none-any`, then the most widely installed platforms: manylinux x86_64, macOS
+   arm64, Windows amd64, then abi3 and the newest CPython), and the sdist (`.tar.gz` over `.zip`). When the platform
+   tags changed between releases (a newer manylinux or CPython), wheels for the same OS and architecture are paired
+   and the pair is marked `platform_changed`. Every other possible pair is kept for the artifact picker.
 2. **Fetch.** Download each artifact once, verify its hash against the index, and record its size.
 3. **Unpack.** Extract into a file index, with each file's path, size, sha256 and type. Store each unique file
    content in the blob store once.
