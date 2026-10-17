@@ -56,6 +56,7 @@ executed. Results go to `SIGHTGLASS_DATABASE_URL` if set, or to a local Postgres
 | `pixi run refresh-top-packages` | Refresh the top-packages list for the lookalike-name rule; review and commit the diff |
 | `pixi run develop` | Rebuild the Rust extension in place (the Python test tasks run it first) |
 | `pixi run fmt-rs` / `lint-rs` / `test-rs` / `cov-rs` | rustfmt, clippy, cargo test, cargo llvm-cov (90% gate) |
+| `pixi run dev` | API (port 8000), a worker and the Vite dev server (proxying `/api`) together; uses `SIGHTGLASS_DATABASE_URL` or a local Postgres |
 | `pixi run dev-web` | Vite dev server for the frontend |
 | `pixi run fmt-web` / `lint-web` / `check-web` / `test-web` / `cov-web` | prettier, eslint, tsc, vitest, vitest coverage (90% gate) |
 | `pixi run gen-api-types` | Export the FastAPI schema and regenerate `frontend/src/api/schema.d.ts`; commit both |

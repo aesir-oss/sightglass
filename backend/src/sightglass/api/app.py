@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from sightglass import __version__
 from sightglass.api import files, pairs, releases
+from sightglass.api.frontend import mount_frontend
 
 
 class Health(BaseModel):
@@ -16,8 +17,11 @@ class Health(BaseModel):
     version: str
 
 
-def create_app() -> FastAPI:
+def create_app(*, serve_frontend: bool = True) -> FastAPI:
     """Build the Sightglass API application.
+
+    Args:
+        serve_frontend: Also serve the built frontend, when ``frontend/dist`` (or ``SIGHTGLASS_FRONTEND_DIR``) exists.
 
     Returns:
         The FastAPI app with every route registered.
@@ -32,4 +36,7 @@ def create_app() -> FastAPI:
     app.include_router(releases.router)
     app.include_router(pairs.router)
     app.include_router(files.router)
+    # Last: its catch-all route must not shadow the API.
+    if serve_frontend:
+        mount_frontend(app)
     return app

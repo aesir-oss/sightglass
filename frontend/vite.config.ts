@@ -3,6 +3,10 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // `pixi run dev` runs the API on port 8000; the browser talks to Vite only.
+    proxy: { "/api": "http://127.0.0.1:8000" },
+  },
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],

@@ -19,7 +19,7 @@ def openapi_json() -> str:
     Returns:
         The schema with sorted keys, two-space indents and a trailing newline.
     """
-    return json.dumps(create_app().openapi(), indent=2, sort_keys=True) + "\n"
+    return json.dumps(create_app(serve_frontend=False).openapi(), indent=2, sort_keys=True) + "\n"
 
 
 def main(argv: list[str] | None = None) -> int:
