@@ -277,9 +277,12 @@ Pages mirror the API paths without `/api`.
 Sightglass processes hostile input by design, so the workers are the main attack surface.
 
 - **Never execute package code.** No installs, no builds, no imports. Only reading archives and text.
-- **Safe unpacking.** Reject absolute paths and `..` traversal, symlinks and hard links outside the root, and device
-  files. Enforce limits on total uncompressed size, file count, compression ratio (zip bombs) and the size of any one
-  file. Large binaries are hashed and typed but not stored.
+- **Safe unpacking** (`sightglass-core::unpack`). Reject absolute paths and `..` traversal, backslashes, drive letters,
+  duplicate paths, symlinks and hard links outside the root, and device files, FIFOs and sockets. Links inside the root
+  are recorded in the index but never created on disk. Limits are enforced on the bytes actually decompressed:
+  4 GiB in total, 1 GiB per file, 100,000 files, and 100 times the archive's size once 16 MiB have been decompressed.
+  Extraction writes only into a new directory and removes it if the archive is refused partway through. Large
+  binaries are hashed and typed but not stored.
 - **Isolation.** Workers run unprivileged, in containers with no credentials except write access to their own blob
   prefix and database role, and with outbound network limited to the indexes and source hosts.
 - **Escaping.** File contents are untrusted text in the browser. The frontend renders them as text only, never as HTML.

@@ -40,7 +40,7 @@ pub fn sha256_reader<R: Read>(mut reader: R) -> io::Result<Hashed> {
     })
 }
 
-fn to_hex(bytes: &[u8]) -> String {
+pub(crate) fn to_hex(bytes: &[u8]) -> String {
     const DIGITS: &[u8; 16] = b"0123456789abcdef";
     let mut out = String::with_capacity(bytes.len() * 2);
     for &b in bytes {
