@@ -105,3 +105,22 @@ def test_start_page_and_package_page(page: Page) -> None:
     expect(page.get_by_role("region", name="Signals")).to_be_visible()
     page.goto("/pypi/orbit-client")
     expect(page).to_have_url(re.compile(r"/pypi/orbit-client/2\.7\.0$"))
+
+
+@pytest.mark.e2e
+def test_theme_choice_persists_and_applies_before_render(page: Page) -> None:
+    """Dark stays dark across reloads and is set before the app renders; Auto hands back to the system."""
+    page.emulate_media(color_scheme="light")
+    page.goto(DONE)
+    page.get_by_role("radio", name="Dark").check()
+    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+    background = page.evaluate("() => getComputedStyle(document.body).backgroundColor")
+    # The pre-paint script in index.html sets the theme from storage before the app's bundle runs.
+    page.reload(wait_until="domcontentloaded")
+    assert page.evaluate("() => document.documentElement.dataset.theme") == "dark"
+    expect(page.get_by_role("radio", name="Dark")).to_be_checked()
+    assert page.evaluate("() => getComputedStyle(document.body).backgroundColor") == background
+    page.get_by_role("radio", name="Auto").check()
+    expect(page.locator("html")).not_to_have_attribute("data-theme", re.compile(r".+"))
+    page.reload()
+    expect(page.get_by_role("radio", name="Auto")).to_be_checked()

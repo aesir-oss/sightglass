@@ -854,3 +854,15 @@ main.grid .panel {
     display: none;
   }
 }
+
+.crumbrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.crumbs a {
+  color: inherit;
+}

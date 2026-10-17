@@ -11,8 +11,9 @@ import {
   SelectValue,
   type Key,
 } from "react-aria-components";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import type { ArtifactRef } from "../api/types";
+import { ThemeSwitch } from "../ThemeSwitch";
 import { artifactLabel, artifactQuery, pairPath } from "./urls";
 
 interface HeaderProps {
@@ -81,9 +82,13 @@ export function Header({ ecosystem, pkg, from, to, versions, artifact, alternati
   return (
     <header className="top">
       <div className="wrap">
-        <nav className="crumbs" aria-label="Breadcrumb">
-          <span>Sightglass</span> / <span>{ecosystem === "pypi" ? "PyPI" : ecosystem}</span> / <span>{pkg}</span>
-        </nav>
+        <div className="crumbrow">
+          <nav className="crumbs" aria-label="Breadcrumb">
+            <Link to="/">Sightglass</Link> / <span>{ecosystem === "pypi" ? "PyPI" : ecosystem}</span> /{" "}
+            <span>{pkg}</span>
+          </nav>
+          <ThemeSwitch />
+        </div>
         <div className="titlerow">
           <h1>
             <span>{pkg}</span> <span className="vs">{`${from} → ${to}`}</span>
