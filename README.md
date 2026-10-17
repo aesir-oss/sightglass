@@ -18,6 +18,9 @@ Status: early development. The Python backend, its Rust core and the React front
   - [Release diff page](docs/mockups/release-diff.html), phase 1
   - [Pull request review page](docs/mockups/lockfile-lens.html), phase 2
 
+Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md).
+
 ## Installation
 
 Install [pixi](https://pixi.sh), then:
