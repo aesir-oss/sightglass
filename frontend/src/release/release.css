@@ -442,3 +442,57 @@ svg.map {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.srcsum {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 0 14px 10px;
+  font-size: 13.5px;
+}
+
+.srclist {
+  list-style: none;
+  margin: 0 14px 12px;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.srclist button {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font: 12.5px/1.4 var(--mono);
+  cursor: pointer;
+}
+
+.srclist button:hover {
+  background: var(--sunk);
+}
+
+.srclist .st {
+  font: 600 11px var(--body);
+  text-transform: uppercase;
+}
+
+.srclist .st.missing,
+.srclist .st.differs {
+  color: var(--rm);
+}
+
+.srclist .st.matches {
+  color: var(--add);
+}
+
+details.more-files {
+  margin: 0 14px 12px;
+  font-size: 13px;
+}
