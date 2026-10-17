@@ -86,9 +86,12 @@ ARTIFACTS = {
     ),
     "orbit_client-2.5.0.tar.gz": _sdist("2.5.0", {"src/orbit/__init__.py": INIT_NEW}),
     "orbit_client-2.6.0-py3-none-any.whl": _wheel("2.6.0", {"orbit/__init__.py": INIT_NEW}, ()),
+    # Served with different bytes than the index lists, so analyzing it fails.
+    "orbit_client-2.7.0-py3-none-any.whl": _wheel("2.7.0", {"orbit/__init__.py": INIT_NEW}, ()),
 }
+CORRUPT = "orbit_client-2.7.0-py3-none-any.whl"
 TAG_ARCHIVE = _tarball(f"orbit-client-{COMMIT}/", {"src/orbit/__init__.py": INIT_NEW, "pyproject.toml": PYPROJECT})
-DATES = {"2.4.1": "2026-06-01", "2.5.0": "2026-09-01", "2.6.0": "2026-10-01"}
+DATES = {"2.4.1": "2026-06-01", "2.5.0": "2026-09-01", "2.6.0": "2026-10-01", "2.7.0": "2026-10-10"}
 
 
 def _project_json() -> bytes:
@@ -124,7 +127,8 @@ def _mock_index(router: respx.Router) -> None:
     router.get(url__startswith="https://pypi.org/integrity/").respond(404)
     router.get("https://pypi.org/pypi/tidepool/json").respond(404)
     for name, data in ARTIFACTS.items():
-        router.get(f"{FILES_URL}/{name}").respond(200, content=data)
+        served = bytes(len(data)) if name == CORRUPT else data
+        router.get(f"{FILES_URL}/{name}").respond(200, content=served)
     router.get("https://github.com/kestrel-weather/orbit-client.git/info/refs?service=git-upload-pack").respond(
         200, content=_refs()
     )
@@ -187,7 +191,10 @@ def live(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Live]:
         with Session(engine) as session:
             yield session
 
-    def enqueue(*args: Any) -> int:
+    def enqueue(*args: Any) -> int | None:
+        # Like procrastinate's queueing lock: a pair already waiting isn't queued twice.
+        if args in state.queued:
+            return None
         state.queued.append(args)
         return len(state.queued)
 
