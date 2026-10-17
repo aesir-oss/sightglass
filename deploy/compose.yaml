@@ -1,0 +1,122 @@
+# Sightglass on one VM: Caddy in front of the API, the workers, and two small proxies that are the only way out.
+# Settings come from deploy/.env (copy env.example). See docs/deploy.md.
+#
+#   internet ── caddy ──┐                       ┌── egress (squid) ── PyPI, GitHub
+#                       └── internal network ───┤
+#           api, worker, migrate (no route out) └── dbproxy (haproxy) ── Supabase
+name: sightglass
+
+x-app: &app
+  image: sightglass:local
+  build:
+    context: ..
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  networks: [internal]
+  environment: &app-env
+    SIGHTGLASS_DATABASE_URL: "postgresql+psycopg://${SIGHTGLASS_DB_USER:?}:${SIGHTGLASS_DB_PASSWORD:?}@dbproxy:5432/${SIGHTGLASS_DB_NAME:-postgres}?sslmode=${SIGHTGLASS_DB_SSLMODE:-require}"
+    # httpx sends package index and GitHub requests through the egress proxy; nothing else can leave.
+    HTTPS_PROXY: http://egress:3128
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: [/tmp:size=64m]
+  logging: &logging
+    driver: json-file
+    options: { max-size: 10m, max-file: "3" }
+
+services:
+  caddy:
+    image: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    networks: [edge, internal]
+    environment:
+      SIGHTGLASS_DOMAIN: ${SIGHTGLASS_DOMAIN:?}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api: { condition: service_healthy }
+    logging: *logging
+
+  # Applies Alembic migrations (tables and the procrastinate schema), then exits; api and worker wait for it.
+  migrate:
+    <<: *app
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
+    depends_on: [dbproxy]
+
+  api:
+    <<: *app
+    command:
+      - uvicorn
+      - sightglass.api.app:create_app
+      - --factory
+      - --host=0.0.0.0
+      - --port=8000
+      - --proxy-headers
+      - --forwarded-allow-ips=*
+    volumes:
+      # Reads the file contents the worker stores; never writes them.
+      - data:/data:ro
+    healthcheck:
+      test:
+        - CMD
+        - /app/.pixi/envs/default/bin/python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    mem_limit: 768m
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      egress: { condition: service_started }
+
+  # Handles hostile archives: unprivileged, read-only root, no capabilities, and no network except the two proxies.
+  worker:
+    <<: *app
+    command: ["python", "-m", "sightglass.worker"]
+    volumes:
+      - data:/data
+    mem_limit: 2560m
+    pids_limit: 256
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      egress: { condition: service_started }
+
+  # HTTPS CONNECT proxy with an allowlist: PyPI and GitHub only. Configured in squid.conf.
+  egress:
+    image: ubuntu/squid:6.6-24.04_edge@sha256:8a3baed477e2c282ab8aa5edad442f69873246964f225c5c2ae8364b6610963c
+    restart: unless-stopped
+    networks: [edge, internal]
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+    logging: *logging
+
+  # TCP pass-through to the Supabase session pooler. TLS stays end to end between the app and Supabase.
+  dbproxy:
+    image: haproxy:3.2.26-alpine@sha256:254e6370f01cd654e0744edf607c67f33777c1b6a9dc0d4b28bcba7171460122
+    restart: unless-stopped
+    networks: [edge, internal]
+    environment:
+      SIGHTGLASS_DB_HOST: ${SIGHTGLASS_DB_HOST:?}
+      SIGHTGLASS_DB_PORT: ${SIGHTGLASS_DB_PORT:-5432}
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    logging: *logging
+
+networks:
+  # No route to the internet: api, worker and migrate reach the outside only through egress and dbproxy.
+  internal:
+    internal: true
+  edge: {}
+
+volumes:
+  # Blob store, download cache and analysis temp files (SIGHTGLASS_CACHE_DIR=/data/cache, TMPDIR=/data/tmp).
+  data:
+  caddy-data:
+  caddy-config:

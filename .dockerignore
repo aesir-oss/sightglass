@@ -1,0 +1,26 @@
+# Only what the image build reads: pixi.toml, pixi.lock, .pixi/config.toml, backend/ and frontend/.
+.git
+.github
+.claude
+docs
+deploy
+**/.env
+**/.env.*
+
+.pixi/*
+!.pixi/config.toml
+
+**/__pycache__
+**/*.py[cod]
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+backend/target
+backend/fuzz
+backend/tests
+backend/dist
+backend/src/sightglass/*.so
+
+frontend/node_modules
+frontend/dist
+frontend/coverage
