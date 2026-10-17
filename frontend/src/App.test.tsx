@@ -64,19 +64,31 @@ test("a pending analysis says so, rendering file names as text", async () => {
 test("a finished analysis is summarized, and the artifact choice is passed to the API", async () => {
   const { requests } = fakeApi({
     "/api/pypi/orbit-client/releases": {
-      body: { releases: [{ version: "2.4.1" }, { version: "2.5.0" }, { version: "2.6.0" }] },
+      body: {
+        releases: ["2.4.1", "2.5.0", "2.6.0"].map((version, i) => ({
+          version,
+          published_at: `2026-0${String(i + 1)}-01T00:00:00Z`,
+          yanked: false,
+          attestation: "none",
+          publisher: null,
+        })),
+      },
     },
     [`${PAIR}?kind=sdist`]: {
       body: { ...BASE, status: "done", ruleset_version: "rs-1", signals: [], files: [{}, {}] },
     },
   });
-  renderAt("/pypi/orbit-client/2.4.1...2.5.0?kind=sdist");
+  const router = renderAt("/pypi/orbit-client/2.4.1...2.5.0?kind=sdist");
   expect((await screen.findByText(/signals across/)).textContent).toBe("0 signals across 2 files.");
   expect(requests).toContain(`${PAIR}?kind=sdist`);
   expect(requests).toContain("/api/pypi/orbit-client/releases");
   expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("orbit-client 2.4.1 → 2.5.0");
   fireEvent.click(screen.getByRole("button", { name: /Show to versions/ }));
   expect(await screen.findByRole("option", { name: "2.6.0" })).toBeTruthy();
+  fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+  // The pair is a wheel pair (from the response), so a timeline pick carries no ?kind=.
+  fireEvent.click(await screen.findByRole("button", { name: /^2\.6\.0,/ }));
+  expect(router.state.location.pathname + router.state.location.search).toBe("/pypi/orbit-client/2.5.0...2.6.0");
 });
 
 test("failed analyses and API errors are shown plainly", async () => {
