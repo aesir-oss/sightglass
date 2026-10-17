@@ -126,7 +126,7 @@ What was behind them:
 6. **Snapshot ownership.** PyPI shows owners and maintainers only as they are now. Recording `ownership` each time a
    release is analyzed would let a later rule report "account added as owner since the previous release". The account
    names are public, but the page should show only the change, not profile people.
-7. **Verify before use.** Bundle verification goes into the Integrity API client (#18). An unverified bundle counts as
+7. **Verify before use.** Bundle verification goes into the Integrity API client (#19). An unverified bundle counts as
    "attestation present, couldn't verify", never as a trusted publisher.
 
 ## Caveats

@@ -90,7 +90,7 @@ No tag matched only when compared case-insensitively.
 - **URL points to an umbrella repository:** a few packages link a monorepo or an organization-wide repository whose
   tags belong to a different package.
 
-## Recommendations for the source fetcher (#19)
+## Recommendations for the source fetcher (#20)
 
 1. **Ordered pattern list.** Try, in order: `v{version}`, `{version}`, `{name}-v{version}`, `{name}_{version}`,
    `{name}=={version}`, `{name}-{version}`, `{name}/v{version}`, `{name}/{version}`, `{repo}-{version}`,
