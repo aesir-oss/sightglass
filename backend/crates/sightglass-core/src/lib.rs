@@ -2,6 +2,9 @@
 //!
 //! This crate is pure Rust with no Python dependency; `sightglass-py` exposes it to Python.
 
+pub mod filetype;
+pub mod hash;
+
 /// Version of this crate, as published in its manifest.
 #[must_use]
 pub fn version() -> &'static str {
