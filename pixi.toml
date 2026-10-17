@@ -87,6 +87,8 @@ build = { cmd = "python -m build --no-isolation --outdir dist/", cwd = "backend"
 # Analyze one release pair: pixi run analyze pypi <package> <from> <to> [--format json]
 analyze = { cmd = "python -m sightglass.analyze", cwd = "backend", depends-on = ["develop"] }
 worker = { cmd = "python -m sightglass.worker", cwd = "backend", depends-on = ["develop"] }
+# Run the rules over routine releases of popular packages (#55): `sample select`, then `sample run`.
+sample = { cmd = "python -m sightglass.sample", cwd = "backend", depends-on = ["develop"] }
 refresh-top-packages = { cmd = "python -m sightglass.rules.top_packages", cwd = "backend", depends-on = ["develop"] }
 db-upgrade = { cmd = "alembic upgrade head", cwd = "backend" }
 db-revision = { cmd = "alembic revision --autogenerate", cwd = "backend" }

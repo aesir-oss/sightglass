@@ -8,7 +8,14 @@ import pytest
 from sightglass import _core
 from sightglass.rules.base import PairAnalysis, ReleaseFacts, Signal
 from sightglass.rules.pairing import FilePair, IndexedFile
-from sightglass.rules.patterns import dynamic_exec, encoded_payloads, network_calls, subprocess_calls
+from sightglass.rules.patterns import (
+    capabilities,
+    dynamic_exec,
+    encoded_payloads,
+    is_risky,
+    network_calls,
+    subprocess_calls,
+)
 from sightglass.rules.ruleset import RULES
 
 PATH = "orbit/sync.py"
@@ -181,3 +188,56 @@ def test_unparseable_old_text_falls_back_to_added_lines(old_text: str | None) ->
     if old_text is not None:
         analysis.old_text[PATH] = old_text
     assert len(network_calls(analysis)) == 1
+
+
+def test_string_literals_with_lone_surrogates() -> None:
+    """A literal escaping a lone surrogate, as test files for codecs do, doesn't stop the rule."""
+    new = OLD + 'BAD = "\\udce2\\udc82\\udcac"\n'
+    assert encoded_payloads(changed(OLD, new)) == []
+
+
+@pytest.mark.parametrize(
+    "call",
+    ["aiohttp.ClientTimeout(total=5)", "socket.fileno()", "ssl.create_default_context()", "paramiko.Message()"],
+)
+def test_options_and_helpers_are_not_network_calls(call: str) -> None:
+    """Constructing options, contexts or messages doesn't open a connection."""
+    new = OLD + f"import aiohttp, socket, ssl, paramiko\nX = {call}\n"
+    assert network_calls(changed(OLD, new)) == []
+
+
+def test_a_kind_of_call_the_package_already_makes_is_check() -> None:
+    """When the old release already made network calls somewhere, a new one is check, not high."""
+    new = OLD + "\n\ndef report(data):\n    requests.post('https://telemetry.example.net', json=data)\n"
+    a = changed(OLD, new)
+    known = PairAnalysis(**{**a.__dict__, "old_capabilities": frozenset({"behavior.network"})})
+    other = PairAnalysis(**{**a.__dict__, "old_capabilities": frozenset({"behavior.subprocess"})})
+    assert [s.level for s in network_calls(known)] == ["check"]
+    assert [s.level for s in network_calls(other)] == ["high"]
+
+
+def test_calls_outside_the_installed_package_are_a_note() -> None:
+    """In an sdist, calls in top-level tests or scripts are a note."""
+    new = OLD + "\n\ndef report(data):\n    requests.post('https://telemetry.example.net', json=data)\n"
+    a = changed(OLD, new, "tests/test_sync.py")
+    [signal] = network_calls(PairAnalysis(**{**a.__dict__, "kind": "sdist"}))
+    assert signal.level == "note"
+
+
+def test_capabilities_of_a_release() -> None:
+    """Each finder's rule id is reported once any file matches; files without a likely word aren't parsed."""
+    files = [
+        ("orbit/net.py", b"import socket\nsocket.create_connection(('example.net', 443))\n"),
+        ("orbit/run.py", b"from subprocess import run\nrun(['true'])\n"),
+        ("orbit/plain.py", b"x = 1\n"),
+        ("orbit/broken.py", b"import socket\ndef (:\n"),
+    ]
+    assert capabilities(files) == frozenset({"behavior.network", "behavior.subprocess"})
+    assert capabilities([]) == frozenset()
+
+
+def test_risky_calls() -> None:
+    """Risky names cover all four pattern families."""
+    for name in ("requests.get", "subprocess.run", "eval", "base64.b64decode"):
+        assert is_risky(name)
+    assert not is_risky("re.compile")

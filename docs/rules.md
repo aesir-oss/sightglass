@@ -38,6 +38,19 @@ passes `None` for each input it reads and expects no signal.
 | note | Context that helps read the other signals |
 | clean | The rule looked and found nothing unusual, when saying so is useful (for example, "attested by the same workflow as 2.4.1") |
 
+"Breaks a pattern" is meant literally, and the routine-release sample ([#55](https://github.com/aesir-oss/sightglass/issues/55),
+[results](research/routine-sample.md)) showed what that takes. Before choosing high, check that the fact is new in this
+release:
+
+- **New or changed files only.** A file the previous release already had unchanged, missing from or differing from the
+  tag, is a pattern the project kept: note. `rules.scope.statuses` gives each file's status.
+- **Installed code only.** An sdist file in a top-level `tests/`, `docs/`, `examples/`, `scripts/`, `tools/` or
+  dot directory isn't installed and doesn't run at build time: note. See `rules.scope.outside_package`.
+- **A new capability, not a new call.** A network, subprocess, exec or decoding call in a package that already made
+  that kind of call somewhere is check; high is for the first one (`PairAnalysis.old_capabilities`).
+- **Code that does something.** Python that only assigns values (`rules.scope.inert`), like the version files
+  setuptools-scm writes at build time, is a note.
+
 ## Messages: observations, not judgments
 
 A message says what changed, in plain words, with the specifics. It doesn't say what the change means, guess at

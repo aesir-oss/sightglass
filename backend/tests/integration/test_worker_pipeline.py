@@ -316,3 +316,56 @@ def test_a_chosen_wheel_only(db_session: Session, services: Services, provenance
     assert (result.kind, result.status) == ("wheel", "done")
     with pytest.raises(PipelineError, match="artifact_not_found"):
         analyze_release_pair(db_session, services, "orbit-client", "2.4.1", "2.5.0", wheel="nope.whl")
+
+
+@pytest.mark.integration
+@respx.mock
+def test_build_only_attested_repository_falls_back_to_the_listed_one(
+    db_session: Session, services: Services, provenance_payload: Callable[..., bytes]
+) -> None:
+    """A release built in a separate repository that lacks the code is compared with the project's listed one."""
+    release_commit = "f" * 40
+    claims = {
+        "9": "https://github.com/kestrel-weather/orbit-release/.github/workflows/wheels.yml@refs/heads/main",
+        "11": "github-hosted",
+        "12": "https://github.com/kestrel-weather/orbit-release",
+        "13": release_commit,
+        "14": "refs/heads/main",
+        "20": "push",
+        "21": "https://github.com/kestrel-weather/orbit-release/actions/runs/7/attempts/1",
+    }
+    sha_new = hashlib.sha256(ARTIFACTS["orbit_client-2.5.0-py3-none-any.whl"]).hexdigest()
+    respx.get("https://pypi.org/integrity/orbit-client/2.5.0/orbit_client-2.5.0-py3-none-any.whl/provenance").respond(
+        200, content=provenance_payload(sha256=sha_new, claims=claims)
+    )
+    respx.get("https://github.com/kestrel-weather/orbit-release.git/info/refs?service=git-upload-pack").respond(404)
+    respx.get(f"https://codeload.github.com/kestrel-weather/orbit-release/tar.gz/{release_commit}").respond(
+        200, content=tarball(f"orbit-release-{release_commit}/", {".github/workflows/wheels.yml": b"on: push\n"})
+    )
+    mock_world(provenance_payload)
+
+    [_, wheel_result] = analyze_release_pair(db_session, services, "orbit-client", "2.4.1", "2.5.0", now=NOW)
+
+    report = db_session.get(models.Analysis, wheel_result.analysis_id).report  # type: ignore[union-attr]
+    assert report is not None
+    assert (report["source"]["label"], report["source"]["commit"]) == ("tag v2.5.0", COMMIT)
+    repositories = set(db_session.scalars(select(models.SourceSnapshot.repository)))
+    assert repositories == {"kestrel-weather/orbit-release", "kestrel-weather/orbit-client"}
+
+
+@pytest.mark.integration
+@respx.mock
+def test_tag_with_an_unbumped_version_is_a_note(
+    db_session: Session, services: Services, provenance_payload: Callable[..., bytes]
+) -> None:
+    """A tag whose version string wasn't bumped differs from the package only in that value: a note, not high."""
+    mock_world(provenance_payload)
+    respx.get(f"https://codeload.github.com/kestrel-weather/orbit-client/tar.gz/{COMMIT}").respond(
+        200,
+        content=tarball(f"orbit-client-{COMMIT}/", {"src/orbit/__init__.py": INIT_OLD, "pyproject.toml": PYPROJECT}),
+    )
+    [sdist_result, _] = analyze_release_pair(db_session, services, "orbit-client", "2.4.1", "2.5.0", now=NOW)
+
+    [signal] = [s for s in sdist_result.signals if s["rule_id"] == "source.differs_from_tag"]
+    assert signal["level"] == "note"
+    assert signal["message"].endswith("(the same code apart from comments, formatting or the version)")

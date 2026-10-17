@@ -11,7 +11,7 @@ not under it are looked for at the other candidate roots. Build metadata (``.dis
 
 import re
 from collections import Counter, defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from typing import Literal
 
@@ -78,6 +78,8 @@ class SourceCheck:
     status: SourceStatus
     source_path: str | None
     text: bool = True
+    # Why the difference is expected from the build, such as "generated from orbit/config.py.in"; None otherwise.
+    explained: str | None = None
 
 
 @dataclass(frozen=True)
@@ -142,12 +144,43 @@ def _source_path(path: str) -> str:
     return path.removeprefix("*.data/")
 
 
-def check_source(package: Iterable[IndexedFile], source: Iterable[IndexedFile]) -> SourceComparison:
+_SUBMODULE_PATH_RE = re.compile(r"^\s*path\s*=\s*(.+?)\s*$", re.MULTILINE)
+_INSTALLED_ELSEWHERE = ("*.data/scripts/", "*.data/headers/", "*.data/data/")
+
+
+def _generated_from(wanted: str, source_by_path: Mapping[str, IndexedFile]) -> str | None:
+    """The source file a build generates ``wanted`` from, when the tree has a template or Cython module for it."""
+    for template in (f"{wanted}.in", f"{wanted}.cmake"):
+        if template in source_by_path:
+            return f"generated from {template}"
+    stem, dot, ext = wanted.rpartition(".")
+    if dot and ext in ("c", "cc", "cpp", "cxx", "h") and (pyx := f"{stem}.pyx") in source_by_path:
+        return f"compiled from {pyx} by Cython"
+    return None
+
+
+def _directory_map(included: list[tuple[str, IndexedFile, str]], by_name: Mapping[str, list[str]]) -> dict[str, str]:
+    """Package directories mapped to the source directory most of their uniquely named files are in.
+
+    This finds layouts that rename a directory on install, such as ``package_dir={"psycopg2": "lib"}``.
+    """
+    votes: defaultdict[str, Counter[str]] = defaultdict(Counter)
+    for _, _, wanted in included:
+        directory, _, name = wanted.rpartition("/")
+        if len(candidates := by_name.get(name, [])) == 1:
+            votes[directory][candidates[0].rpartition("/")[0]] += 1
+    return {d: c.most_common(1)[0][0] for d, c in votes.items()}
+
+
+def check_source(
+    package: Iterable[IndexedFile], source: Iterable[IndexedFile], submodules: Sequence[str] = ()
+) -> SourceComparison:
     """Look for each package file in a source tree and compare their contents.
 
     Args:
         package: The package's files (a wheel, or an sdist with its top-level directory removed).
         source: The source tree's files, with any top-level directory removed.
+        submodules: Paths of the source's git submodules, whose files a GitHub archive leaves out.
 
     Returns:
         A check per package file, sorted by path, the root most files were found under, and the excluded paths.
@@ -172,13 +205,36 @@ def check_source(package: Iterable[IndexedFile], source: Iterable[IndexedFile]) 
             if candidate == wanted or candidate.endswith("/" + wanted):
                 votes[candidate.removesuffix(wanted)] += 1
     roots = sorted(votes, key=lambda r: (-votes[r], len(r), r))
+    directories = _directory_map(included, by_name)
 
     checks = []
     for original, f, wanted in sorted(included, key=lambda t: t[0]):
         found = next((root + wanted for root in roots if root + wanted in source_by_path), None)
+        if found is None and normalize_path(original).startswith(_INSTALLED_ELSEWHERE):
+            # Scripts, headers and data install outside the package, from wherever the project keeps them; a file
+            # with the same name is taken as the source when it is the only one.
+            same_name = by_name.get(wanted.rsplit("/", 1)[-1], [])
+            found = same_name[0] if len(same_name) == 1 else None
+        in_tree = (roots[0] if roots else "") + wanted
+        submodule = next((m for m in submodules if in_tree.startswith(m.rstrip("/") + "/")), None)
+        directory, _, name = wanted.rpartition("/")
+        mapped = directories.get(directory)
+        remapped = (f"{mapped}/{name}" if mapped else name) if mapped is not None else None
+        if found is None and submodule is None and remapped in source_by_path:
+            found = remapped
         if found is None:
-            checks.append(SourceCheck(original, "missing", None, f.text))
+            if submodule:
+                explained: str | None = f"in the git submodule {submodule}, which GitHub's archives leave out"
+            else:
+                candidates = [r + wanted for r in roots or [""]] + ([remapped] if remapped else [])
+                explained = next(filter(None, (_generated_from(c, source_by_path) for c in candidates)), None)
+            checks.append(SourceCheck(original, "missing", None, f.text, explained))
         else:
             status: SourceStatus = "matches" if f.same_content(source_by_path[found]) else "differs"
             checks.append(SourceCheck(original, status, found, f.text))
     return SourceComparison(roots[0] if roots else "", tuple(checks), tuple(sorted(excluded)))
+
+
+def submodule_paths(gitmodules: str) -> tuple[str, ...]:
+    """The ``path`` of every submodule in a ``.gitmodules`` file."""
+    return tuple(m.group(1).strip() for m in _SUBMODULE_PATH_RE.finditer(gitmodules))

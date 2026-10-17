@@ -9,16 +9,66 @@ import ast
 import hashlib
 import re
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
-from sightglass.rules import pyast
-from sightglass.rules.base import RULES, Evidence, PairAnalysis, Signal
+from sightglass.rules import pyast, scope
+from sightglass.rules.base import RULES, Evidence, Level, PairAnalysis, Signal
 from sightglass.rules.pairing import FilePair
 
-_NETWORK_RE = re.compile(
-    r"^(socket|ssl|urllib\.request|http\.client|requests|httpx|aiohttp|urllib3|ftplib|smtplib|telnetlib|poplib"
-    r"|imaplib|xmlrpc\.client|websocket|websockets|paramiko|pycurl)\.[A-Za-z_][\w.]*$"
+# Calls that open a connection or resolve a host. Constructors of options, constants and helpers (``ssl``
+# contexts, ``aiohttp.ClientTimeout``, ``socket.fileno``) don't, so they aren't listed.
+_NETWORK_NAMES = frozenset(
+    {
+        "socket.socket",
+        "socket.create_connection",
+        "socket.create_server",
+        "socket.fromfd",
+        "socket.getaddrinfo",
+        "socket.gethostbyname",
+        "socket.gethostbyname_ex",
+        "socket.gethostbyaddr",
+        "ssl.wrap_socket",
+        "urllib.request.urlopen",
+        "urllib.request.urlretrieve",
+        "urllib.request.build_opener",
+        "http.client.HTTPConnection",
+        "http.client.HTTPSConnection",
+        *(f"requests.{m}" for m in ("get", "post", "put", "patch", "delete", "head", "options", "request")),
+        "requests.Session",
+        "requests.session",
+        *(f"httpx.{m}" for m in ("get", "post", "put", "patch", "delete", "head", "options", "request", "stream")),
+        "httpx.Client",
+        "httpx.AsyncClient",
+        "aiohttp.ClientSession",
+        "aiohttp.request",
+        "urllib3.PoolManager",
+        "urllib3.ProxyManager",
+        "urllib3.HTTPConnectionPool",
+        "urllib3.HTTPSConnectionPool",
+        "urllib3.connection_from_url",
+        "urllib3.request",
+        "ftplib.FTP",
+        "ftplib.FTP_TLS",
+        "smtplib.SMTP",
+        "smtplib.SMTP_SSL",
+        "smtplib.LMTP",
+        "telnetlib.Telnet",
+        "poplib.POP3",
+        "poplib.POP3_SSL",
+        "imaplib.IMAP4",
+        "imaplib.IMAP4_SSL",
+        "xmlrpc.client.ServerProxy",
+        "websocket.create_connection",
+        "websocket.WebSocketApp",
+        "websockets.connect",
+        "websockets.serve",
+        "websockets.client.connect",
+        "websockets.sync.client.connect",
+        "paramiko.SSHClient",
+        "paramiko.Transport",
+        "pycurl.Curl",
+    }
 )
 _SUBPROCESS_RE = re.compile(
     r"^(subprocess\.[A-Za-z_]\w*|os\.(system|popen|startfile|exec[lv]p?e?|spawn[lv]p?e?|posix_spawnp?)"
@@ -79,7 +129,8 @@ def _encoded(tree: ast.Module) -> list[Match]:
     found = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Constant) and isinstance(node.value, str | bytes):
-            raw = node.value.encode() if isinstance(node.value, str) else node.value
+            # surrogatepass: a literal like "\\udce2" is valid Python but not encodable UTF-8.
+            raw = node.value.encode("utf-8", "surrogatepass") if isinstance(node.value, str) else node.value
             compact = re.sub(rb"\s+", b"", raw)
             if len(compact) >= ENCODED_MIN_LENGTH and _ENCODED_RE.match(compact.decode("ascii", "replace")):
                 key = hashlib.sha256(compact).hexdigest()
@@ -113,9 +164,80 @@ def _span(r: range) -> str:
     return str(r.start) if len(r) == 1 else f"{r.start}-{r[-1]}"
 
 
-def _rule(
-    rule_id: str, what: str, finder: Callable[[ast.Module], list[Match]]
-) -> Callable[[PairAnalysis], list[Signal]]:
+def _network_calls(tree: ast.Module) -> list[Match]:
+    return _call_matches(tree, _NETWORK_NAMES.__contains__)
+
+
+def _subprocess_calls(tree: ast.Module) -> list[Match]:
+    return _call_matches(tree, lambda n: bool(_SUBPROCESS_RE.match(n)))
+
+
+def _exec_calls(tree: ast.Module) -> list[Match]:
+    return _call_matches(tree, _EXEC_NAMES.__contains__)
+
+
+# Each pattern rule's finder, by rule id.
+FINDERS: dict[str, Callable[[ast.Module], list[Match]]] = {
+    "behavior.network": _network_calls,
+    "behavior.subprocess": _subprocess_calls,
+    "behavior.dynamic_exec": _exec_calls,
+    "behavior.encoded_payload": _decode_calls,
+}
+# Words one of the finders could match; a file without any of them isn't parsed when looking for capabilities.
+_PREFILTER = re.compile(
+    rb"socket|ssl|urllib|http|requests|aiohttp|ftplib|smtplib|telnetlib|poplib|imaplib|xmlrpc|websocket|paramiko"
+    rb"|pycurl|subprocess|os\.|spawn|exec|eval|compile|decode|decompress|marshal|fromhex|unhexlify|a2b_|[A-Za-z0-9+/]{256}"
+)
+
+
+def is_risky(name: str) -> bool:
+    """Whether a call name is a network, subprocess, dynamic execution or decoding call."""
+    return name in _NETWORK_NAMES or bool(_SUBPROCESS_RE.match(name)) or name in _EXEC_NAMES or name in _DECODE_NAMES
+
+
+def risky_added(analysis: PairAnalysis, pair: FilePair) -> bool:
+    """Whether the lines this release added to a Python file make a network, subprocess, exec or decoding call."""
+    text = analysis.new_text.get(pair.path)
+    added = pyast.added_lines(analysis, pair)
+    if text is None or (tree := pyast.parse(text, pair.path)) is None:
+        return True  # Unknown counts as risky: the hook still runs.
+    if added is None:
+        return True
+    return any(not added.isdisjoint(m.lines) for finder in FINDERS.values() for m in finder(tree))
+
+
+def capabilities(sources: Iterable[tuple[str, bytes]]) -> frozenset[str]:
+    """The pattern rules whose calls (or blobs) appear anywhere in these Python files.
+
+    Args:
+        sources: ``(path, content)`` of each Python file of a release's package code.
+
+    Returns:
+        Rule ids from :data:`FINDERS`.
+    """
+    found: set[str] = set()
+    for path, data in sources:
+        if len(found) == len(FINDERS) or not _PREFILTER.search(data):
+            continue
+        text = data.decode("utf-8", "replace")
+        if (tree := pyast.parse(text, path)) is None:
+            continue
+        found.update(rule_id for rule_id, finder in FINDERS.items() if rule_id not in found and finder(tree))
+    return frozenset(found)
+
+
+def _level(analysis: PairAnalysis, rule_id: str, path: str) -> Level:
+    """High for a kind of call the package didn't make before; check when it did; note outside the package."""
+    if scope.outside_package(analysis, path):
+        return "note"
+    if analysis.old_capabilities is not None and rule_id in analysis.old_capabilities:
+        return "check"
+    return "high"
+
+
+def _rule(rule_id: str, what: str) -> Callable[[PairAnalysis], list[Signal]]:
+    finder = FINDERS[rule_id]
+
     def check(analysis: PairAnalysis) -> list[Signal]:
         signals = []
         for pair in analysis.files:
@@ -129,21 +251,22 @@ def _rule(
             plural = "line" if len(matches) == 1 and len(matches[0].lines) == 1 else "lines"
             message = f"Added {what} in {pair.path}: {labels} ({plural} {lines})"
             evidence = tuple(Evidence(pair.path, m.lines.start, m.lines[-1], "new") for m in matches)
-            signals.append(Signal(rule_id, "high", message, evidence))
+            signals.append(Signal(rule_id, _level(analysis, rule_id, pair.path), message, evidence))
         return signals
 
     return check
 
 
-network_calls = RULES.rule("behavior.network", 1, "New network calls in added lines")(
-    _rule("behavior.network", "network calls", lambda t: _call_matches(t, lambda n: bool(_NETWORK_RE.match(n))))
+SUMMARY = "{}; high when the previous release made no such call, check when it did, note outside the installed package"
+network_calls = RULES.rule("behavior.network", 2, SUMMARY.format("New network calls in added lines"))(
+    _rule("behavior.network", "network calls")
 )
-subprocess_calls = RULES.rule("behavior.subprocess", 1, "New subprocess or shell calls in added lines")(
-    _rule("behavior.subprocess", "process calls", lambda t: _call_matches(t, lambda n: bool(_SUBPROCESS_RE.match(n))))
+subprocess_calls = RULES.rule("behavior.subprocess", 2, SUMMARY.format("New subprocess or shell calls in added lines"))(
+    _rule("behavior.subprocess", "process calls")
 )
-dynamic_exec = RULES.rule("behavior.dynamic_exec", 1, "New exec, eval or compile calls in added lines")(
-    _rule("behavior.dynamic_exec", "dynamic code execution", lambda t: _call_matches(t, _EXEC_NAMES.__contains__))
+dynamic_exec = RULES.rule("behavior.dynamic_exec", 2, SUMMARY.format("New exec, eval or compile calls in added lines"))(
+    _rule("behavior.dynamic_exec", "dynamic code execution")
 )
-encoded_payloads = RULES.rule("behavior.encoded_payload", 1, "New decoding calls or encoded blobs in added lines")(
-    _rule("behavior.encoded_payload", "decoding or encoded data", _decode_calls)
-)
+encoded_payloads = RULES.rule(
+    "behavior.encoded_payload", 2, SUMMARY.format("New decoding calls or encoded blobs in added lines")
+)(_rule("behavior.encoded_payload", "decoding or encoded data"))

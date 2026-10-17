@@ -1,8 +1,10 @@
 """Finding the source a release was built from: its repository, its commit, and an archive of that commit.
 
-The rules follow docs/research/tag-discovery.md: prefer the commit a provenance attestation names, then an ordered
-list of tag patterns tried case-sensitively, with no loose "any tag containing the version" fallback. When nothing
-matches, the result says why the source couldn't be compared instead of guessing.
+The rules follow docs/research/tag-discovery.md: an ordered list of tag patterns tried case-sensitively, with no loose
+"any tag containing the version" fallback, then the commit a provenance attestation names. The tag comes first because
+the attested commit is the one the publishing workflow ran on, which isn't always the one it built: packaging 26.3 was
+published from a later commit that had already moved to 26.4.dev0. When nothing matches, the result says why the
+source couldn't be compared instead of guessing.
 """
 
 import re
@@ -199,7 +201,7 @@ def fetch_source(
         project: The project name as published.
         version: The release version.
         repository: The repository from :func:`find_repository`, or the attestation's.
-        attested_commit: The commit a provenance attestation names, which takes precedence over tags.
+        attested_commit: The commit a provenance attestation names, used when no tag matches.
         attested_ref: The attestation's source ref, recorded with the snapshot.
         preferred_pattern: The tag pattern that matched the previous release.
         work_dir: Where to keep the archive; a temporary directory when None.
@@ -214,22 +216,27 @@ def fetch_source(
         return CouldNotCompare("no_per_package_tags", "typeshed stubs aren't tagged per package", repository)
 
     origin: Literal["attestation", "tag"]
-    if attested_commit:
+    ref: str | None
+    pattern: str | None
+    match: TagMatch | None = None
+    try:
+        tags = github.tags(repository)
+    except NotFoundError:
+        failure = CouldNotCompare(
+            "repository_not_found", f"{repository.slug} doesn't exist or isn't public", repository
+        )
+    except HttpError as exc:
+        failure = CouldNotCompare("repository_unreachable", str(exc), repository)
+    else:
+        match = match_tag(tags, project, version, repository.name, preferred_pattern)
+        tried = ", ".join(t for _, t in tag_candidates(project, version, repository.name)[:6])
+        failure = CouldNotCompare("no_matching_tag", f"no tag matched (tried {tried}, ...)", repository)
+    if match is not None:
+        commit, ref, origin, pattern = match.commit, f"refs/tags/{match.tag}", "tag", match.pattern
+    elif attested_commit:
         commit, ref, origin, pattern = attested_commit, attested_ref, "attestation", None
     else:
-        try:
-            tags = github.tags(repository)
-        except NotFoundError:
-            return CouldNotCompare(
-                "repository_not_found", f"{repository.slug} doesn't exist or isn't public", repository
-            )
-        except HttpError as exc:
-            return CouldNotCompare("repository_unreachable", str(exc), repository)
-        match = match_tag(tags, project, version, repository.name, preferred_pattern)
-        if match is None:
-            tried = ", ".join(t for _, t in tag_candidates(project, version, repository.name)[:6])
-            return CouldNotCompare("no_matching_tag", f"no tag matched (tried {tried}, ...)", repository)
-        commit, ref, origin, pattern = match.commit, f"refs/tags/{match.tag}", "tag", match.pattern
+        return failure
 
     with tempfile.TemporaryDirectory(prefix="sg-source-") as tmp:
         dest = work_dir or Path(tmp)
