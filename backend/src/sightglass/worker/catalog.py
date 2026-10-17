@@ -102,9 +102,13 @@ def record_files(
     if session.scalar(select(models.File.id).where(owner == owner_id).limit(1)) is not None:
         return 0
     files = [e for e in entries if e.kind == "file" and e.sha256 is not None]
-    # Workers recording overlapping files lock blob rows; taking them in one order across workers avoids deadlocks.
-    for entry in sorted(files, key=lambda e: (e.sha256 or "", e.path)):
-        record_blob(session, blobs.put_file(root / entry.path))
+    # Blob rows are content-addressed and never change, so they're committed in a short transaction of their own, in
+    # sha256 order. A worker then never holds a blob row lock while it waits for another one, so workers recording
+    # overlapping files can't deadlock (the caller's transaction records several archives before it commits).
+    with Session(bind=session.get_bind(), join_transaction_mode="create_savepoint") as blob_session:
+        for entry in sorted(files, key=lambda e: (e.sha256 or "", e.path)):
+            record_blob(blob_session, blobs.put_file(root / entry.path))
+        blob_session.commit()
     for entry in files:
         session.add(
             models.File(
