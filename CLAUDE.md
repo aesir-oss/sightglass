@@ -16,6 +16,8 @@ Scaffolding. These exist: the root pixi workspace, the Python backend in `backen
   fixes the runtime. mypy targets 3.14 and the extension is `abi3-py314`. A CLI published to PyPI (#76) would bring
   back a matrix for that package only.
 - GitHub Actions are pinned to commit SHAs.
+- After changing an API route or model, run `pixi run gen-api-types` and commit `frontend/src/api/`. CI's
+  `check-api-types` fails when the committed schema or types are stale.
 - Frontend tasks run with `cwd = "frontend"` through pnpm, with Node from pixi.
 
 ## Layout
