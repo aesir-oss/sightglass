@@ -1,8 +1,10 @@
 """Install-time hook rules: code that runs when a package is built, installed or Python starts.
 
 - ``setup.py`` runs whenever an sdist is built or installed. A change that only edits literal values, such as the
-  version, doesn't fire.
+  version, doesn't fire. A change is check, or high when the added lines make a network, subprocess, exec or decoding
+  call.
 - An in-tree build backend (``backend-path`` in ``pyproject.toml``) is code from the sdist that the installer runs.
+  Switching to one is high; a change to its code is leveled like ``setup.py``.
 - A ``.pth`` file at the top of a wheel is read at every interpreter start, and its ``import`` lines run.
 """
 
@@ -11,8 +13,8 @@ import tomllib
 from typing import Any
 
 from sightglass.log import get_logger
-from sightglass.rules import pyast
-from sightglass.rules.base import RULES, Evidence, PairAnalysis, Signal
+from sightglass.rules import patterns, pyast
+from sightglass.rules.base import RULES, Evidence, Level, PairAnalysis, Signal
 from sightglass.rules.pairing import FilePair
 
 log = get_logger(__name__)
@@ -57,7 +59,11 @@ def _changed_code(analysis: PairAnalysis, pair: FilePair) -> list[tuple[int, int
     return pyast.line_ranges(pyast.added_lines(analysis, pair) or ())
 
 
-@RULES.rule("hooks.setup_py", 1, "New or changed setup.py in the sdist")
+def _hook_level(analysis: PairAnalysis, pair: FilePair) -> Level:
+    return "high" if pair.status == "added" or patterns.risky_added(analysis, pair) else "check"
+
+
+@RULES.rule("hooks.setup_py", 2, "New or changed setup.py in the sdist")
 def setup_py(analysis: PairAnalysis) -> list[Signal]:
     """Report a new ``setup.py``, or a changed one whose code (not just its literal values) changed."""
     pair = _pair(analysis, "setup.py")
@@ -69,7 +75,7 @@ def setup_py(analysis: PairAnalysis) -> list[Signal]:
         message = f"setup.py, which runs when the sdist is built or installed, changed ({_ranges_text(ranges)})"
     else:
         message = "setup.py, which runs when the sdist is built or installed, changed"
-    return [Signal("hooks.setup_py", "high", message, _evidence("setup.py", ranges))]
+    return [Signal("hooks.setup_py", _hook_level(analysis, pair), message, _evidence("setup.py", ranges))]
 
 
 def _build_system(analysis: PairAnalysis, side: str) -> dict[str, Any] | None:
@@ -100,7 +106,7 @@ def _backend_files(build_system: dict[str, Any]) -> list[str]:
     return out
 
 
-@RULES.rule("hooks.build_backend", 1, "New or changed in-tree build backend")
+@RULES.rule("hooks.build_backend", 2, "New or changed in-tree build backend")
 def build_backend(analysis: PairAnalysis) -> list[Signal]:
     """Report an in-tree build backend that is new, moved, or whose code changed."""
     new = _build_system(analysis, "new")
@@ -137,7 +143,7 @@ def build_backend(analysis: PairAnalysis) -> list[Signal]:
         signals.append(
             Signal(
                 "hooks.build_backend",
-                "high",
+                _hook_level(analysis, pair),
                 f"The in-tree build backend {path}, which runs when the sdist is built, changed{where}",
                 _evidence(path, ranges),
             )

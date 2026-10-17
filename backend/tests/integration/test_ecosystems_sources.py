@@ -82,9 +82,24 @@ def test_source_from_tag(github: GitHubClient) -> None:
 
 @pytest.mark.integration
 @respx.mock
-def test_attested_commit_skips_tag_lookup(github: GitHubClient) -> None:
-    """A commit named by an attestation is used directly; tags aren't listed."""
-    refs_route = respx.get(REFS_URL)
+def test_tag_comes_before_the_attested_commit(github: GitHubClient) -> None:
+    """When the release's tag exists it is used, even with an attested commit: the workflow may have run elsewhere."""
+    tagged = "c" * 40
+    respx.get(REFS_URL).respond(200, content=refs(**{"v2.5.0": tagged}))
+    respx.get(f"https://codeload.github.com/kestrel-weather/orbit-client/tar.gz/{tagged}").respond(
+        200, content=tarball({"a.py": b"x"}, prefix=f"orbit-client-{tagged}/")
+    )
+    result = fetch_source(github, project="orbit-client", version="2.5.0", repository=ORBIT, attested_commit=COMMIT)
+    assert isinstance(result, SourceSnapshot)
+    assert (result.origin, result.commit, result.ref) == ("tag", tagged, "refs/tags/v2.5.0")
+
+
+@pytest.mark.integration
+@respx.mock
+@pytest.mark.parametrize("refs_status", [200, 404, 503])
+def test_attested_commit_when_no_tag_matches(github: GitHubClient, refs_status: int) -> None:
+    """Without a matching tag, or when tags can't be listed, the attested commit is used."""
+    respx.get(REFS_URL).respond(refs_status, content=refs(**{"v2.4.1": "f" * 40}) if refs_status == 200 else b"")
     respx.get(ARCHIVE_URL).respond(200, content=SOURCE)
     result = fetch_source(
         github,
@@ -97,7 +112,6 @@ def test_attested_commit_skips_tag_lookup(github: GitHubClient) -> None:
 
     assert isinstance(result, SourceSnapshot)
     assert (result.origin, result.ref, result.tag_pattern) == ("attestation", "refs/heads/main", None)
-    assert refs_route.call_count == 0
 
 
 @pytest.mark.integration
@@ -131,6 +145,7 @@ def test_could_not_compare(
 @respx.mock
 def test_archive_download_failure_is_unreachable(github: GitHubClient) -> None:
     """An archive the host won't serve is reported as unreachable."""
+    respx.get(REFS_URL).respond(200, content=refs())
     respx.get(ARCHIVE_URL).respond(503)
     result = fetch_source(github, project="orbit-client", version="2.5.0", repository=ORBIT, attested_commit=COMMIT)
     assert isinstance(result, CouldNotCompare)
@@ -152,6 +167,7 @@ def test_no_repository_and_typeshed(github: GitHubClient) -> None:
 @respx.mock
 def test_archive_kept_in_work_dir_and_limits_apply(github: GitHubClient, tmp_path: Path) -> None:
     """With a work directory the archive is kept there; unpacker limits are passed through."""
+    respx.get(REFS_URL).respond(200, content=refs())
     respx.get(ARCHIVE_URL).respond(200, content=SOURCE)
     kept = fetch_source(
         github, project="orbit-client", version="2.5.0", repository=ORBIT, attested_commit=COMMIT, work_dir=tmp_path
@@ -187,6 +203,7 @@ def test_download_archive_limits(github: GitHubClient, tmp_path: Path) -> None:
 @respx.mock
 def test_record_source_snapshot_is_idempotent(db_session: Session, github: GitHubClient) -> None:
     """The same repository and commit map to one row."""
+    respx.get(REFS_URL).respond(200, content=refs())
     respx.get(ARCHIVE_URL).respond(200, content=SOURCE)
     snapshot = fetch_source(github, project="orbit-client", version="2.5.0", repository=ORBIT, attested_commit=COMMIT)
     assert isinstance(snapshot, SourceSnapshot)
@@ -208,6 +225,7 @@ def test_record_source_snapshot_is_idempotent(db_session: Session, github: GitHu
 @respx.mock
 def test_archive_without_top_level_directory_keeps_paths(github: GitHubClient) -> None:
     """When entries don't share one top-level directory, paths are used as they are."""
+    respx.get(REFS_URL).respond(200, content=refs())
     respx.get(ARCHIVE_URL).respond(200, content=tarball({"a.py": b"x", "pkg/b.py": b"y"}, prefix=""))
     result = fetch_source(github, project="orbit-client", version="2.5.0", repository=ORBIT, attested_commit=COMMIT)
     assert isinstance(result, SourceSnapshot)

@@ -100,12 +100,20 @@ class PairAnalysis:
     # Line diffs of package files that differ from the source, by package path: old is the source, new the package.
     source_diffs: dict[str, _core.FileDiff] = field(default_factory=dict)
     sdist: SourceComparison | None = None
+    # The previous release's artifact against its own source and its own sdist, when the new one had mismatches; a
+    # mismatch both releases have is a pattern the project kept. None when unknown or not needed.
+    old_source: SourceComparison | None = None
+    old_sdist: SourceComparison | None = None
     # Paths in the new release's sdist with its top-level directory removed; None when there is no sdist.
     sdist_files: frozenset[str] | None = None
     # When the analysis ran, for rules about how recent a release is.
     analyzed_at: datetime | None = None
     # Releases before `old` with what is known about them, oldest first.
     history: tuple[ReleaseFacts, ...] = ()
+    # Which artifact the files come from; None when unknown.
+    kind: Literal["wheel", "sdist"] | None = None
+    # Ids of the pattern rules whose calls the old release's package code already makes; None when unknown.
+    old_capabilities: frozenset[str] | None = None
 
 
 Check = Callable[[PairAnalysis], Iterable[Signal]]

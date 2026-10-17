@@ -1,0 +1,1406 @@
+{
+ "sampled_on": "2026-10-17",
+ "min_age_days": 30,
+ "pairs": [
+  {
+   "package": "packaging",
+   "rank": 1,
+   "from_version": "26.2",
+   "to_version": "26.3",
+   "published": "2026-08-04"
+  },
+  {
+   "package": "charset-normalizer",
+   "rank": 2,
+   "from_version": "3.5.0",
+   "to_version": "3.5.1",
+   "published": "2026-08-15"
+  },
+  {
+   "package": "cryptography",
+   "rank": 3,
+   "from_version": "50.0.0",
+   "to_version": "50.0.1",
+   "published": "2026-08-25"
+  },
+  {
+   "package": "requests",
+   "rank": 4,
+   "from_version": "2.34.1",
+   "to_version": "2.34.2",
+   "published": "2026-05-14"
+  },
+  {
+   "package": "pygments",
+   "rank": 5,
+   "from_version": "2.20.0",
+   "to_version": "2.21.0",
+   "published": "2026-08-17"
+  },
+  {
+   "package": "pluggy",
+   "rank": 6,
+   "from_version": "1.5.0",
+   "to_version": "1.6.0",
+   "published": "2025-05-15"
+  },
+  {
+   "package": "python-dateutil",
+   "rank": 7,
+   "from_version": "2.9.0",
+   "to_version": "2.9.0.post0",
+   "published": "2024-03-01"
+  },
+  {
+   "package": "six",
+   "rank": 8,
+   "from_version": "1.16.0",
+   "to_version": "1.17.0",
+   "published": "2024-12-04"
+  },
+  {
+   "package": "pycparser",
+   "rank": 9,
+   "from_version": "2.23",
+   "to_version": "3.0",
+   "published": "2026-01-21"
+  },
+  {
+   "package": "pydantic",
+   "rank": 10,
+   "from_version": "2.13.4",
+   "to_version": "2.13.5",
+   "published": "2026-08-28"
+  },
+  {
+   "package": "click",
+   "rank": 11,
+   "from_version": "8.4.2",
+   "to_version": "8.5.0",
+   "published": "2026-08-26"
+  },
+  {
+   "package": "pydantic-core",
+   "rank": 12,
+   "from_version": "2.48.0",
+   "to_version": "2.49.0",
+   "published": "2026-09-09"
+  },
+  {
+   "package": "pyyaml",
+   "rank": 13,
+   "from_version": "6.0.2",
+   "to_version": "6.0.3",
+   "published": "2025-09-25"
+  },
+  {
+   "package": "pytest",
+   "rank": 14,
+   "from_version": "9.1.0",
+   "to_version": "9.1.1",
+   "published": "2026-06-19"
+  },
+  {
+   "package": "setuptools",
+   "rank": 15,
+   "from_version": "83.0.0",
+   "to_version": "84.0.0",
+   "published": "2026-08-08"
+  },
+  {
+   "package": "protobuf",
+   "rank": 16,
+   "from_version": "7.36.0",
+   "to_version": "7.36.1",
+   "published": "2026-08-31"
+  },
+  {
+   "package": "python-dotenv",
+   "rank": 17,
+   "from_version": "1.2.2",
+   "to_version": "1.2.3",
+   "published": "2026-08-16"
+  },
+  {
+   "package": "platformdirs",
+   "rank": 18,
+   "from_version": "4.11.8",
+   "to_version": "4.11.9",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "pyjwt",
+   "rank": 19,
+   "from_version": "2.13.0",
+   "to_version": "2.14.0",
+   "published": "2026-09-11"
+  },
+  {
+   "package": "aiobotocore",
+   "rank": 20,
+   "from_version": "3.9.0",
+   "to_version": "3.9.1",
+   "published": "2026-09-07"
+  },
+  {
+   "package": "pandas",
+   "rank": 21,
+   "from_version": "3.0.3",
+   "to_version": "3.0.5",
+   "published": "2026-07-22"
+  },
+  {
+   "package": "pathspec",
+   "rank": 22,
+   "from_version": "1.1.0",
+   "to_version": "1.1.1",
+   "published": "2026-04-27"
+  },
+  {
+   "package": "s3transfer",
+   "rank": 23,
+   "from_version": "0.19.1",
+   "to_version": "0.19.2",
+   "published": "2026-07-22"
+  },
+  {
+   "package": "filelock",
+   "rank": 24,
+   "from_version": "3.32.6",
+   "to_version": "3.32.7",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "pillow",
+   "rank": 25,
+   "from_version": "12.2.0",
+   "to_version": "12.3.0",
+   "published": "2026-07-01"
+  },
+  {
+   "package": "aiohttp",
+   "rank": 26,
+   "from_version": "3.14.2",
+   "to_version": "3.14.3",
+   "published": "2026-07-23"
+  },
+  {
+   "package": "idna",
+   "rank": 27,
+   "from_version": "3.18",
+   "to_version": "3.19",
+   "published": "2026-08-18"
+  },
+  {
+   "package": "propcache",
+   "rank": 28,
+   "from_version": "0.5.3",
+   "to_version": "0.5.4",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "pip",
+   "rank": 29,
+   "from_version": "26.2",
+   "to_version": "26.2.1",
+   "published": "2026-08-04"
+  },
+  {
+   "package": "fastapi",
+   "rank": 30,
+   "from_version": "0.141.0",
+   "to_version": "0.141.1",
+   "published": "2026-07-29"
+  },
+  {
+   "package": "pyasn1",
+   "rank": 31,
+   "from_version": "0.6.3",
+   "to_version": "0.6.4",
+   "published": "2026-07-09"
+  },
+  {
+   "package": "aiosignal",
+   "rank": 32,
+   "from_version": "1.3.2",
+   "to_version": "1.4.0",
+   "published": "2025-07-03"
+  },
+  {
+   "package": "rpds-py",
+   "rank": 33,
+   "from_version": "2026.5.1",
+   "to_version": "2026.6.3",
+   "published": "2026-06-30"
+  },
+  {
+   "package": "aiohappyeyeballs",
+   "rank": 34,
+   "from_version": "2.6.2",
+   "to_version": "2.7.1",
+   "published": "2026-07-01"
+  },
+  {
+   "package": "pytz",
+   "rank": 35,
+   "from_version": "2026.3",
+   "to_version": "2026.3.post1",
+   "published": "2026-07-25"
+  },
+  {
+   "package": "boto3",
+   "rank": 36,
+   "from_version": "1.43.95",
+   "to_version": "1.43.96",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "rich",
+   "rank": 37,
+   "from_version": "14.3.4",
+   "to_version": "15.0.0",
+   "published": "2026-04-12"
+  },
+  {
+   "package": "referencing",
+   "rank": 38,
+   "from_version": "0.36.2",
+   "to_version": "0.37.0",
+   "published": "2025-10-13"
+  },
+  {
+   "package": "pydantic-settings",
+   "rank": 39,
+   "from_version": "2.14.2",
+   "to_version": "2.15.0",
+   "published": "2026-08-07"
+  },
+  {
+   "package": "python-multipart",
+   "rank": 40,
+   "from_version": "0.0.31",
+   "to_version": "0.0.32",
+   "published": "2026-06-04"
+  },
+  {
+   "package": "pyarrow",
+   "rank": 41,
+   "from_version": "25.0.0",
+   "to_version": "25.0.1",
+   "published": "2026-08-10"
+  },
+  {
+   "package": "pyasn1-modules",
+   "rank": 42,
+   "from_version": "0.4.1",
+   "to_version": "0.4.2",
+   "published": "2025-03-28"
+  },
+  {
+   "package": "pyparsing",
+   "rank": 43,
+   "from_version": "3.3.1",
+   "to_version": "3.3.2",
+   "published": "2026-01-21"
+  },
+  {
+   "package": "coverage",
+   "rank": 44,
+   "from_version": "7.16.0",
+   "to_version": "7.16.1",
+   "published": "2026-09-13"
+  },
+  {
+   "package": "psutil",
+   "rank": 45,
+   "from_version": "7.2.1",
+   "to_version": "7.2.2",
+   "published": "2026-01-28"
+  },
+  {
+   "package": "et-xmlfile",
+   "rank": 46,
+   "from_version": "1.1.0",
+   "to_version": "2.0.0",
+   "published": "2024-10-25"
+  },
+  {
+   "package": "distro",
+   "rank": 47,
+   "from_version": "1.8.0",
+   "to_version": "1.9.0",
+   "published": "2023-12-24"
+  },
+  {
+   "package": "regex",
+   "rank": 48,
+   "from_version": "2026.9.3",
+   "to_version": "2026.9.10",
+   "published": "2026-09-09"
+  },
+  {
+   "package": "colorama",
+   "rank": 49,
+   "from_version": "0.4.5",
+   "to_version": "0.4.6",
+   "published": "2022-10-25"
+  },
+  {
+   "package": "ruff",
+   "rank": 50,
+   "from_version": "0.16.7",
+   "to_version": "0.16.8",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "typing-extensions",
+   "rank": 51,
+   "from_version": "4.15.0",
+   "to_version": "4.16.0",
+   "published": "2026-07-02"
+  },
+  {
+   "package": "scipy",
+   "rank": 52,
+   "from_version": "1.18.0",
+   "to_version": "1.18.1",
+   "published": "2026-08-21"
+  },
+  {
+   "package": "proto-plus",
+   "rank": 53,
+   "from_version": "1.28.3",
+   "to_version": "1.28.4",
+   "published": "2026-08-25"
+  },
+  {
+   "package": "s3fs",
+   "rank": 54,
+   "from_version": "2026.6.0",
+   "to_version": "2026.7.0",
+   "published": "2026-07-28"
+  },
+  {
+   "package": "dnspython",
+   "rank": 55,
+   "from_version": "2.7.0",
+   "to_version": "2.8.0",
+   "published": "2025-09-07"
+  },
+  {
+   "package": "pytest-asyncio",
+   "rank": 56,
+   "from_version": "1.3.0",
+   "to_version": "1.4.0",
+   "published": "2026-05-26"
+  },
+  {
+   "package": "urllib3",
+   "rank": 57,
+   "from_version": "2.7.0",
+   "to_version": "2.8.0",
+   "published": "2026-09-15"
+  },
+  {
+   "package": "docstring-parser",
+   "rank": 58,
+   "from_version": "0.17.0",
+   "to_version": "0.18.0",
+   "published": "2026-04-14"
+  },
+  {
+   "package": "editables",
+   "rank": 59,
+   "from_version": "0.5",
+   "to_version": "0.6",
+   "published": "2026-04-14"
+  },
+  {
+   "package": "exceptiongroup",
+   "rank": 60,
+   "from_version": "1.3.0",
+   "to_version": "1.3.1",
+   "published": "2025-11-21"
+  },
+  {
+   "package": "certifi",
+   "rank": 61,
+   "from_version": "2026.6.17",
+   "to_version": "2026.7.22",
+   "published": "2026-07-22"
+  },
+  {
+   "package": "shellingham",
+   "rank": 62,
+   "from_version": "1.5.3",
+   "to_version": "1.5.4",
+   "published": "2023-10-24"
+  },
+  {
+   "package": "distlib",
+   "rank": 63,
+   "from_version": "0.4.2",
+   "to_version": "0.4.3",
+   "published": "2026-06-12"
+  },
+  {
+   "package": "pytest-cov",
+   "rank": 64,
+   "from_version": "7.0.0",
+   "to_version": "7.1.0",
+   "published": "2026-03-21"
+  },
+  {
+   "package": "defusedxml",
+   "rank": 65,
+   "from_version": "0.7.0",
+   "to_version": "0.7.1",
+   "published": "2021-03-08"
+  },
+  {
+   "package": "psycopg2-binary",
+   "rank": 66,
+   "from_version": "2.9.12",
+   "to_version": "2.9.13",
+   "published": "2026-09-09"
+  },
+  {
+   "package": "requests-oauthlib",
+   "rank": 67,
+   "from_version": "1.3.1",
+   "to_version": "2.0.0",
+   "published": "2024-03-22"
+  },
+  {
+   "package": "fonttools",
+   "rank": 68,
+   "from_version": "4.64.0",
+   "to_version": "4.65.0",
+   "published": "2026-09-10"
+  },
+  {
+   "package": "prompt-toolkit",
+   "rank": 69,
+   "from_version": "3.0.52",
+   "to_version": "3.0.53",
+   "published": "2026-07-26"
+  },
+  {
+   "package": "alembic",
+   "rank": 70,
+   "from_version": "1.19.2",
+   "to_version": "1.20.0",
+   "published": "2026-09-11"
+  },
+  {
+   "package": "cloudpickle",
+   "rank": 71,
+   "from_version": "3.1.1",
+   "to_version": "3.1.2",
+   "published": "2025-11-03"
+  },
+  {
+   "package": "pyopenssl",
+   "rank": 72,
+   "from_version": "26.3.0",
+   "to_version": "26.4.0",
+   "published": "2026-08-01"
+  },
+  {
+   "package": "redis",
+   "rank": 73,
+   "from_version": "8.0.1",
+   "to_version": "8.1.0",
+   "published": "2026-07-30"
+  },
+  {
+   "package": "cffi",
+   "rank": 74,
+   "from_version": "2.1.0",
+   "to_version": "2.1.1",
+   "published": "2026-08-03"
+  },
+  {
+   "package": "email-validator",
+   "rank": 75,
+   "from_version": "2.2.0",
+   "to_version": "2.3.0",
+   "published": "2025-08-26"
+  },
+  {
+   "package": "python-discovery",
+   "rank": 76,
+   "from_version": "1.5.3",
+   "to_version": "1.6.0",
+   "published": "2026-08-28"
+  },
+  {
+   "package": "requests-toolbelt",
+   "rank": 77,
+   "from_version": "0.10.1",
+   "to_version": "1.0.0",
+   "published": "2023-05-01"
+  },
+  {
+   "package": "pynacl",
+   "rank": 78,
+   "from_version": "1.6.1",
+   "to_version": "1.6.2",
+   "published": "2026-01-01"
+  },
+  {
+   "package": "rsa",
+   "rank": 79,
+   "from_version": "4.9",
+   "to_version": "4.9.1",
+   "published": "2025-04-16"
+  },
+  {
+   "package": "scikit-learn",
+   "rank": 80,
+   "from_version": "1.9.0",
+   "to_version": "1.9.1",
+   "published": "2026-09-10"
+  },
+  {
+   "package": "chardet",
+   "rank": 81,
+   "from_version": "7.5.1",
+   "to_version": "7.6.0",
+   "published": "2026-08-14"
+  },
+  {
+   "package": "flask",
+   "rank": 82,
+   "from_version": "3.1.2",
+   "to_version": "3.1.3",
+   "published": "2026-02-19"
+  },
+  {
+   "package": "contourpy",
+   "rank": 83,
+   "from_version": "1.3.3",
+   "to_version": "1.4.0",
+   "published": "2026-09-11"
+  },
+  {
+   "package": "pytest-xdist",
+   "rank": 84,
+   "from_version": "3.7.0",
+   "to_version": "3.8.0",
+   "published": "2025-07-01"
+  },
+  {
+   "package": "execnet",
+   "rank": 85,
+   "from_version": "2.1.1",
+   "to_version": "2.1.2",
+   "published": "2025-11-12"
+  },
+  {
+   "package": "psycopg",
+   "rank": 86,
+   "from_version": "3.3.4",
+   "to_version": "3.3.5",
+   "published": "2026-08-31"
+  },
+  {
+   "package": "numpy",
+   "rank": 87,
+   "from_version": "2.5.2",
+   "to_version": "2.5.3",
+   "published": "2026-09-06"
+  },
+  {
+   "package": "dill",
+   "rank": 88,
+   "from_version": "0.4.0",
+   "to_version": "0.4.1",
+   "published": "2026-01-19"
+  },
+  {
+   "package": "decorator",
+   "rank": 89,
+   "from_version": "5.3.0",
+   "to_version": "5.3.1",
+   "published": "2026-05-18"
+  },
+  {
+   "package": "anyio",
+   "rank": 90,
+   "from_version": "4.15.0",
+   "to_version": "4.15.1",
+   "published": "2026-09-05"
+  },
+  {
+   "package": "psycopg-binary",
+   "rank": 91,
+   "from_version": "3.3.4",
+   "to_version": "3.3.5",
+   "published": "2026-08-31"
+  },
+  {
+   "package": "cycler",
+   "rank": 92,
+   "from_version": "0.12.0",
+   "to_version": "0.12.1",
+   "published": "2023-10-07"
+  },
+  {
+   "package": "pre-commit",
+   "rank": 93,
+   "from_version": "4.6.1",
+   "to_version": "4.6.2",
+   "published": "2026-08-10"
+  },
+  {
+   "package": "prometheus-client",
+   "rank": 94,
+   "from_version": "0.25.0",
+   "to_version": "0.26.0",
+   "published": "2026-07-24"
+  },
+  {
+   "package": "iniconfig",
+   "rank": 95,
+   "from_version": "2.2.0",
+   "to_version": "2.3.0",
+   "published": "2025-10-18"
+  },
+  {
+   "package": "annotated-types",
+   "rank": 96,
+   "from_version": "0.7.0",
+   "to_version": "0.8.0",
+   "published": "2026-07-23"
+  },
+  {
+   "package": "botocore",
+   "rank": 97,
+   "from_version": "1.43.95",
+   "to_version": "1.43.96",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "docutils",
+   "rank": 98,
+   "from_version": "0.22.4",
+   "to_version": "0.23",
+   "published": "2026-05-27"
+  },
+  {
+   "package": "smmap",
+   "rank": 99,
+   "from_version": "5.0.2",
+   "to_version": "5.0.3",
+   "published": "2026-03-09"
+  },
+  {
+   "package": "pypdf",
+   "rank": 100,
+   "from_version": "6.18.1",
+   "to_version": "6.19.0",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "deprecated",
+   "rank": 101,
+   "from_version": "1.2.18",
+   "to_version": "1.3.1",
+   "published": "2025-10-30"
+  },
+  {
+   "package": "docker",
+   "rank": 102,
+   "from_version": "7.1.0",
+   "to_version": "7.2.0",
+   "published": "2026-07-09"
+  },
+  {
+   "package": "h11",
+   "rank": 103,
+   "from_version": "0.15.0",
+   "to_version": "0.16.0",
+   "published": "2025-04-24"
+  },
+  {
+   "package": "typing-inspection",
+   "rank": 104,
+   "from_version": "0.4.3",
+   "to_version": "0.4.4",
+   "published": "2026-08-12"
+  },
+  {
+   "package": "pexpect",
+   "rank": 105,
+   "from_version": "4.8.0",
+   "to_version": "4.9.0",
+   "published": "2023-11-25"
+  },
+  {
+   "package": "ruamel-yaml",
+   "rank": 106,
+   "from_version": "0.19.0",
+   "to_version": "0.19.1",
+   "published": "2026-01-02"
+  },
+  {
+   "package": "ptyprocess",
+   "rank": 107,
+   "from_version": "0.6.0",
+   "to_version": "0.7.0",
+   "published": "2020-12-28"
+  },
+  {
+   "package": "attrs",
+   "rank": 108,
+   "from_version": "25.4.0",
+   "to_version": "26.1.0",
+   "published": "2026-03-19"
+  },
+  {
+   "package": "aiofiles",
+   "rank": 109,
+   "from_version": "24.1.0",
+   "to_version": "25.1.0",
+   "published": "2025-10-09"
+  },
+  {
+   "package": "secretstorage",
+   "rank": 110,
+   "from_version": "3.4.1",
+   "to_version": "3.5.0",
+   "published": "2025-11-23"
+  },
+  {
+   "package": "markupsafe",
+   "rank": 111,
+   "from_version": "3.0.2",
+   "to_version": "3.0.3",
+   "published": "2025-09-27"
+  },
+  {
+   "package": "fastjsonschema",
+   "rank": 112,
+   "from_version": "2.22.1",
+   "to_version": "2.22.2",
+   "published": "2026-08-15"
+  },
+  {
+   "package": "pytest-json-ctrf",
+   "rank": 113,
+   "from_version": "0.5.2",
+   "to_version": "0.5.3",
+   "published": "2026-07-19"
+  },
+  {
+   "package": "sentry-sdk",
+   "rank": 114,
+   "from_version": "2.69.1",
+   "to_version": "2.69.2",
+   "published": "2026-09-15"
+  },
+  {
+   "package": "httpx",
+   "rank": 115,
+   "from_version": "0.28.0",
+   "to_version": "0.28.1",
+   "published": "2024-12-06"
+  },
+  {
+   "package": "httpcore",
+   "rank": 116,
+   "from_version": "1.0.8",
+   "to_version": "1.0.9",
+   "published": "2025-04-24"
+  },
+  {
+   "package": "paramiko",
+   "rank": 117,
+   "from_version": "4.0.0",
+   "to_version": "5.0.0",
+   "published": "2026-05-09"
+  },
+  {
+   "package": "playwright",
+   "rank": 118,
+   "from_version": "1.62.0",
+   "to_version": "1.63.0",
+   "published": "2026-09-15"
+  },
+  {
+   "package": "executing",
+   "rank": 119,
+   "from_version": "2.2.0",
+   "to_version": "2.2.1",
+   "published": "2025-09-01"
+  },
+  {
+   "package": "openai",
+   "rank": 120,
+   "from_version": "3.14.0",
+   "to_version": "3.14.1",
+   "published": "2026-09-15"
+  },
+  {
+   "package": "parso",
+   "rank": 121,
+   "from_version": "0.8.6",
+   "to_version": "0.8.7",
+   "published": "2026-05-01"
+  },
+  {
+   "package": "python-docx",
+   "rank": 122,
+   "from_version": "1.1.2",
+   "to_version": "1.2.0",
+   "published": "2025-06-16"
+  },
+  {
+   "package": "fsspec",
+   "rank": 123,
+   "from_version": "2026.6.0",
+   "to_version": "2026.7.0",
+   "published": "2026-07-28"
+  },
+  {
+   "package": "pyproject-hooks",
+   "rank": 124,
+   "from_version": "1.3.0",
+   "to_version": "1.3.3",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "rapidfuzz",
+   "rank": 125,
+   "from_version": "3.14.5",
+   "to_version": "3.14.6",
+   "published": "2026-08-30"
+  },
+  {
+   "package": "pyee",
+   "rank": 126,
+   "from_version": "13.0.1",
+   "to_version": "14.0.0",
+   "published": "2026-08-13"
+  },
+  {
+   "package": "jinja2",
+   "rank": 127,
+   "from_version": "3.1.5",
+   "to_version": "3.1.6",
+   "published": "2025-03-05"
+  },
+  {
+   "package": "pure-eval",
+   "rank": 128,
+   "from_version": "0.2.3",
+   "to_version": "0.2.4",
+   "published": "2026-09-10"
+  },
+  {
+   "package": "opentelemetry-api",
+   "rank": 129,
+   "from_version": "1.43.0",
+   "to_version": "1.44.0",
+   "published": "2026-07-16"
+  },
+  {
+   "package": "starlette",
+   "rank": 130,
+   "from_version": "1.5.1",
+   "to_version": "1.6.0",
+   "published": "2026-08-08"
+  },
+  {
+   "package": "python-json-logger",
+   "rank": 131,
+   "from_version": "4.1.0",
+   "to_version": "4.2.0",
+   "published": "2026-08-15"
+  },
+  {
+   "package": "aioitertools",
+   "rank": 132,
+   "from_version": "0.12.0",
+   "to_version": "0.13.0",
+   "published": "2025-11-06"
+  },
+  {
+   "package": "uvicorn",
+   "rank": 133,
+   "from_version": "0.52.4",
+   "to_version": "0.53.0",
+   "published": "2026-09-14"
+  },
+  {
+   "package": "pytest-timeout",
+   "rank": 134,
+   "from_version": "2.3.1",
+   "to_version": "2.4.0",
+   "published": "2025-05-05"
+  },
+  {
+   "package": "jmespath",
+   "rank": 135,
+   "from_version": "1.0.1",
+   "to_version": "1.1.0",
+   "published": "2026-01-22"
+  },
+  {
+   "package": "jsonschema",
+   "rank": 136,
+   "from_version": "4.25.1",
+   "to_version": "4.26.0",
+   "published": "2026-01-07"
+  },
+  {
+   "package": "pymupdf",
+   "rank": 137,
+   "from_version": "1.28.0",
+   "to_version": "1.28.2",
+   "published": "2026-08-06"
+  },
+  {
+   "package": "poetry-core",
+   "rank": 138,
+   "from_version": "2.4.0",
+   "to_version": "2.4.1",
+   "published": "2026-05-23"
+  },
+  {
+   "package": "flatbuffers",
+   "rank": 139,
+   "from_version": "25.9.23",
+   "to_version": "25.12.19",
+   "published": "2025-12-19"
+  },
+  {
+   "package": "pytest-mock",
+   "rank": 140,
+   "from_version": "3.15.0",
+   "to_version": "3.15.1",
+   "published": "2025-09-16"
+  },
+  {
+   "package": "debugpy",
+   "rank": 141,
+   "from_version": "1.8.21",
+   "to_version": "1.8.22",
+   "published": "2026-09-15"
+  },
+  {
+   "package": "multidict",
+   "rank": 142,
+   "from_version": "6.7.1",
+   "to_version": "6.8.0",
+   "published": "2026-09-09"
+  },
+  {
+   "package": "jsonschema-specifications",
+   "rank": 143,
+   "from_version": "2025.4.1",
+   "to_version": "2025.9.1",
+   "published": "2025-09-08"
+  },
+  {
+   "package": "databricks-sdk",
+   "rank": 144,
+   "from_version": "0.138.0",
+   "to_version": "0.139.0",
+   "published": "2026-09-13"
+  },
+  {
+   "package": "frozenlist",
+   "rank": 145,
+   "from_version": "1.7.0",
+   "to_version": "1.8.0",
+   "published": "2025-10-06"
+  },
+  {
+   "package": "pyzmq",
+   "rank": 146,
+   "from_version": "27.1.0",
+   "to_version": "27.2.0",
+   "published": "2026-08-20"
+  },
+  {
+   "package": "markdown-it-py",
+   "rank": 147,
+   "from_version": "4.1.0",
+   "to_version": "4.2.0",
+   "published": "2026-05-07"
+  },
+  {
+   "package": "yarl",
+   "rank": 148,
+   "from_version": "1.24.5",
+   "to_version": "1.25.1",
+   "published": "2026-09-15"
+  },
+  {
+   "package": "mdurl",
+   "rank": 149,
+   "from_version": "0.1.1",
+   "to_version": "0.1.2",
+   "published": "2022-08-14"
+  },
+  {
+   "package": "cython",
+   "rank": 150,
+   "from_version": "3.2.9",
+   "to_version": "3.3.0",
+   "published": "2026-08-22"
+  },
+  {
+   "package": "pytokens",
+   "rank": 151,
+   "from_version": "0.4.0",
+   "to_version": "0.4.1",
+   "published": "2026-01-30"
+  },
+  {
+   "package": "croniter",
+   "rank": 152,
+   "from_version": "6.2.3",
+   "to_version": "6.2.4",
+   "published": "2026-07-10"
+  },
+  {
+   "package": "annotated-doc",
+   "rank": 153,
+   "from_version": "0.0.4",
+   "to_version": "0.0.5",
+   "published": "2026-07-28"
+  },
+  {
+   "package": "tomlkit",
+   "rank": 154,
+   "from_version": "0.15.0",
+   "to_version": "0.15.1",
+   "published": "2026-07-17"
+  },
+  {
+   "package": "slack-sdk",
+   "rank": 155,
+   "from_version": "3.44.0",
+   "to_version": "3.44.1",
+   "published": "2026-09-03"
+  },
+  {
+   "package": "tzdata",
+   "rank": 156,
+   "from_version": "2026.3",
+   "to_version": "2026.4",
+   "published": "2026-09-12"
+  },
+  {
+   "package": "pymysql",
+   "rank": 157,
+   "from_version": "1.1.3",
+   "to_version": "1.2.0",
+   "published": "2026-05-19"
+  },
+  {
+   "package": "websockets",
+   "rank": 158,
+   "from_version": "17.0.1",
+   "to_version": "17.1",
+   "published": "2026-08-26"
+  },
+  {
+   "package": "pyperclip",
+   "rank": 159,
+   "from_version": "1.10.0",
+   "to_version": "1.11.0",
+   "published": "2025-09-26"
+  },
+  {
+   "package": "pathable",
+   "rank": 160,
+   "from_version": "0.5.0",
+   "to_version": "0.6.0",
+   "published": "2026-05-19"
+  },
+  {
+   "package": "cyclopts",
+   "rank": 161,
+   "from_version": "4.25.1",
+   "to_version": "4.25.2",
+   "published": "2026-09-08"
+  },
+  {
+   "package": "python-pptx",
+   "rank": 162,
+   "from_version": "1.0.1",
+   "to_version": "1.0.2",
+   "published": "2024-08-07"
+  },
+  {
+   "package": "pycryptodome",
+   "rank": 163,
+   "from_version": "3.22.0",
+   "to_version": "3.23.0",
+   "published": "2025-05-17"
+  },
+  {
+   "package": "googleapis-common-protos",
+   "rank": 164,
+   "from_version": "1.75.2",
+   "to_version": "1.75.3",
+   "published": "2026-09-03"
+  },
+  {
+   "package": "tqdm",
+   "rank": 165,
+   "from_version": "4.70.0",
+   "to_version": "4.70.1",
+   "published": "2026-09-11"
+  },
+  {
+   "package": "fastuuid",
+   "rank": 166,
+   "from_version": "0.13.5",
+   "to_version": "0.14.0",
+   "published": "2025-10-19"
+  },
+  {
+   "package": "sniffio",
+   "rank": 167,
+   "from_version": "1.3.0",
+   "to_version": "1.3.1",
+   "published": "2024-02-25"
+  },
+  {
+   "package": "pypdfium2",
+   "rank": 168,
+   "from_version": "5.12.1",
+   "to_version": "5.13.0",
+   "published": "2026-08-13"
+  },
+  {
+   "package": "faker",
+   "rank": 169,
+   "from_version": "40.38.0",
+   "to_version": "40.39.0",
+   "published": "2026-09-14"
+  },
+  {
+   "package": "python-slugify",
+   "rank": 170,
+   "from_version": "8.0.4",
+   "to_version": "9.0.0",
+   "published": "2026-09-08"
+  },
+  {
+   "package": "pymongo",
+   "rank": 171,
+   "from_version": "4.18.0",
+   "to_version": "4.18.1",
+   "published": "2026-09-10"
+  },
+  {
+   "package": "py-key-value-aio",
+   "rank": 172,
+   "from_version": "0.4.4",
+   "to_version": "0.4.5",
+   "published": "2026-05-27"
+  },
+  {
+   "package": "safetensors",
+   "rank": 173,
+   "from_version": "0.7.0",
+   "to_version": "0.8.0",
+   "published": "2026-06-09"
+  },
+  {
+   "package": "py4j",
+   "rank": 174,
+   "from_version": "0.10.9.8",
+   "to_version": "0.10.9.9",
+   "published": "2025-01-15"
+  },
+  {
+   "package": "wrapt",
+   "rank": 175,
+   "from_version": "2.4.0",
+   "to_version": "2.4.1",
+   "published": "2026-09-10"
+  },
+  {
+   "package": "setuptools-scm",
+   "rank": 176,
+   "from_version": "10.2.2",
+   "to_version": "10.2.3",
+   "published": "2026-09-03"
+  },
+  {
+   "package": "aiosqlite",
+   "rank": 177,
+   "from_version": "0.22.0",
+   "to_version": "0.22.1",
+   "published": "2025-12-23"
+  },
+  {
+   "package": "deprecation",
+   "rank": 178,
+   "from_version": "2.0.7",
+   "to_version": "2.1.0",
+   "published": "2020-04-20"
+  },
+  {
+   "package": "google-auth",
+   "rank": 179,
+   "from_version": "2.57.1",
+   "to_version": "2.58.0",
+   "published": "2026-09-09"
+  },
+  {
+   "package": "psycopg2",
+   "rank": 180,
+   "from_version": "2.9.12",
+   "to_version": "2.9.13",
+   "published": "2026-09-09"
+  },
+  {
+   "package": "datasets",
+   "rank": 181,
+   "from_version": "5.0.0",
+   "to_version": "5.0.1",
+   "published": "2026-07-28"
+  },
+  {
+   "package": "comm",
+   "rank": 182,
+   "from_version": "0.2.2",
+   "to_version": "0.2.3",
+   "published": "2025-07-25"
+  },
+  {
+   "package": "zipp",
+   "rank": 183,
+   "from_version": "3.23.1",
+   "to_version": "4.1.0",
+   "published": "2026-05-18"
+  },
+  {
+   "package": "trove-classifiers",
+   "rank": 184,
+   "from_version": "2026.5.22.10",
+   "to_version": "2026.6.1.19",
+   "published": "2026-06-01"
+  },
+  {
+   "package": "duckdb",
+   "rank": 185,
+   "from_version": "1.5.4",
+   "to_version": "1.5.5",
+   "published": "2026-07-22"
+  },
+  {
+   "package": "tenacity",
+   "rank": 186,
+   "from_version": "9.1.3",
+   "to_version": "9.1.4",
+   "published": "2026-02-07"
+  },
+  {
+   "package": "pycodestyle",
+   "rank": 187,
+   "from_version": "2.13.0",
+   "to_version": "2.14.0",
+   "published": "2025-06-20"
+  },
+  {
+   "package": "importlib-metadata",
+   "rank": 188,
+   "from_version": "9.0.0",
+   "to_version": "9.0.1",
+   "published": "2026-08-28"
+  },
+  {
+   "package": "greenlet",
+   "rank": 189,
+   "from_version": "3.5.5",
+   "to_version": "3.5.6",
+   "published": "2026-09-14"
+  },
+  {
+   "package": "sqlalchemy",
+   "rank": 190,
+   "from_version": "2.0.53",
+   "to_version": "2.0.54",
+   "published": "2026-09-15"
+  },
+  {
+   "package": "lxml",
+   "rank": 191,
+   "from_version": "6.1.2",
+   "to_version": "6.1.3",
+   "published": "2026-09-02"
+  },
+  {
+   "package": "smart-open",
+   "rank": 192,
+   "from_version": "8.0.0",
+   "to_version": "8.0.1",
+   "published": "2026-07-15"
+  },
+  {
+   "package": "pdfminer-six",
+   "rank": 193,
+   "from_version": "20251230",
+   "to_version": "20260107",
+   "published": "2026-01-07"
+  },
+  {
+   "package": "wheel",
+   "rank": 194,
+   "from_version": "0.47.0",
+   "to_version": "0.48.0",
+   "published": "2026-08-11"
+  },
+  {
+   "package": "fastmcp",
+   "rank": 195,
+   "from_version": "4.0.3",
+   "to_version": "4.0.4",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "aiofile",
+   "rank": 196,
+   "from_version": "3.12.2",
+   "to_version": "3.12.3",
+   "published": "2026-08-04"
+  },
+  {
+   "package": "jiter",
+   "rank": 197,
+   "from_version": "0.16.0",
+   "to_version": "0.17.0",
+   "published": "2026-09-12"
+  },
+  {
+   "package": "pydantic-extra-types",
+   "rank": 198,
+   "from_version": "2.11.0",
+   "to_version": "2.11.1",
+   "published": "2026-03-16"
+  },
+  {
+   "package": "semver",
+   "rank": 199,
+   "from_version": "3.0.4",
+   "to_version": "3.1.0",
+   "published": "2026-09-12"
+  },
+  {
+   "package": "rich-rst",
+   "rank": 200,
+   "from_version": "2.0.3",
+   "to_version": "2.1.0",
+   "published": "2026-07-05"
+  }
+ ]
+}

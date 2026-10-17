@@ -65,14 +65,22 @@ def test_registered() -> None:
 
 
 def test_setup_py_code_change_fires_with_added_lines() -> None:
-    """New code in setup.py is high, with the added lines as evidence."""
+    """New code in setup.py is check, with the added lines as evidence."""
     new = SETUP.replace("from setuptools import setup\n", "from setuptools import setup\nimport os\n").replace(
         "version", "cmdclass=os.environ,\n    version"
     )
     [signal] = setup_py(analysis({"setup.py": (SETUP, new)}))
-    assert signal.level == "high"
+    assert signal.level == "check"
     assert signal.message == "setup.py, which runs when the sdist is built or installed, changed (lines 2, 6)"
     assert [(e.line_start, e.line_end) for e in signal.evidence] == [(2, 2), (6, 6)]
+
+
+def test_setup_py_risky_call_is_high() -> None:
+    """A change that adds a network, subprocess, exec or decoding call to setup.py is high."""
+    new = SETUP.replace("from setuptools import setup\n", "from setuptools import setup\nimport subprocess\n")
+    new += 'subprocess.run(["sh", "-c", "true"])\n'
+    [signal] = setup_py(analysis({"setup.py": (SETUP, new)}))
+    assert signal.level == "high"
 
 
 def test_setup_py_version_bump_does_not_fire() -> None:

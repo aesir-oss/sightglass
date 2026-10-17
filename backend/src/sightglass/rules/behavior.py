@@ -2,8 +2,8 @@
 
 import ast
 
-from sightglass.rules import pyast
-from sightglass.rules.base import RULES, Evidence, PairAnalysis, Signal
+from sightglass.rules import patterns, pyast, scope
+from sightglass.rules.base import RULES, Evidence, Level, PairAnalysis, Signal
 
 # Calls common at module level that only set up names; they don't fire the import-time rule.
 IMPORT_TIME_ALLOWED = frozenset(
@@ -42,12 +42,13 @@ def _span(r: range) -> str:
     return str(r.start) if len(r) == 1 else f"{r.start}-{r[-1]}"
 
 
-@RULES.rule("behavior.import_time_code", 1, "New code that runs at import time in __init__.py")
+@RULES.rule("behavior.import_time_code", 2, "New code that runs at import time in __init__.py")
 def import_time_code(analysis: PairAnalysis) -> list[Signal]:
     """Report added module-level statements in ``__init__.py`` files that call something when the package is imported.
 
     Function and class definitions, imports, docstrings and assignments of plain values don't fire, and neither do
-    the setup calls in :data:`IMPORT_TIME_ALLOWED`.
+    the setup calls in :data:`IMPORT_TIME_ALLOWED`. The signal is high when one of the calls is a network, subprocess,
+    dynamic execution or decoding call, and a note otherwise, or outside the installed package.
     """
     signals = []
     for pair in analysis.files:
@@ -77,5 +78,7 @@ def import_time_code(analysis: PairAnalysis) -> list[Signal]:
             where = ", ".join(_span(r) for r, _ in found)
             message = f"{len(found)} new module-level statements in {pair.path} run at import (lines {where})"
         evidence = tuple(Evidence(pair.path, r.start, r[-1], "new") for r, _ in found)
-        signals.append(Signal("behavior.import_time_code", "high", message, evidence))
+        risky = any(patterns.is_risky(name) for _, called in found for name in called)
+        level: Level = "high" if risky and not scope.outside_package(analysis, pair.path) else "note"
+        signals.append(Signal("behavior.import_time_code", level, message, evidence))
     return signals

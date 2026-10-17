@@ -169,3 +169,12 @@ def test_aliases_and_qualified_names() -> None:
 def test_deeply_nested_code_is_skipped() -> None:
     """Code too deep to parse is logged and skipped rather than crashing the analysis."""
     assert pyast.parse("x = " + "(" * 100_000 + ")" * 100_000, "deep.py") is None
+
+
+@pytest.mark.parametrize("path", [INIT, "tests/__init__.py"])
+def test_ordinary_setup_calls_are_a_note(path: str) -> None:
+    """An ordinary module-level call is a note, and so is any call in an sdist file outside the package."""
+    new = OLD.replace("import logging\n", "import logging\nimport re\n") + "PATTERN = re.compile('x')\n"
+    a = changed(OLD, new, path)
+    [signal] = import_time_code(PairAnalysis(**{**a.__dict__, "kind": "sdist"}))
+    assert signal.level == "note"

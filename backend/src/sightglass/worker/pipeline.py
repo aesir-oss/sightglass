@@ -12,7 +12,8 @@ a reason, and the other pairs still run.
 import os
 import re
 import tempfile
-from dataclasses import dataclass, field
+from collections.abc import Iterator
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
@@ -23,7 +24,7 @@ from sqlalchemy.orm import Session
 from sightglass import _core
 from sightglass.db import models
 from sightglass.ecosystems.artifacts import ArtifactPair, preferred_sdist, select_artifacts
-from sightglass.ecosystems.github import GITHUB_HOSTS, GitHubClient
+from sightglass.ecosystems.github import GITHUB_HOSTS, GitHubClient, Repository
 from sightglass.ecosystems.http import Fetcher, HttpError, NotFoundError, UnavailableError, default_client
 from sightglass.ecosystems.provenance import IntegrityClient, Provenance, record_provenance
 from sightglass.ecosystems.pypi import PYPI_HOSTS, IndexDataError, PypiClient, PypiFile, PypiProject, PypiRelease
@@ -36,10 +37,20 @@ from sightglass.ecosystems.sources import (
     repository_from_attestation,
 )
 from sightglass.log import get_logger
+from sightglass.rules import patterns, scope
 from sightglass.rules import provenance as provenance_rules
 from sightglass.rules.base import PairAnalysis, ReleaseFacts, RuleSet
-from sightglass.rules.pairing import FilePair, IndexedFile, SourceComparison, check_source, normalize_path, pair_files
+from sightglass.rules.pairing import (
+    FilePair,
+    IndexedFile,
+    SourceComparison,
+    check_source,
+    normalize_path,
+    pair_files,
+    submodule_paths,
+)
 from sightglass.rules.ruleset import RULES
+from sightglass.rules.scope import NOT_SHIPPED
 from sightglass.rules.store import current_analysis, fail_analysis, mark_step, save_analysis
 from sightglass.storage.blobs import BlobStore, LocalBlobStore
 from sightglass.worker.catalog import record_artifact, record_files, record_package, record_release
@@ -125,6 +136,22 @@ class _Unpacked:
         return target.read_bytes() if target.is_file() else None
 
 
+def _capabilities(unpacked: _Unpacked, kind: str) -> frozenset[str]:
+    """The pattern rules whose calls an artifact's Python already makes, outside tests and docs for an sdist."""
+
+    def sources() -> Iterator[tuple[str, bytes]]:
+        for f in unpacked.files:
+            top = f.path.split("/", 1)[0]
+            if not f.path.endswith((".py", ".pyw")) or (
+                kind == "sdist" and "/" in f.path and top.lower() in NOT_SHIPPED
+            ):
+                continue
+            if (data := unpacked.read(normalize_path(f.path))) is not None:
+                yield f.path, data
+
+    return patterns.capabilities(sources())
+
+
 def _unpack(archive: Path, dest: Path, limits: _core.Limits | None, *, strip: bool) -> _Unpacked:
     entries = _core.extract_archive(archive, dest, limits)
     tops = {e.path.split("/", 1)[0] for e in entries}
@@ -161,6 +188,7 @@ class _Run:
         self._unpacked: dict[str, _Unpacked] = {}
         self._provenance: dict[str, Provenance | None] = {}
         self._sources: dict[str, _Unpacked] = {}
+        self._capabilities: dict[str, frozenset[str]] = {}
 
     def artifact_id(self, release: PypiRelease, file: PypiFile) -> int:
         return record_artifact(self.session, self.release_ids[release.version], file)
@@ -215,10 +243,16 @@ class _Run:
             facts.append(ReleaseFacts(release.version, release.published_at, prov))
         return tuple(facts)
 
-    def source(self, new_prov: Provenance | None) -> SourceSnapshot | CouldNotCompare:
-        att = new_prov.attestations[0] if new_prov and new_prov.attestations else None
-        repository = repository_from_attestation(att.claims.source_repository if att else None)
-        repository = repository or find_repository(self.project.project_urls, self.project.home_page)
+    def sources(self, prov: Provenance | None, release: PypiRelease) -> Iterator[SourceSnapshot | CouldNotCompare]:
+        """A release's source from the attestation's repository, then from the one the project lists, if different."""
+        att = prov.attestations[0] if prov and prov.attestations else None
+        attested = repository_from_attestation(att.claims.source_repository if att else None)
+        declared = find_repository(self.project.project_urls, self.project.home_page)
+        candidates: list[Repository | None] = [attested] if attested else []
+        if declared is not None and (attested is None or declared.slug.lower() != attested.slug.lower()):
+            candidates.append(declared)
+        if not candidates:
+            candidates = [None]
         preferred = self.session.scalar(
             select(models.SourceSnapshot.tag_pattern)
             .where(models.SourceSnapshot.package_id == self.package_id, models.SourceSnapshot.origin == "tag")
@@ -227,20 +261,32 @@ class _Run:
         )
         work_dir = self.services.cache_dir / "sources"
         work_dir.mkdir(parents=True, exist_ok=True)
-        result = fetch_source(
-            self.services.github,
-            project=self.project.name,
-            version=self.new.version,
-            repository=repository,
-            attested_commit=att.claims.source_commit if att else None,
-            attested_ref=att.claims.source_ref if att else None,
-            preferred_pattern=preferred,
-            work_dir=work_dir,
-            limits=self.services.limits,
-        )
-        if isinstance(result, CouldNotCompare) and result.reason == "repository_unreachable" and not self.final_attempt:
-            raise TransientError(result.detail)
-        return result
+        for repository in candidates:
+            from_attestation = att is not None and repository is attested
+            result = fetch_source(
+                self.services.github,
+                project=self.project.name,
+                version=release.version,
+                repository=repository,
+                attested_commit=att.claims.source_commit if att and from_attestation else None,
+                attested_ref=att.claims.source_ref if att and from_attestation else None,
+                preferred_pattern=preferred,
+                work_dir=work_dir,
+                limits=self.services.limits,
+            )
+            if (
+                isinstance(result, CouldNotCompare)
+                and result.reason == "repository_unreachable"
+                and not self.final_attempt
+            ):
+                raise TransientError(result.detail)
+            yield result
+
+    def capabilities(self, file: PypiFile, kind: str) -> frozenset[str]:
+        """What the artifact's code already does, once per run."""
+        if file.sha256 not in self._capabilities:
+            self._capabilities[file.sha256] = _capabilities(self.unpacked(file), kind)
+        return self._capabilities[file.sha256]
 
 
 def _texts(
@@ -270,18 +316,87 @@ def _source_check(
 ) -> tuple[SourceComparison, dict[str, _core.FileDiff], str]:
     source = run.unpacked_source(snapshot)
     record_files(run.session, run.services.blobs, source.root, source.entries, source_snapshot_id=snapshot_id)
-    comparison = check_source(package.files, source.files)
+    gitmodules = _decode(source.read(".gitmodules"))
+    comparison = check_source(package.files, source.files, submodule_paths(gitmodules) if gitmodules else ())
     diffs = {}
+    checks = []
     for check in comparison.files:
         if check.status == "differs" and check.text and check.source_path is not None:
             pkg, src = package.read(normalize_path(check.path)), source.read(check.source_path)
             if pkg is not None and src is not None:
                 diffs[check.path] = _core.diff_lines(src, pkg)
+                pkg_text, src_text = _decode(pkg), _decode(src)
+                if (
+                    (check.path.endswith((".py", ".pyw")) or normalize_path(check.path).startswith("*.data/scripts/"))
+                    and pkg_text is not None
+                    and src_text is not None
+                    and scope.same_code(pkg_text, src_text, check.path)
+                ):
+                    check = replace(check, explained="the same code apart from comments, formatting or the version")
+        checks.append(check)
+    comparison = replace(comparison, files=tuple(checks))
     if snapshot.origin == "tag" and snapshot.ref:
         label = f"tag {snapshot.ref.removeprefix('refs/tags/')}"
     else:
         label = f"commit {snapshot.commit[:12]}"
     return comparison, diffs, label
+
+
+# A source tree holding fewer of the package's files than this is taken to be the wrong repository, such as one that
+# only builds releases and pulls the code in as a git submodule, which GitHub's archives leave out.
+MIN_SOURCE_COVERAGE = 0.5
+
+
+def _coverage(comparison: SourceComparison) -> float:
+    return sum(c.status != "missing" for c in comparison.files) / len(comparison.files) if comparison.files else 1.0
+
+
+def _find_source(
+    run: _Run, prov: Provenance | None, package: _Unpacked, release: PypiRelease
+) -> tuple[SourceComparison | CouldNotCompare, dict[str, _core.FileDiff], str | None, SourceSnapshot | None]:
+    """Compare an artifact with the first candidate source that holds most of it, else the one that holds most."""
+    best: tuple[SourceComparison, dict[str, _core.FileDiff], str, SourceSnapshot] | None = None
+    first_failure: CouldNotCompare | None = None
+    for found in run.sources(prov, release):
+        if isinstance(found, CouldNotCompare):
+            first_failure = first_failure or found
+            continue
+        snapshot_id = record_source_snapshot(run.session, run.package_id, found)
+        comparison, diffs, label = _source_check(run, snapshot_id, found, package)
+        if _coverage(comparison) >= MIN_SOURCE_COVERAGE:
+            return comparison, diffs, label, found
+        log.info("source_mostly_missing", repository=found.repository.slug, coverage=round(_coverage(comparison), 3))
+        if best is None or _coverage(comparison) > _coverage(best[0]):
+            best = (comparison, diffs, label, found)
+    if best is not None:
+        return best
+    assert first_failure is not None  # sources() yields at least one result
+    return first_failure, {}, None, None
+
+
+def _mismatched(comparison: SourceComparison | CouldNotCompare | None) -> bool:
+    """Whether any text file is missing from or differs from the source, without an explanation from the build."""
+    return isinstance(comparison, SourceComparison) and any(
+        c.status != "matches" and c.text and c.explained is None for c in comparison.files
+    )
+
+
+def _sdist_check(
+    run: _Run, release: PypiRelease, wheel: _Unpacked
+) -> tuple[SourceComparison | None, frozenset[str] | None]:
+    """A wheel compared with its release's sdist, and the sdist's paths; None when there's no readable sdist."""
+    sdist_file = preferred_sdist(release)
+    if sdist_file is None:
+        return None, None
+    try:
+        sdist = run.unpacked(sdist_file)
+    except UnavailableError:
+        raise
+    except (HttpError, _core.ArchiveError, OSError) as exc:
+        # The wheel is still analyzed; only its comparison with the sdist is unknown.
+        log.warning("sdist_unavailable", filename=sdist_file.filename, error=f"{type(exc).__name__}: {exc}")
+        return None, None
+    return check_source(wheel.files, sdist.files), frozenset(f.path for f in sdist.files)
 
 
 def _signals(session: Session, analysis_id: int) -> tuple[dict[str, Any], ...]:
@@ -326,32 +441,20 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
         diffs, old_text, new_text = _texts(files, old, new)
 
         step("source")
-        found = run.source(new_prov)
-        source: SourceComparison | CouldNotCompare
-        source_diffs: dict[str, _core.FileDiff] = {}
-        label = None
-        if isinstance(found, SourceSnapshot):
-            snapshot_id = record_source_snapshot(session, run.package_id, found)
-            source, source_diffs, label = _source_check(run, snapshot_id, found, new)
-        else:
-            source = found
+        source, source_diffs, label, snapshot = _find_source(run, new_prov, new, run.new)
+        # The previous release against its own source, so a mismatch it already had reads as a kept pattern.
+        old_source: SourceComparison | None = None
+        if _mismatched(source):
+            found_old = _find_source(run, old_prov, old, run.old)[0]
+            old_source = found_old if isinstance(found_old, SourceComparison) else None
 
         sdist_check: SourceComparison | None = None
+        old_sdist_check: SourceComparison | None = None
         sdist_files: frozenset[str] | None = frozenset(f.path for f in new.files)
         if pair.kind == "wheel":
-            sdist_file = preferred_sdist(run.new)
-            sdist_files = None
-            if sdist_file is not None:
-                try:
-                    sdist = run.unpacked(sdist_file)
-                except UnavailableError:
-                    raise
-                except (HttpError, _core.ArchiveError, OSError) as exc:
-                    # The wheel is still analyzed; only its comparison with the sdist is unknown.
-                    log.warning("sdist_unavailable", filename=sdist_file.filename, error=f"{type(exc).__name__}: {exc}")
-                else:
-                    sdist_check = check_source(new.files, sdist.files)
-                    sdist_files = frozenset(f.path for f in sdist.files)
+            sdist_check, sdist_files = _sdist_check(run, run.new, new)
+            if _mismatched(sdist_check):
+                old_sdist_check = _sdist_check(run, run.old, old)[0]
 
         analysis = PairAnalysis(
             "pypi",
@@ -366,9 +469,13 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
             source_label=label,
             source_diffs=source_diffs,
             sdist=sdist_check,
+            old_source=old_source,
+            old_sdist=old_sdist_check,
             sdist_files=sdist_files,
             history=run.history(pair.kind),
             analyzed_at=run.now,
+            kind=pair.kind,
+            old_capabilities=run.capabilities(pair.old, pair.kind),
         )
         step("rules")
         signals = run.rules.run(analysis)
@@ -378,7 +485,7 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
             new_file=pair.new,
             old_files=old.files,
             new_files=new.files,
-            snapshot=found if isinstance(found, SourceSnapshot) else None,
+            snapshot=snapshot,
         )
     except UnavailableError, TransientError:
         session.rollback()
