@@ -114,3 +114,13 @@ def test_format_and_io_errors(tmp_path: Path) -> None:
     with pytest.raises(FileExistsError):
         _core.extract_archive(wheel, tmp_path)
     assert wheel.exists()
+
+
+@pytest.mark.integration
+def test_path_too_long_to_write_is_a_format_error(tmp_path: Path) -> None:
+    """A path the file system can't hold is reported by name, not as a bare OS error."""
+    long_name = "orbit/" + "n" * 300 + ".py"
+    wheel = make_wheel(tmp_path / "orbit-1.0-py3-none-any.whl", {long_name: b"x = 1\n"})
+    with pytest.raises(_core.ArchiveFormatError, match="too long for this file system"):
+        _core.extract_archive(wheel, tmp_path / "out")
+    assert len(_core.index_archive(wheel)) == 1

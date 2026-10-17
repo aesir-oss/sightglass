@@ -549,6 +549,12 @@ fn names_and_messages() {
         .to_string(),
         Error::SpecialFile { path: "p".into() }.to_string(),
         Error::Duplicate { path: "p".into() }.to_string(),
+        Error::CaseCollision {
+            path: "p".into(),
+            other: "P".into(),
+        }
+        .to_string(),
+        Error::PathTooLong { path: "p".into() }.to_string(),
         Error::TooManyFiles { limit: 1 }.to_string(),
         Error::FileTooLarge {
             path: "p".into(),
@@ -561,4 +567,38 @@ fn names_and_messages() {
     assert!(messages.iter().all(|m| !m.is_empty()));
     assert!(std::error::Error::source(&Error::Io(io::Error::other("x"))).is_some());
     assert!(std::error::Error::source(&Error::TooManyFiles { limit: 1 }).is_none());
+}
+
+#[test]
+fn names_differing_only_in_case_extract_or_say_why() {
+    // Both files are written on a case-sensitive file system; on one that ignores case the error names both paths.
+    let dir = TempDir::new();
+    let archive = dir.write(
+        "case.zip",
+        &zip_of(&[("pkg/SampleH.gif", b"upper"), ("pkg/sampleh.gif", b"lower")]),
+    );
+    match extract(&archive, &dir.0.join("out"), &Limits::default()) {
+        Ok(entries) => assert_eq!(entries.len(), 2),
+        Err(Error::CaseCollision { path, other }) => {
+            assert_eq!(
+                (path.as_str(), other.as_str()),
+                ("pkg/sampleh.gif", "pkg/SampleH.gif")
+            );
+            assert!(!Error::CaseCollision { path, other }.is_refusal());
+        }
+        Err(e) => panic!("unexpected error: {e}"),
+    }
+}
+
+#[test]
+fn a_path_too_long_for_the_file_system_is_named() {
+    let dir = TempDir::new();
+    let long = format!("pkg/{}.py", "n".repeat(300));
+    let archive = dir.write("long.zip", &zip_of(&[(long.as_str(), b"x")]));
+    let err = extract(&archive, &dir.0.join("out"), &Limits::default()).unwrap_err();
+    assert!(
+        matches!(&err, Error::PathTooLong { path } if *path == long),
+        "{err}"
+    );
+    assert!(!err.is_refusal());
 }

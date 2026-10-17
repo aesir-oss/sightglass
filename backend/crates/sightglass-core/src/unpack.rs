@@ -4,7 +4,7 @@
 //! but never created, special files are refused, and size, count and compression-ratio limits are enforced on the
 //! bytes actually decompressed, not on what the archive declares.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, Read, Seek, Write};
@@ -141,6 +141,18 @@ pub enum Error {
         /// The repeated path.
         path: String,
     },
+    /// Two paths that differ only in letter case, on a file system that doesn't tell them apart (macOS by default).
+    CaseCollision {
+        /// The path that couldn't be written.
+        path: String,
+        /// The path already written that it collides with.
+        other: String,
+    },
+    /// A path too long for the file system it's extracted to.
+    PathTooLong {
+        /// The entry's path.
+        path: String,
+    },
     /// More files than [`Limits::max_files`].
     TooManyFiles {
         /// The limit that was exceeded.
@@ -171,7 +183,11 @@ impl Error {
     pub fn is_refusal(&self) -> bool {
         !matches!(
             self,
-            Self::Io(_) | Self::Malformed(_) | Self::Unsupported(_)
+            Self::Io(_)
+                | Self::Malformed(_)
+                | Self::Unsupported(_)
+                | Self::CaseCollision { .. }
+                | Self::PathTooLong { .. }
         )
     }
 }
@@ -188,6 +204,13 @@ impl fmt::Display for Error {
             }
             Self::SpecialFile { path } => write!(f, "special file {path:?}"),
             Self::Duplicate { path } => write!(f, "duplicate path {path:?}"),
+            Self::CaseCollision { path, other } => write!(
+                f,
+                "{path:?} and {other:?} differ only in letter case, which this file system doesn't tell apart"
+            ),
+            Self::PathTooLong { path } => {
+                write!(f, "path {path:?} is too long for this file system")
+            }
             Self::TooManyFiles { limit } => write!(f, "more than {limit} files"),
             Self::FileTooLarge { path, limit } => {
                 write!(f, "file {path:?} is larger than {limit} bytes")
@@ -452,6 +475,8 @@ struct State<'a> {
     total: u64,
     files: u64,
     seen: HashSet<String>,
+    // Each claimed path by its lowercase form, to name the other path when a case-insensitive file system collides.
+    folded: HashMap<String, String>,
     entries: Vec<Entry>,
 }
 
@@ -464,6 +489,7 @@ impl<'a> State<'a> {
             total: 0,
             files: 0,
             seen: HashSet::new(),
+            folded: HashMap::new(),
             entries: Vec::new(),
         }
     }
@@ -474,6 +500,9 @@ impl<'a> State<'a> {
                 path: path.to_owned(),
             });
         }
+        self.folded
+            .entry(path.to_lowercase())
+            .or_insert_with(|| path.to_owned());
         self.files += 1;
         if self.files > self.limits.max_files {
             return Err(Error::TooManyFiles {
@@ -488,9 +517,27 @@ impl<'a> State<'a> {
             .fold(dest.to_path_buf(), |acc, part| acc.join(part))
     }
 
+    /// Name a write failure after the entry: a case collision or an over-long path, else the I/O error.
+    fn write_error(&self, path: &str, e: io::Error) -> Error {
+        match e.kind() {
+            io::ErrorKind::AlreadyExists => match self.folded.get(&path.to_lowercase()) {
+                Some(other) if other != path => Error::CaseCollision {
+                    path: path.to_owned(),
+                    other: other.clone(),
+                },
+                _ => Error::Io(e),
+            },
+            io::ErrorKind::InvalidFilename => Error::PathTooLong {
+                path: path.to_owned(),
+            },
+            _ => Error::Io(e),
+        }
+    }
+
     fn add_dir(&mut self, path: &str) -> Result<()> {
         if let Some(dest) = self.dest {
-            fs::create_dir_all(Self::output_path(dest, path))?;
+            fs::create_dir_all(Self::output_path(dest, path))
+                .map_err(|e| self.write_error(path, e))?;
         }
         Ok(())
     }
@@ -524,13 +571,14 @@ impl<'a> State<'a> {
             Some(dest) => {
                 let target = Self::output_path(dest, &path);
                 if let Some(parent) = target.parent() {
-                    fs::create_dir_all(parent)?;
+                    fs::create_dir_all(parent).map_err(|e| self.write_error(&path, e))?;
                 }
                 Some(
                     OpenOptions::new()
                         .write(true)
                         .create_new(true)
-                        .open(target)?,
+                        .open(target)
+                        .map_err(|e| self.write_error(&path, e))?,
                 )
             }
             None => None,

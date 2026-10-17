@@ -30,6 +30,7 @@ from sightglass.ecosystems.provenance import IntegrityClient, Provenance, record
 from sightglass.ecosystems.pypi import PYPI_HOSTS, IndexDataError, PypiClient, PypiFile, PypiProject, PypiRelease
 from sightglass.ecosystems.sources import (
     CouldNotCompare,
+    Reason,
     SourceSnapshot,
     fetch_source,
     find_repository,
@@ -188,6 +189,7 @@ class _Run:
         self._unpacked: dict[str, _Unpacked] = {}
         self._provenance: dict[str, Provenance | None] = {}
         self._sources: dict[str, _Unpacked] = {}
+        self._source_failures: dict[str, _core.ArchiveError] = {}
         self._capabilities: dict[str, frozenset[str]] = {}
 
     def artifact_id(self, release: PypiRelease, file: PypiFile) -> int:
@@ -206,11 +208,17 @@ class _Run:
         return self._unpacked[file.sha256]
 
     def unpacked_source(self, snapshot: SourceSnapshot) -> _Unpacked:
-        """Extract a source archive, once per run."""
+        """Extract a source archive, once per run; an archive that couldn't be extracted raises the same error again."""
+        if (failed := self._source_failures.get(snapshot.commit)) is not None:
+            raise failed
         if snapshot.commit not in self._sources:
             assert snapshot.archive is not None
             dest = self.work / f"source-{snapshot.commit}"
-            self._sources[snapshot.commit] = _unpack(snapshot.archive, dest, self.services.limits, strip=True)
+            try:
+                self._sources[snapshot.commit] = _unpack(snapshot.archive, dest, self.services.limits, strip=True)
+            except _core.ArchiveError as exc:
+                self._source_failures[snapshot.commit] = exc
+                raise
         return self._sources[snapshot.commit]
 
     def provenance(self, release: PypiRelease, file: PypiFile) -> Provenance | None:
@@ -362,7 +370,15 @@ def _find_source(
             first_failure = first_failure or found
             continue
         snapshot_id = record_source_snapshot(run.session, run.package_id, found)
-        comparison, diffs, label = _source_check(run, snapshot_id, found, package)
+        try:
+            comparison, diffs, label = _source_check(run, snapshot_id, found, package)
+        except _core.ArchiveError as exc:
+            # The source tree couldn't be written out here (a path too long, names differing only in case); the
+            # release is still analyzed, without a source comparison.
+            log.warning("source_unpack_failed", repository=found.repository.slug, error=str(exc))
+            reason: Reason = "archive_refused" if isinstance(exc, _core.UnsafeArchiveError) else "archive_unreadable"
+            first_failure = first_failure or CouldNotCompare(reason, str(exc), found.repository)
+            continue
         if _coverage(comparison) >= MIN_SOURCE_COVERAGE:
             return comparison, diffs, label, found
         log.info("source_mostly_missing", repository=found.repository.slug, coverage=round(_coverage(comparison), 3))

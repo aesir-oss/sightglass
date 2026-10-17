@@ -369,3 +369,25 @@ def test_tag_with_an_unbumped_version_is_a_note(
     [signal] = [s for s in sdist_result.signals if s["rule_id"] == "source.differs_from_tag"]
     assert signal["level"] == "note"
     assert signal["message"].endswith("(the same code apart from comments, formatting or the version)")
+
+
+@pytest.mark.integration
+@respx.mock
+def test_source_that_cannot_be_written_out_is_couldnt_compare(
+    db_session: Session, services: Services, provenance_payload: Callable[..., bytes]
+) -> None:
+    """A source tree with a path too long for the file system leaves the release analyzed, without a comparison."""
+    mock_world(provenance_payload)
+    long_name = "src/orbit/" + "n" * 300 + ".py"
+    respx.get(f"https://codeload.github.com/kestrel-weather/orbit-client/tar.gz/{COMMIT}").respond(
+        200, content=tarball(f"orbit-client-{COMMIT}/", {"src/orbit/__init__.py": INIT_NEW, long_name: b"x = 1\n"})
+    )
+    results = analyze_release_pair(db_session, services, "orbit-client", "2.4.1", "2.5.0", now=NOW)
+
+    assert [r.status for r in results] == ["done", "done"]
+    for result in results:
+        report = db_session.get(models.Analysis, result.analysis_id).report  # type: ignore[union-attr]
+        assert report is not None
+        assert report["source"]["state"] == "could_not_compare"
+        assert report["source"]["reason"] == "archive_unreadable"
+        assert "too long" in report["source"]["detail"]

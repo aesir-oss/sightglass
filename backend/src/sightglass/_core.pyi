@@ -115,7 +115,8 @@ def extract_archive(
 
     Raises:
         UnsafeArchiveError: If the archive is refused.
-        ArchiveFormatError: If it's damaged or unsupported.
+        ArchiveFormatError: If it's damaged or unsupported, or can't be written to this file system: a path that is
+            too long, or two that differ only in letter case where case is ignored.
         OSError: If it can't be read, or ``dest`` already exists.
     """
 
