@@ -50,8 +50,8 @@ The Sigstore (Fulcio) certificate carries these extensions for GitHub and GitLab
 | `1.3.6.1.4.1.57264.1.21` | Run invocation URI | link to the workflow run |
 
 These claims are only as trustworthy as the bundle's verification: the certificate chain to Sigstore's root, the
-transparency log entry, and the signature over the statement. Sightglass must verify a bundle before it uses any of
-them.
+transparency log entry, and the signature over the statement. PyPI performs that verification against the trusted
+publisher when a file is uploaded, before the Integrity API serves the attestation.
 
 ## Measurements
 
@@ -126,8 +126,12 @@ What was behind them:
 6. **Snapshot ownership.** PyPI shows owners and maintainers only as they are now. Recording `ownership` each time a
    release is analyzed would let a later rule report "account added as owner since the previous release". The account
    names are public, but the page should show only the change, not profile people.
-7. **Verify before use.** Bundle verification goes into the Integrity API client (#19). An unverified bundle counts as
-   "attestation present, couldn't verify", never as a trusted publisher.
+7. **Trust PyPI's verification; verify independently later.** Revised 2026-10-17 while building #19: because PyPI
+   verifies attestations on upload, reading them from the Integrity API over TLS is as trustworthy as the hashes
+   Sightglass already takes from PyPI. Verifying the bundles again only guards against a compromised PyPI, which is
+   outside the threat model, and would add Sigstore's dependency tree and a trust-root download to every worker. The
+   client parses the claims with `cryptography` and stores `verified = false`, meaning "not verified by Sightglass";
+   independent verification is #96.
 
 ## Caveats
 

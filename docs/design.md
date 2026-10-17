@@ -214,10 +214,11 @@ flowchart LR
 2. **Fetch.** Download each artifact once, verify its hash against the index, and record its size.
 3. **Unpack.** Extract into a file index, with each file's path, size, sha256 and type. Store each unique file
    content in the blob store once.
-4. **Fetch provenance.** Query the PyPI Integrity API for each artifact's attestations, verify the bundles, and record
-   the publisher identity and the certificate's source commit, ref, runner and trigger
-   ([research](research/pypi-publisher-data.md)).
-5. **Fetch the source.** When a verified attestation names the source commit, fetch that commit's archive. Otherwise
+4. **Fetch provenance.** Query the PyPI Integrity API for each artifact's attestations, and record whether there are
+   any, the publisher identity, and the certificate's source commit, ref, runner and trigger
+   ([research](research/pypi-publisher-data.md)). PyPI verifies attestations on upload; Sightglass verifying them
+   again is #96.
+5. **Fetch the source.** When an attestation names the source commit, fetch that commit's archive. Otherwise
    find the repository from the project URLs, find the tag ([research](research/tag-discovery.md)), and fetch the tag
    archive. Unpack it the same way.
 6. **Diff.** Pair files by path (normalizing the `dist-info` directory name), classify each pair and compute line
@@ -247,8 +248,8 @@ Tables, simplified. The phase 1 ones are defined in `backend/src/sightglass/db/m
 |---|---|
 | `package` | ecosystem, name (normalized) |
 | `release` | package, version, published_at, yanked |
-| `artifact` | release, filename, kind (wheel, sdist, conda), sha256, size, upload metadata |
-| `attestation` | artifact, publisher kind, repository, workflow, environment, service account email, source commit, source ref, runner environment, build trigger, run URL, verified, raw bundle |
+| `artifact` | release, filename, kind (wheel, sdist, conda), sha256, size, upload metadata, provenance status (unknown, absent, present) |
+| `attestation` | artifact, publisher kind, repository, workflow, environment, service account email, source commit, source ref, runner environment, build trigger, run URL, verified (by Sightglass itself), raw bundle |
 | `ownership_snapshot` | package, seen_at, organization, roles (account and role) |
 | `file` | artifact or source snapshot (exactly one), path, sha256, size, type |
 | `blob` | sha256, size, storage location (null when too large to keep) |
