@@ -156,9 +156,10 @@ mod _core {
     fn to_python(result: unpack::Result<Vec<unpack::Entry>>) -> PyResult<Vec<ArchiveEntry>> {
         let entries = result.map_err(|e| match e {
             unpack::Error::Io(io) => PyErr::from(io),
-            unpack::Error::Malformed(_) | unpack::Error::Unsupported(_) => {
-                ArchiveFormatError::new_err(e.to_string())
-            }
+            unpack::Error::Malformed(_)
+            | unpack::Error::Unsupported(_)
+            | unpack::Error::CaseCollision { .. }
+            | unpack::Error::PathTooLong { .. } => ArchiveFormatError::new_err(e.to_string()),
             refusal => UnsafeArchiveError::new_err(refusal.to_string()),
         })?;
         Ok(entries
