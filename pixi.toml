@@ -77,6 +77,8 @@ fmt-rs-check = { cmd = "cargo fmt --all --check", cwd = "backend" }
 lint-rs = { cmd = "cargo clippy --workspace --all-targets -- -D warnings", cwd = "backend" }
 test-rs = { cmd = "cargo test --workspace --exclude sightglass-py", cwd = "backend" }
 # The bindings crate can't link libpython under cargo test; the Python tests cover it.
+# Line diff benchmarks; not part of ci.
+bench-rs = { cmd = "cargo bench -p sightglass-core", cwd = "backend" }
 cov-rs = { cmd = "cargo llvm-cov --workspace --exclude sightglass-py --fail-under-lines 90", cwd = "backend" }
 # Fuzzing needs rustup's nightly toolchain and cargo-fuzz, outside pixi; see backend/fuzz/README.md.
 # New inputs go to backend/fuzz/work (ignored); corpus/ is the committed seed set.

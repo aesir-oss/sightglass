@@ -227,7 +227,9 @@ flowchart LR
    `codeload.github.com` by commit SHA only. Unpack it the same way. Anything that fails is a "couldn't compare"
    result with a reason, never a guess.
 6. **Diff.** Pair files by path (normalizing the `dist-info` directory name), classify each pair and compute line
-   diffs for text files.
+   diffs for text files. Diffs compare lines as bytes (Myers, from the `similar` crate) and skip files over 4 MiB or
+   100,000 lines on either side, reporting them as too large to diff. A 2 second deadline bounds pathological
+   inputs; past it the diff is still correct but may not be minimal, and is marked approximate.
 7. **Run signal rules.** Each rule is a pure function from the pair analysis to zero or more signals with evidence.
 8. **Store.** Persist the pair analysis and signals. Analyses are immutable for a given rule-set version and are
    recomputed when the rules change.
