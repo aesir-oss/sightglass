@@ -7,6 +7,7 @@ the source couldn't be fetched the result is "couldn't compare" on the page, nev
 from collections.abc import Sequence
 
 from sightglass import _core
+from sightglass.rules import pyast
 from sightglass.rules.base import RULES, Evidence, PairAnalysis, Signal
 from sightglass.rules.pairing import SourceCheck, SourceComparison
 
@@ -28,13 +29,7 @@ def _files(comparison: SourceComparison | None, status: str) -> list[SourceCheck
 
 
 def _added_ranges(diff: _core.FileDiff | None) -> list[tuple[int, int]]:
-    ranges: list[tuple[int, int]] = []
-    for line, _ in diff.added_lines() if diff else []:
-        if ranges and ranges[-1][1] == line - 1:
-            ranges[-1] = (ranges[-1][0], line)
-        else:
-            ranges.append((line, line))
-    return ranges[:MAX_RANGES]
+    return pyast.line_ranges(line for line, _ in diff.added_lines())[:MAX_RANGES] if diff else []
 
 
 def _source(analysis: PairAnalysis) -> SourceComparison | None:

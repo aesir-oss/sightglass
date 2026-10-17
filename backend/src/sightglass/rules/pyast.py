@@ -4,7 +4,7 @@ Code is only parsed with :func:`ast.parse`, never compiled, imported or run.
 """
 
 import ast
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 
 from sightglass.log import get_logger
 from sightglass.rules.base import PairAnalysis
@@ -95,3 +95,14 @@ def statement_lines(node: ast.stmt) -> range:
     """The lines a statement spans, decorators included."""
     start = min([node.lineno, *(d.lineno for d in getattr(node, "decorator_list", []))])
     return range(start, (node.end_lineno or node.lineno) + 1)
+
+
+def line_ranges(lines: Iterable[int]) -> list[tuple[int, int]]:
+    """Group line numbers into sorted, inclusive ``(start, end)`` runs of consecutive lines."""
+    ranges: list[tuple[int, int]] = []
+    for line in sorted(set(lines)):
+        if ranges and ranges[-1][1] == line - 1:
+            ranges[-1] = (ranges[-1][0], line)
+        else:
+            ranges.append((line, line))
+    return ranges
