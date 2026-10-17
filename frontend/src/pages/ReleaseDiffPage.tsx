@@ -2,6 +2,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router";
 import { ApiError, artifactFromSearch } from "../api/client";
 import { usePairAnalysis, useReleaseHistory } from "../api/queries";
 import { Header } from "../release/Header";
+import { Signals } from "../release/Signals";
 import { Timeline } from "../release/Timeline";
 import { pairPath } from "../release/urls";
 
@@ -48,30 +49,29 @@ export function ReleaseDiffPage() {
           }}
         />
       )}
-      <main className="wrap">
-        {pair.isPending && <p role="status">Loading…</p>}
-        {pair.isError && (
-          <p className="notice" data-tone="warn" role="alert">
-            {pair.error instanceof ApiError && pair.error.status === 404
-              ? pair.error.message
-              : "Sightglass couldn't load this comparison. Try again shortly."}
-          </p>
-        )}
-        {data?.status === "pending" && (
-          <p className="notice" role="status">
-            Analyzing {data.artifact.old_filename} and {data.artifact.new_filename}. This page updates when it is done.
-          </p>
-        )}
-        {data?.status === "failed" && (
-          <p className="notice" data-tone="warn" role="alert">
-            This pair couldn&apos;t be analyzed: {data.error}
-          </p>
-        )}
-        {data?.status === "done" && (
-          <p>
-            {data.signals.length} signals across {data.files.length} files.
-          </p>
-        )}
+      <main>
+        <div className="wrap">
+          {pair.isPending && <p role="status">Loading…</p>}
+          {pair.isError && (
+            <p className="notice" data-tone="warn" role="alert">
+              {pair.error instanceof ApiError && pair.error.status === 404
+                ? pair.error.message
+                : "Sightglass couldn't load this comparison. Try again shortly."}
+            </p>
+          )}
+          {data?.status === "pending" && (
+            <p className="notice" role="status">
+              Analyzing {data.artifact.old_filename} and {data.artifact.new_filename}. This page updates when it is
+              done.
+            </p>
+          )}
+          {data?.status === "failed" && (
+            <p className="notice" data-tone="warn" role="alert">
+              This pair couldn&apos;t be analyzed: {data.error}
+            </p>
+          )}
+        </div>
+        {data?.status === "done" && <Signals signals={data.signals} source={data.source} />}
       </main>
     </>
   );
