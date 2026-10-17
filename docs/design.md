@@ -1,6 +1,6 @@
 # Sightglass design
 
-Status: draft, 2026-10-16. Nothing is built yet.
+Status: draft, 2026-10-16; stack and layout decided 2026-10-17. The project is scaffolded; no analysis is built yet.
 
 ## Summary
 
@@ -191,8 +191,8 @@ flowchart LR
 - **API and pages.** FastAPI. Serves the JSON API, receives GitHub webhooks and serves the built frontend. Requests
   for an analysis that doesn't exist yet enqueue it and return a pending state that the page polls or streams over
   server-sent events.
-- **Workers.** Python processes that run analysis jobs: fetch, unpack, diff, run signal rules, store results. No job
-  runs package code.
+- **Workers.** Python processes that run analysis jobs: fetch, unpack, diff, run signal rules, store results. Unpacking,
+  hashing, file typing and line diffs run in the Rust core (`sightglass._core`). No job runs package code.
 - **Job queue.** Postgres-backed (for example procrastinate) so the first deployment needs only Postgres and a blob
   store, not Redis.
 - **Postgres.** Packages, releases, artifacts, file indexes, analyses, signals, pull request reviews and decisions.
@@ -280,25 +280,44 @@ Sightglass processes hostile input by design, so the workers are the main attack
 
 | Part | Choice | Why |
 |---|---|---|
-| Environment and tasks | pixi | One environment for Python and Node, conda-forge first |
-| Backend | Python 3.14, FastAPI, structlog | Fast to build; the analysis libraries are in Python |
+| Environment and tasks | pixi | One environment for Python, Rust and Node, conda-forge first |
+| Backend | Python 3.14 only, FastAPI, structlog | Fast to build; the analysis libraries are in Python. A hosted service fixes its own runtime, so there's no version matrix |
 | Jobs | Postgres-backed queue | One fewer service to run |
 | Database | Postgres | Relational data with JSON evidence columns |
 | Lockfile parsing | py-rattler for `pixi.lock`; small parsers for others | Reuse pixi's own parser |
-| Frontend | SvelteKit or React with Vite, built with Node from conda-forge | Node as a build tool only |
+| Frontend | React, Vite and TypeScript, built with Node from conda-forge and pnpm | Node as a build tool only |
+| UI components | React Aria Components, styled with CSS modules on the mockups' tokens | Accessible behavior without a visual system to override; not MUI |
 | Visuals | SVG with D3 helpers for the treemap, timeline and graph | Small, themeable, accessible |
-| Rust | Only if unpacking or hashing large archives is a bottleneck, via PyO3 and maturin | Use it where it earns its place |
+| Rust | Archive unpacking, hashing, file typing and line diffs, in `sightglass-core`, exposed to Python through PyO3 and maturin | Memory safety for the code that parses hostile archives, `cargo-fuzz` for the unpacker, and speed on large files |
 | Deployment | Docker Compose on one VM at first | Same artifacts later for self-hosting |
 
-Proposed repository layout:
+Repository layout:
 
 ```
-src/sightglass/          backend: api/, worker/, rules/, ecosystems/, lockfiles/
-web/                     frontend
-tests/unit/              rules, diffing, parsers
-tests/integration/       index and GitHub calls against recorded fixtures, Postgres
-docs/                    this document, mockups, later the user docs
+pixi.toml                       one workspace for Python, Rust and Node
+backend/
+  pyproject.toml                Python tool config and the maturin build
+  Cargo.toml                    Cargo workspace
+  crates/sightglass-core/       pure Rust: unpacking, hashing, file typing, line diffs
+  crates/sightglass-py/         PyO3 bindings, built as sightglass._core
+  src/sightglass/               api/, worker/, rules/, ecosystems/, lockfiles/
+  tests/unit/                   rules, diffing, parsers
+  tests/integration/            index and GitHub calls against recorded fixtures, Postgres
+frontend/                       React app
+docs/                           this document, mockups, later the user docs
 ```
+
+Why `backend/` and `frontend/` at the top level rather than a root `src/` with a `web/` folder:
+
+- They are deliverables of comparable size. The FastAPI full-stack template (`fastapi/full-stack-fastapi-template`)
+  splits the same stack the same way. Projects with a root `src/` (Sentry, Zulip) are ones where Python is the product
+  and the frontend is secondary.
+- Each side gets one CI path filter and one CODEOWNERS glob.
+- `src/` means one thing instead of sitting next to `web/src/`.
+- The Rust crates sit under `backend/`, next to the Python extension they serve.
+
+`src/` stays inside `backend/` so tests import the installed build, including the compiled extension, rather than the
+checkout.
 
 ## Phases
 
@@ -350,7 +369,8 @@ requests.
 3. **Tag discovery.** How often does `v{version}` or `{version}` find the right tag across popular packages? Measure
    before building more heuristics.
 4. **conda provenance.** What attestation or signing data does conda-forge publish today, and how is it verified?
-5. **Frontend framework.** SvelteKit or React. Decide when the first page is built.
+5. **Frontend framework.** Decided 2026-10-17: React with Vite and TypeScript, and React Aria Components rather than
+   MUI. The mockups already define their own visual system, and most of each page is custom SVG.
 6. **License.** Apache-2.0 or MIT for the code; the rule set may need its own terms if it reuses third-party rules.
 7. **Hosting and domain.** `sightglass.dev` and `sightglass.app` are registered by others; `sightglass.io` is listed
    for sale. Pick a domain before the public launch.
