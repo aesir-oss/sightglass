@@ -7,8 +7,9 @@ covers what is specific here.
 
 ## Status
 
-Design only. No code, no pixi workspace, no CI yet. The first code change scaffolds the project per the global
-CLAUDE.md (§10) with the layout in `docs/design.md`.
+Scaffolding. The root pixi workspace and the Python backend in `backend/` exist; the Rust crates, the frontend and CI
+come next (Foundation milestone). Python tasks run with `cwd = "backend"`, and pre-commit points ruff and mypy at
+`backend/pyproject.toml`.
 
 ## Layout
 

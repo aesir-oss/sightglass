@@ -1,0 +1,48 @@
+[workspace]
+authors = ["Kevin Mills <millsks@gmail.com>"]
+channels = ["conda-forge"]
+name = "sightglass"
+platforms = ["osx-arm64", "linux-64"]
+version = "0.1.0"
+
+[dependencies]
+python = "3.14.*"
+structlog = ">=26.1.0,<27"
+
+[pypi-dependencies]
+sightglass = { path = "./backend", editable = true }
+
+[feature.test.dependencies]
+pytest = ">=9.1.1,<10"
+pytest-cov = ">=7.1.0,<8"
+
+[feature.lint.dependencies]
+# Pinned to the pre-commit hook revisions so both runs agree.
+ruff = "==0.17.1"
+mypy = "==2.4.0"
+pre-commit = ">=4.7.0,<5"
+
+[feature.build.dependencies]
+python-build = ">=1.6.1,<2"
+hatchling = ">=1.32.4,<2"
+
+[feature.dev.dependencies]
+git-cliff = ">=2.14.2,<3"
+act = ">=0.2.89,<0.3"
+
+[environments]
+default = ["test", "lint", "build", "dev"]
+
+[tasks]
+bootstrap = "pre-commit install --hook-type pre-commit --hook-type commit-msg"
+fmt = { cmd = "ruff format .", cwd = "backend" }
+lint = { cmd = "ruff check .", cwd = "backend" }
+check = { cmd = "mypy src/", cwd = "backend" }
+test = { cmd = "pytest tests/unit/", cwd = "backend" }
+test-integration = { cmd = "pytest tests/integration/", cwd = "backend" }
+cov = { cmd = "pytest tests/ --cov=src --cov-report=term-missing --cov-fail-under=90", cwd = "backend" }
+build = { cmd = "python -m build --no-isolation --outdir dist/", cwd = "backend" }
+changelog = "git cliff -o CHANGELOG.md"
+pre-commit = "pre-commit run --all-files"
+act = "act --container-architecture linux/amd64"
+ci = { depends-on = ["pre-commit", "build", "check", "lint", "cov"] }

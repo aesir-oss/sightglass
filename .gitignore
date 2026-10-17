@@ -6,8 +6,9 @@ dist/
 build/
 .eggs/
 
-# Pixi
-.pixi/
+# Pixi: environments are local; the config is shared
+.pixi/*
+!.pixi/config.toml
 
 # Environment
 .env
@@ -17,6 +18,8 @@ build/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+.coverage
+htmlcov/
 
 # Node
 node_modules/
