@@ -226,8 +226,11 @@ flowchart LR
    advertisement (what `git ls-remote` reads, so no API token or REST rate limit). Archives come from
    `codeload.github.com` by commit SHA only. Unpack it the same way. Anything that fails is a "couldn't compare"
    result with a reason, never a guess.
-6. **Diff.** Pair files by path (normalizing the `dist-info` directory name), classify each pair and compute line
-   diffs for text files. Diffs compare lines as bytes (Myers, from the `similar` crate) and skip files over 4 MiB or
+6. **Diff.** Pair files by path (normalizing the `dist-info` and `.data` directory names and the sdist's top-level
+   directory), classify each pair as added, removed, changed or same, and compute line diffs for text files. The source
+   check looks for each package file under the source root most package files are found under (`src/`, `python/`, or
+   the repository root), then under the other candidate roots, and classifies it as matching, differing or missing.
+   `.dist-info`, `PKG-INFO` and `.egg-info` are build output and are left out of the source check. Diffs compare lines as bytes (Myers, from the `similar` crate) and skip files over 4 MiB or
    100,000 lines on either side, reporting them as too large to diff. A 2 second deadline bounds pathological
    inputs; past it the diff is still correct but may not be minimal, and is marked approximate.
 7. **Run signal rules.** Each rule is a pure function from the pair analysis to zero or more signals with evidence.
