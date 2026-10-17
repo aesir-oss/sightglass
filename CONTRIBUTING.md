@@ -43,6 +43,11 @@ dependencies go through pnpm inside `frontend/`, which only resolves versions at
    commit-msg hook checks it. Don't use `--no-verify`.
 7. Open a pull request against `main` that says what changed and how you verified it, and links the issue.
 
+## Benchmarks
+
+Line diff benchmarks run with `pixi run bench-rs` (criterion, not part of `pixi run ci`); run them before and
+after changing `crates/sightglass-core/src/diff.rs`.
+
 ## Fuzzing
 
 The archive unpacker is fuzzed with cargo-fuzz, which needs nightly Rust from rustup; it's the only tool outside pixi

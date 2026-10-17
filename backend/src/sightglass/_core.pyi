@@ -118,3 +118,98 @@ def extract_archive(
         ArchiveFormatError: If it's damaged or unsupported.
         OSError: If it can't be read, or ``dest`` already exists.
     """
+
+@final
+class DiffLimits:
+    """Limits that bound the work a line diff can cause. Unset arguments take the defaults."""
+
+    def __init__(
+        self,
+        *,
+        max_size: int | None = None,
+        max_lines: int | None = None,
+        timeout: float | None = None,
+        context: int | None = None,
+    ) -> None:
+        """Create limits, defaulting each unset value.
+
+        Raises:
+            ValueError: If ``timeout`` isn't between 0 and 86400 seconds.
+        """
+    @property
+    def max_size(self) -> int:
+        """Largest input on either side, in bytes."""
+    @property
+    def max_lines(self) -> int:
+        """Most lines on either side."""
+    @property
+    def timeout(self) -> float:
+        """Seconds after which the diff stops looking for a minimal result."""
+    @property
+    def context(self) -> int:
+        """Unchanged lines kept around each change."""
+
+@final
+class DiffLine:
+    """One line of a hunk."""
+
+    @property
+    def kind(self) -> Literal["context", "added", "removed"]:
+        """Whether the line is unchanged, added or removed."""
+    @property
+    def old_line(self) -> int | None:
+        """1-based line number in the old file, for context and removed lines."""
+    @property
+    def new_line(self) -> int | None:
+        """1-based line number in the new file, for context and added lines."""
+    @property
+    def text(self) -> str:
+        """The line without its newline, with invalid UTF-8 replaced."""
+    @property
+    def missing_newline(self) -> bool:
+        """The line is the last in its file and has no newline."""
+
+@final
+class Hunk:
+    """A unified diff hunk. An empty side's start is the line before it, as in ``diff -u``."""
+
+    @property
+    def old_start(self) -> int:
+        """First old line, 1-based."""
+    @property
+    def old_len(self) -> int:
+        """Old lines in the hunk."""
+    @property
+    def new_start(self) -> int:
+        """First new line, 1-based."""
+    @property
+    def new_len(self) -> int:
+        """New lines in the hunk."""
+    @property
+    def lines(self) -> list[DiffLine]:
+        """The hunk's lines in order."""
+
+@final
+class FileDiff:
+    """The line diff of two inputs, or a result saying they were too large to diff."""
+
+    @property
+    def too_large(self) -> bool:
+        """An input was over the size or line limit, so there are no hunks."""
+    @property
+    def hunks(self) -> list[Hunk]:
+        """The hunks; empty when the inputs are identical."""
+    @property
+    def added(self) -> int:
+        """Lines added."""
+    @property
+    def removed(self) -> int:
+        """Lines removed."""
+    @property
+    def approximate(self) -> bool:
+        """The deadline was reached, so the diff is correct but may not be minimal."""
+    def added_lines(self) -> list[tuple[int, str]]:
+        """Every added line as ``(line number in the new file, text)``."""
+
+def diff_lines(old: bytes, new: bytes, limits: DiffLimits | None = None) -> FileDiff:
+    """Diff two versions of a file line by line, comparing lines as bytes."""

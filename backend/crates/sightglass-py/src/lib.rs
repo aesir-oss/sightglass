@@ -27,9 +27,10 @@ create_exception!(
 mod _core {
     use std::fs::File;
     use std::path::PathBuf;
+    use std::time::Duration;
 
     use pyo3::prelude::*;
-    use sightglass_core::{filetype, hash, unpack};
+    use sightglass_core::{diff, filetype, hash, unpack};
 
     #[pymodule_export]
     use super::{ArchiveError, ArchiveFormatError, UnsafeArchiveError};
@@ -204,5 +205,191 @@ mod _core {
     ) -> PyResult<Vec<ArchiveEntry>> {
         let limits = core_limits(limits.as_deref());
         to_python(py.detach(move || unpack::extract(&path, &dest, &limits)))
+    }
+
+    /// Limits that bound the work a line diff can cause.
+    #[pyclass(frozen, get_all, eq, module = "sightglass._core")]
+    #[derive(Clone, PartialEq)]
+    struct DiffLimits {
+        max_size: u64,
+        max_lines: usize,
+        timeout: f64,
+        context: usize,
+    }
+
+    #[pymethods]
+    impl DiffLimits {
+        #[new]
+        #[pyo3(signature = (*, max_size=None, max_lines=None, timeout=None, context=None))]
+        fn new(
+            max_size: Option<u64>,
+            max_lines: Option<usize>,
+            timeout: Option<f64>,
+            context: Option<usize>,
+        ) -> PyResult<Self> {
+            let d = diff::Limits::default();
+            let timeout = timeout.unwrap_or(d.timeout.as_secs_f64());
+            if !(0.0..=86_400.0).contains(&timeout) {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "timeout must be between 0 and 86400 seconds",
+                ));
+            }
+            Ok(Self {
+                max_size: max_size.unwrap_or(d.max_size),
+                max_lines: max_lines.unwrap_or(d.max_lines),
+                timeout,
+                context: context.unwrap_or(d.context),
+            })
+        }
+    }
+
+    /// One line of a hunk.
+    #[pyclass(frozen, get_all, module = "sightglass._core")]
+    struct DiffLine {
+        kind: &'static str,
+        old_line: Option<usize>,
+        new_line: Option<usize>,
+        text: String,
+        missing_newline: bool,
+    }
+
+    #[pymethods]
+    impl DiffLine {
+        fn __repr__(&self) -> String {
+            let number = |n: Option<usize>| n.map_or_else(|| "None".to_owned(), |n| n.to_string());
+            format!(
+                "DiffLine(kind='{}', old_line={}, new_line={}, text={:?})",
+                self.kind,
+                number(self.old_line),
+                number(self.new_line),
+                self.text
+            )
+        }
+    }
+
+    /// A unified diff hunk.
+    #[pyclass(frozen, get_all, module = "sightglass._core")]
+    struct Hunk {
+        old_start: usize,
+        old_len: usize,
+        new_start: usize,
+        new_len: usize,
+        lines: Vec<Py<DiffLine>>,
+    }
+
+    #[pymethods]
+    impl Hunk {
+        fn __repr__(&self) -> String {
+            format!(
+                "Hunk(-{},{} +{},{})",
+                self.old_start, self.old_len, self.new_start, self.new_len
+            )
+        }
+    }
+
+    /// The line diff of two inputs, or a result saying they were too large to diff.
+    #[pyclass(frozen, get_all, module = "sightglass._core")]
+    struct FileDiff {
+        too_large: bool,
+        hunks: Vec<Py<Hunk>>,
+        added: usize,
+        removed: usize,
+        approximate: bool,
+    }
+
+    #[pymethods]
+    impl FileDiff {
+        /// Every added line as `(line number in the new file, text)`.
+        fn added_lines(&self) -> Vec<(usize, String)> {
+            self.hunks
+                .iter()
+                .flat_map(|h| h.get().lines.iter().map(Py::get))
+                .filter(|l| l.kind == "added")
+                .filter_map(|l| Some((l.new_line?, l.text.clone())))
+                .collect()
+        }
+
+        fn __repr__(&self) -> String {
+            format!(
+                "FileDiff(too_large={}, hunks={}, added={}, removed={})",
+                if self.too_large { "True" } else { "False" },
+                self.hunks.len(),
+                self.added,
+                self.removed
+            )
+        }
+    }
+
+    fn file_diff(py: Python<'_>, result: diff::FileDiff) -> PyResult<FileDiff> {
+        let diff::FileDiff::Lines(d) = result else {
+            return Ok(FileDiff {
+                too_large: true,
+                hunks: Vec::new(),
+                added: 0,
+                removed: 0,
+                approximate: false,
+            });
+        };
+        let mut hunks = Vec::with_capacity(d.hunks.len());
+        for h in d.hunks {
+            let lines = h
+                .lines
+                .into_iter()
+                .map(|l| {
+                    Py::new(
+                        py,
+                        DiffLine {
+                            kind: l.kind.as_str(),
+                            old_line: l.old_line,
+                            new_line: l.new_line,
+                            text: l.text,
+                            missing_newline: l.missing_newline,
+                        },
+                    )
+                })
+                .collect::<PyResult<_>>()?;
+            hunks.push(Py::new(
+                py,
+                Hunk {
+                    old_start: h.old_start,
+                    old_len: h.old_len,
+                    new_start: h.new_start,
+                    new_len: h.new_len,
+                    lines,
+                },
+            )?);
+        }
+        Ok(FileDiff {
+            too_large: false,
+            hunks,
+            added: d.added,
+            removed: d.removed,
+            approximate: d.approximate,
+        })
+    }
+
+    /// Diff two versions of a file line by line.
+    #[pyfunction]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "PyO3 extracts arguments by value"
+    )]
+    #[pyo3(signature = (old, new, limits=None))]
+    fn diff_lines(
+        py: Python<'_>,
+        old: &[u8],
+        new: &[u8],
+        limits: Option<PyRef<'_, DiffLimits>>,
+    ) -> PyResult<FileDiff> {
+        let limits = limits
+            .as_deref()
+            .map_or_else(diff::Limits::default, |l| diff::Limits {
+                max_size: l.max_size,
+                max_lines: l.max_lines,
+                timeout: Duration::from_secs_f64(l.timeout),
+                context: l.context,
+            });
+        let result = py.detach(|| diff::diff(old, new, &limits));
+        file_diff(py, result)
     }
 }
