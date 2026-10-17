@@ -4,6 +4,7 @@ import { usePairAnalysis, useReleaseHistory } from "../api/queries";
 import { DiffViewer } from "../release/DiffViewer";
 import { Files, sortFiles } from "../release/Files";
 import { Header } from "../release/Header";
+import { ReleaseFacts } from "../release/ReleaseFacts";
 import { Signals } from "../release/Signals";
 import { SourceCheck } from "../release/SourceCheck";
 import { Timeline } from "../release/Timeline";
@@ -119,6 +120,7 @@ export function ReleaseDiffPage() {
                 setSearch(next);
               }}
             />
+            <ReleaseFacts facts={data.facts} />
           </>
         )}
       </main>

@@ -496,3 +496,58 @@ details.more-files {
   margin: 0 14px 12px;
   font-size: 13px;
 }
+
+.facts-wrap {
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.facts {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.facts th,
+.facts td {
+  text-align: left;
+  padding: 7px 14px;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.facts thead th {
+  border-top: 0;
+  font: 600 12px var(--mono);
+  color: var(--muted);
+  padding-top: 0;
+}
+
+.facts tbody th {
+  font-weight: 500;
+  color: var(--muted);
+  width: 26%;
+}
+
+.facts td {
+  overflow-wrap: anywhere;
+}
+
+.facts tr.changed td {
+  background: var(--warn-soft);
+}
+
+.facts .unknown {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.facts .mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.facts ul {
+  margin: 0;
+  padding-left: 16px;
+}
