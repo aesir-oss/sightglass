@@ -58,6 +58,7 @@ export function Failed({ ecosystem, pkg, versions, artifact, error }: FailedProp
       <p style={{ margin: "8px 0 0" }}>
         <button
           type="button"
+          className="btn"
           disabled={retry.isPending}
           onClick={() => {
             retry.mutate();

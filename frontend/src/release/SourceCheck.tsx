@@ -53,93 +53,89 @@ export function SourceCheck({ source, sdist, onSelect }: SourceCheckProps) {
   const notInSdist = (sdist?.files ?? []).filter((f) => f.status === "missing");
 
   return (
-    <section className="wrap" aria-label="Source check">
-      <div className="panel">
-        <h2>
-          <span className="grow">Source check</span>
-          {source?.state === "compared" && (
-            <span className="hint">
-              {count(files, "matches")} match, {count(files, "differs")} differ, {count(files, "missing")} missing
-            </span>
-          )}
-        </h2>
+    <section className="panel" aria-label="Source check">
+      <h2>
+        <span className="grow">Source check</span>
         {source?.state === "compared" && (
-          <>
-            <p className="srcsum">
-              <span>
-                Compared with <strong>{source.label}</strong>
-                {source.origin === "attestation" ? " (the commit named by the attestation)" : ""}
-              </span>
-              {source.repository && source.commit && (
-                <span>
-                  <a
-                    href={`https://github.com/${source.repository}/tree/${source.commit}`}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <code>
-                      {source.repository}@{source.commit.slice(0, 12)}
-                    </code>
-                  </a>
-                </span>
-              )}
-              {source.root ? (
-                <span>
-                  Package files found under <code>{source.root}</code>
-                </span>
-              ) : null}
-            </p>
-            {problems.length > 0 ? (
-              <FileRows files={problems} onSelect={onSelect} />
-            ) : (
-              <p className="note">Every package file matches the source.</p>
-            )}
-            {matching.length > 0 && (
-              <details className="more-files">
-                <summary>{matching.length} matching files</summary>
-                <FileRows files={matching} onSelect={onSelect} />
-              </details>
-            )}
-            {source.excluded.length > 0 && (
-              <details className="more-files">
-                <summary>{source.excluded.length} build metadata files not compared</summary>
-                <ul className="srclist">
-                  {source.excluded.map((path) => (
-                    <li key={path}>
-                      <code>{path}</code>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </>
+          <span className="hint">
+            {count(files, "matches")} match, {count(files, "differs")} differ, {count(files, "missing")} missing
+          </span>
         )}
-        {source?.state === "could_not_compare" && (
-          <p className="note" role="status">
-            Couldn&apos;t compare with the source. {REASONS[source.reason ?? ""] ?? source.reason}
-            {source.detail ? ` (${source.detail})` : ""}
-            {source.repository ? (
-              <>
-                {" "}
-                Repository: <code>{source.repository}</code>.
-              </>
+      </h2>
+      {source?.state === "compared" && (
+        <>
+          <p className="srcsum">
+            <span>
+              Compared with <strong>{source.label}</strong>
+              {source.origin === "attestation" ? " (the commit named by the attestation)" : ""}
+            </span>
+            {source.repository && source.commit && (
+              <span>
+                <a
+                  href={`https://github.com/${source.repository}/tree/${source.commit}`}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <code>
+                    {source.repository}@{source.commit.slice(0, 12)}
+                  </code>
+                </a>
+              </span>
+            )}
+            {source.root ? (
+              <span>
+                Package files found under <code>{source.root}</code>
+              </span>
             ) : null}
           </p>
-        )}
-        {(!source || source.state === "unknown") && (
-          <p className="note">The source wasn&apos;t checked for this pair.</p>
-        )}
-        {notInSdist.length > 0 && (
-          <>
-            <p className="srcsum">
-              <strong>
-                {notInSdist.length} file{notInSdist.length === 1 ? " is" : "s are"} in the wheel but not in the sdist
-              </strong>
-            </p>
-            <FileRows files={notInSdist} onSelect={onSelect} />
-          </>
-        )}
-      </div>
+          {problems.length > 0 ? (
+            <FileRows files={problems} onSelect={onSelect} />
+          ) : (
+            <p className="note">Every package file matches the source.</p>
+          )}
+          {matching.length > 0 && (
+            <details className="more-files">
+              <summary>{matching.length} matching files</summary>
+              <FileRows files={matching} onSelect={onSelect} />
+            </details>
+          )}
+          {source.excluded.length > 0 && (
+            <details className="more-files">
+              <summary>{source.excluded.length} build metadata files not compared</summary>
+              <ul className="srclist">
+                {source.excluded.map((path) => (
+                  <li key={path}>
+                    <code>{path}</code>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </>
+      )}
+      {source?.state === "could_not_compare" && (
+        <p className="note" role="status">
+          Couldn&apos;t compare with the source. {REASONS[source.reason ?? ""] ?? source.reason}
+          {source.detail ? ` (${source.detail})` : ""}
+          {source.repository ? (
+            <>
+              {" "}
+              Repository: <code>{source.repository}</code>.
+            </>
+          ) : null}
+        </p>
+      )}
+      {(!source || source.state === "unknown") && <p className="note">The source wasn&apos;t checked for this pair.</p>}
+      {notInSdist.length > 0 && (
+        <>
+          <p className="srcsum">
+            <strong>
+              {notInSdist.length} file{notInSdist.length === 1 ? " is" : "s are"} in the wheel but not in the sdist
+            </strong>
+          </p>
+          <FileRows files={notInSdist} onSelect={onSelect} />
+        </>
+      )}
     </section>
   );
 }

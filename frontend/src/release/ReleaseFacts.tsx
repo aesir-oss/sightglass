@@ -19,11 +19,14 @@ interface Row {
   /** Comparable text for both sides; null when the value is unknown. */
   value: (side: Side) => string | null;
   render?: (side: Side) => ReactNode;
+  /** Values that differ between any two releases, so a difference isn't highlighted. */
+  alwaysDiffers?: boolean;
 }
 
 const ROWS: Row[] = [
   {
     label: "Published",
+    alwaysDiffers: true,
     value: (s) => s.published_at,
     render: (s) => (s.published_at ? `${DATE.format(new Date(s.published_at))} UTC` : <Unknown />),
   },
@@ -77,6 +80,7 @@ const ROWS: Row[] = [
   { label: "Installed size", value: (s) => String(s.total_size), render: (s) => bytes(s.total_size) },
   {
     label: "Artifact sha256",
+    alwaysDiffers: true,
     value: (s) => s.artifact_sha256,
     render: (s) => <span className="mono">{s.artifact_sha256}</span>,
   },
@@ -103,48 +107,46 @@ const ROWS: Row[] = [
 /** Section 7: a before-and-after table of release facts, with changed rows highlighted. */
 export function ReleaseFacts({ facts }: { facts: Facts | null | undefined }) {
   return (
-    <section className="wrap" aria-label="Release facts">
-      <div className="panel">
-        <h2>
-          <span className="grow">Release facts</span>
-        </h2>
-        {facts ? (
-          <div className="facts-wrap">
-            <table className="facts">
-              <thead>
-                <tr>
-                  <th scope="col">
-                    <span className="sr-only">Fact</span>
-                  </th>
-                  <th scope="col">{facts.old.version}</th>
-                  <th scope="col">{facts.new.version}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ROWS.map((row) => {
-                  const before = row.value(facts.old);
-                  const after = row.value(facts.new);
-                  // Only a difference between two known values is a change; unknown is not a change.
-                  const changed = before !== null && after !== null && before !== after;
-                  const show = row.render ?? row.value;
-                  return (
-                    <tr key={row.label} className={changed ? "changed" : undefined}>
-                      <th scope="row">
-                        {row.label}
-                        {changed && <span className="sr-only"> (changed)</span>}
-                      </th>
-                      <td>{show(facts.old) ?? <Unknown />}</td>
-                      <td>{show(facts.new) ?? <Unknown />}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="note">Release facts aren&apos;t available for this analysis.</p>
-        )}
-      </div>
+    <section className="panel" aria-label="Release facts">
+      <h2>
+        <span className="grow">Release facts</span>
+      </h2>
+      {facts ? (
+        <div className="facts-wrap">
+          <table className="facts">
+            <thead>
+              <tr>
+                <th scope="col">
+                  <span className="sr-only">Fact</span>
+                </th>
+                <th scope="col">{facts.old.version}</th>
+                <th scope="col">{facts.new.version}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ROWS.map((row) => {
+                const before = row.value(facts.old);
+                const after = row.value(facts.new);
+                // Only a difference between two known values is a change; unknown is not a change.
+                const changed = !row.alwaysDiffers && before !== null && after !== null && before !== after;
+                const show = row.render ?? row.value;
+                return (
+                  <tr key={row.label} className={changed ? "changed" : undefined}>
+                    <th scope="row">
+                      {row.label}
+                      {changed && <span className="sr-only"> (changed)</span>}
+                    </th>
+                    <td>{show(facts.old) ?? <Unknown />}</td>
+                    <td>{show(facts.new) ?? <Unknown />}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="note">Release facts aren&apos;t available for this analysis.</p>
+      )}
     </section>
   );
 }

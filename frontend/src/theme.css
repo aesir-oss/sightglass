@@ -110,3 +110,141 @@ pre {
   background: var(--warn-soft);
   color: var(--warn);
 }
+
+a {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+code {
+  font-size: 0.88em;
+  background: var(--sunk);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+.btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+}
+
+.field {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 6px 10px;
+  min-width: 0;
+}
+
+.field:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+  border-color: var(--accent);
+}
+
+.notice {
+  margin: 0;
+  border: 1px solid var(--line);
+}
+
+.notice[data-tone="warn"] {
+  border-color: var(--warn);
+}
+
+footer {
+  color: var(--muted);
+  font-size: 13px;
+  padding-block: 8px 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+.home {
+  padding-block: clamp(32px, 8vh, 80px) 32px;
+  max-width: 760px;
+}
+
+.home h1 {
+  font: 700 clamp(32px, 5vw, 44px) / 1.1 var(--display);
+  margin: 0 0 8px;
+  letter-spacing: -0.015em;
+}
+
+.home .lede {
+  font-size: 17px;
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+
+.home-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.home-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.home-form .field {
+  font: 15px var(--mono);
+  color: var(--ink);
+}
+
+.home-form .btn {
+  padding: 7px 16px;
+}
+
+@media (max-width: 620px) {
+  .home-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.hint-text {
+  color: var(--muted);
+  font-size: 13.5px;
+}

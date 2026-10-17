@@ -24,6 +24,13 @@ export function fileHref(pathname: string, search: string, file: string, line?: 
   return `${pathname}?${params.toString()}`;
 }
 
+const ISO_TIME = /^\d{4}-\d{2}-\d{2}T[\d:.]+(Z|[+-]\d{2}:\d{2})$/;
+
+/** Evidence values as written, except timestamps, which show as their UTC date. */
+export function evidenceValue(value: string): string {
+  return ISO_TIME.test(value) ? new Date(value).toISOString().slice(0, 10) : value;
+}
+
 function EvidenceItem({ item }: { item: Evidence }) {
   const location = useLocation();
   if (item.file) {
@@ -46,7 +53,9 @@ function EvidenceItem({ item }: { item: Evidence }) {
     );
   }
   const change =
-    item.before !== undefined || item.after !== undefined ? `${item.before ?? "none"} → ${item.after ?? "none"}` : "";
+    item.before !== undefined || item.after !== undefined
+      ? `${evidenceValue(item.before ?? "none")} → ${evidenceValue(item.after ?? "none")}`
+      : "";
   return (
     <li>
       {item.attestation_field ? <code>{item.attestation_field}</code> : null}
@@ -69,60 +78,58 @@ export function Signals({ signals, source }: SignalsProps) {
   const summary = high || check ? `${String(high)} high, ${String(check)} to check` : "Nothing unusual";
 
   return (
-    <section className="wrap" aria-label="Signals">
-      <div className="panel">
-        <h2>
-          <span className="grow">What changed that matters</span>
-          <span className="hint">{summary}</span>
-        </h2>
-        <ul className="sigs">
-          {sorted.map((signal, i) => (
-            <li key={`${signal.rule_id}-${String(i)}`}>
-              <span className={`lvl ${signal.level}`}>{signal.level}</span>
-              <div>
-                <MessageText text={signal.message} />
-                {signal.evidence.length > 0 && (
-                  <ul className="evidence" aria-label="Evidence">
-                    {(signal.evidence as Evidence[]).slice(0, 12).map((item, j) => (
-                      <EvidenceItem key={j} item={item} />
-                    ))}
-                    {signal.evidence.length > 12 && <li>and {signal.evidence.length - 12} more</li>}
-                  </ul>
-                )}
-              </div>
-            </li>
-          ))}
-          {source?.state === "could_not_compare" && (
-            <li>
-              <span className="lvl info">note</span>
-              <span>
-                Couldn&apos;t compare with the source
-                {source.repository ? (
-                  <>
-                    {" "}
-                    in <code>{source.repository}</code>
-                  </>
-                ) : (
-                  ""
-                )}
-                : {source.detail ?? source.reason}
-              </span>
-            </li>
-          )}
-          {source?.state === "unknown" && (
-            <li>
-              <span className="lvl info">note</span>
-              <span>The source wasn&apos;t checked for this pair.</span>
-            </li>
-          )}
-          {sorted.length === 0 && (
-            <li>
-              <span className="lvl clean">clean</span>
-              <span>No signals for this pair: nothing the rules look for changed.</span>
-            </li>
-          )}
-        </ul>
-      </div>
+    <section className="panel" aria-label="Signals">
+      <h2>
+        <span className="grow">What changed that matters</span>
+        <span className="hint">{summary}</span>
+      </h2>
+      <ul className="sigs">
+        {sorted.map((signal, i) => (
+          <li key={`${signal.rule_id}-${String(i)}`}>
+            <span className={`lvl ${signal.level}`}>{signal.level}</span>
+            <div>
+              <MessageText text={signal.message} />
+              {signal.evidence.length > 0 && (
+                <ul className="evidence" aria-label="Evidence">
+                  {(signal.evidence as Evidence[]).slice(0, 12).map((item, j) => (
+                    <EvidenceItem key={j} item={item} />
+                  ))}
+                  {signal.evidence.length > 12 && <li>and {signal.evidence.length - 12} more</li>}
+                </ul>
+              )}
+            </div>
+          </li>
+        ))}
+        {source?.state === "could_not_compare" && (
+          <li>
+            <span className="lvl info">note</span>
+            <span>
+              Couldn&apos;t compare with the source
+              {source.repository ? (
+                <>
+                  {" "}
+                  in <code>{source.repository}</code>
+                </>
+              ) : (
+                ""
+              )}
+              : {source.detail ?? source.reason}
+            </span>
+          </li>
+        )}
+        {source?.state === "unknown" && (
+          <li>
+            <span className="lvl info">note</span>
+            <span>The source wasn&apos;t checked for this pair.</span>
+          </li>
+        )}
+        {sorted.length === 0 && (
+          <li>
+            <span className="lvl clean">clean</span>
+            <span>No signals for this pair: nothing the rules look for changed.</span>
+          </li>
+        )}
+      </ul>
     </section>
   );
 }

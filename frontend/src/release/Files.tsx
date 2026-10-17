@@ -119,7 +119,7 @@ function List({ files, selected, onSelect }: FilesProps) {
                 onSelect(f.path);
               }}
             >
-              <span className="s" aria-hidden="true">
+              <span className="s" data-status={f.status} aria-hidden="true">
                 {SYMBOL[f.status]}
               </span>
               <span className="p">{f.path}</span>
@@ -133,6 +133,7 @@ function List({ files, selected, onSelect }: FilesProps) {
         <p className="more">
           <button
             type="button"
+            className="btn"
             onClick={() => {
               setAll(true);
             }}
@@ -153,31 +154,57 @@ export function Files(props: FilesProps) {
     return acc;
   }, {});
   return (
-    <section className="wrap" aria-label="Files">
-      <div className="panel">
-        <h2>
-          <span className="grow">Files</span>
-          <span className="hint">
-            {props.files.length} files: {counts.added ?? 0} added, {counts.changed ?? 0} changed, {counts.removed ?? 0}{" "}
-            removed
-          </span>
-          <span className="seg" role="group" aria-label="File view">
-            {(["map", "list"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={view === v}
-                onClick={() => {
-                  setView(v);
-                }}
-              >
-                {v === "map" ? "Map" : "List"}
-              </button>
-            ))}
-          </span>
-        </h2>
-        {view === "map" ? <Treemap {...props} /> : <List {...props} />}
-      </div>
+    <section className="panel" aria-label="Files">
+      <h2>
+        <span className="grow">Files</span>
+        <span className="hint">
+          {props.files.length} files: {counts.added ?? 0} added, {counts.changed ?? 0} changed, {counts.removed ?? 0}{" "}
+          removed
+        </span>
+        <span className="seg" role="group" aria-label="File view">
+          {(["map", "list"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={view === v}
+              onClick={() => {
+                setView(v);
+              }}
+            >
+              {v === "map" ? "Map" : "List"}
+            </button>
+          ))}
+        </span>
+      </h2>
+      {view === "map" ? (
+        <>
+          <Treemap {...props} />
+          <p className="maplegend" aria-hidden="true">
+            <span>
+              <i style={{ background: "var(--add-soft)" }} />
+              Added
+            </span>
+            <span>
+              <i style={{ background: "var(--up-soft)" }} />
+              Changed
+            </span>
+            <span>
+              <i style={{ background: "var(--rm-soft)" }} />
+              Removed
+            </span>
+            <span>
+              <i style={{ background: "var(--same)" }} />
+              Unchanged
+            </span>
+            <span>
+              <i style={{ border: "2px solid var(--rm)" }} />
+              Flagged
+            </span>
+          </p>
+        </>
+      ) : (
+        <List {...props} />
+      )}
     </section>
   );
 }

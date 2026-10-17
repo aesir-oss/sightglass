@@ -47,6 +47,8 @@ test("rows compare both releases and highlight what changed", () => {
   render(<ReleaseFacts facts={facts} />);
   expect(screen.getAllByRole("columnheader").map((h) => h.textContent)).toEqual(["Fact", "2.4.1", "2.5.0"]);
   expect(row("Published").textContent).toContain("Sep 1, 2026, 12:00 PM UTC");
+  expect(row("Published").className).toBe("");
+  expect(row("Artifact sha256").className).toBe("");
   expect(row("Publisher").className).toBe("changed");
   expect(row("Publisher").textContent).toContain(
     "GitHub kestrel-weather/orbit-client, workflow release.yml, environment pypi",

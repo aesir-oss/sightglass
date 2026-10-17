@@ -77,7 +77,7 @@ test("a diff renders hunks as text with line numbers, and marks signal lines", a
   renderViewer({ line: 11 });
   const table = await screen.findByRole("table", { name: "Diff of orbit/sync.py" });
   expect(screen.getByText("compared with release 2.4.1")).toBeTruthy();
-  expect(screen.getByText("+2 −1")).toBeTruthy();
+  expect(screen.getByLabelText("2 added, 1 removed").textContent).toBe("+2 −1");
   const rows = table.querySelectorAll("tr");
   expect(rows[0]?.textContent).toBe("@@ −9,2 +9,3 @@");
   const hit = table.querySelector("tr.hit");
