@@ -21,10 +21,12 @@ from sightglass.ecosystems.http import HttpError, NotFoundError
 from sightglass.ecosystems.pypi import PypiProject, PypiRelease
 from sightglass.log import get_logger
 from sightglass.rules.ruleset import RULES
+from sightglass.rules.store import requeue_failed
+from sightglass.worker.pipeline import STEPS
 
 log = get_logger(__name__)
 
-POLL_SECONDS = 5
+POLL_SECONDS = 3
 router = APIRouter()
 
 
@@ -143,6 +145,8 @@ class PairPending(BaseModel):
     to_version: str
     artifact: ArtifactRef
     alternatives: list[ArtifactRef]
+    step: Literal["downloading", "provenance", "diffing", "source", "rules"] | None = None
+    steps: list[str] = list(STEPS)
 
 
 def _ref(pair: ArtifactPair) -> ArtifactRef:
@@ -207,8 +211,13 @@ def locate(
     return project, old, new, pair, alternatives
 
 
-def find_analysis(session: Session, project: PypiProject, pair: ArtifactPair) -> models.Analysis | None:
-    """The finished or failed analysis of an artifact pair under the current rule set, if there is one."""
+def find_analysis(
+    session: Session,
+    project: PypiProject,
+    pair: ArtifactPair,
+    statuses: tuple[str, ...] = ("done", "failed"),
+) -> models.Analysis | None:
+    """The analysis of an artifact pair under the current rule set in one of ``statuses``, if there is one."""
     package = session.scalar(
         select(models.Package).where(models.Package.ecosystem == "pypi", models.Package.name == project.normalized_name)
     )
@@ -228,7 +237,7 @@ def find_analysis(session: Session, project: PypiProject, pair: ArtifactPair) ->
             models.Analysis.from_artifact_id == ids[pair.old.filename],
             models.Analysis.to_artifact_id == ids[pair.new.filename],
             models.Analysis.ruleset_version == RULES.version,
-            models.Analysis.status.in_(("done", "failed")),
+            models.Analysis.status.in_(statuses),
         )
     )
 
@@ -290,9 +299,58 @@ def get_pair_analysis(
     if row is not None:
         response.headers["Cache-Control"] = "public, max-age=300"
         return _result(session, row, {**base, "ruleset_version": RULES.version})
+    return _queue(session, project, old, new, pair, base, enqueue, response)
+
+
+def _queue(
+    session: Session,
+    project: PypiProject,
+    old: PypiRelease,
+    new: PypiRelease,
+    pair: ArtifactPair,
+    base: dict[str, Any],
+    enqueue: Enqueue,
+    response: Response,
+) -> PairPending:
+    """Queue the pair (a no-op if it is queued already) and describe its progress."""
     default = select_artifacts(old, new).chosen
     enqueue("pypi", project.normalized_name, old.version, new.version, None if pair in default else pair.new.filename)
+    running = find_analysis(session, project, pair, ("pending", "running"))
     response.status_code = 202
     response.headers["Retry-After"] = str(POLL_SECONDS)
     response.headers["Cache-Control"] = "no-store"
-    return PairPending(status="pending", **base)
+    return PairPending(status="pending", step=running.step if running else None, **base)  # type: ignore[arg-type]
+
+
+@router.post(
+    "/api/{ecosystem}/{package}/{versions}/retry",
+    operation_id="retryPairAnalysis",
+    status_code=202,
+    responses={409: {"description": "The analysis hasn't failed, so there is nothing to retry"}},
+)
+def retry_pair_analysis(
+    ecosystem: Annotated[str, Path(description="Package ecosystem; only pypi for now")],
+    package: Annotated[str, Path(description="Package name, in any spelling")],
+    versions: Annotated[str, Path(description="`<from>...<to>`, or one version")],
+    response: Response,
+    session: Annotated[Session, Depends(get_session)],
+    index: Annotated[Index, Depends(get_index)],
+    enqueue: Annotated[Enqueue, Depends(get_enqueue)],
+    kind: Annotated[Literal["wheel", "sdist"] | None, Query(description="Which artifact kind")] = None,
+    wheel: Annotated[str | None, Query(description="The new release's wheel, from `alternatives`")] = None,
+) -> PairPending:
+    """Analyze a pair again after it failed."""
+    project, old, new, pair, alternatives = locate(index, ecosystem, package, versions, kind, wheel)
+    row = find_analysis(session, project, pair, ("failed",))
+    if row is None:
+        raise HTTPException(409, "this pair's analysis hasn't failed, so there is nothing to retry")
+    requeue_failed(session, row.id)
+    base: dict[str, Any] = {
+        "ecosystem": "pypi",
+        "package": project.normalized_name,
+        "from_version": old.version,
+        "to_version": new.version,
+        "artifact": _ref(pair),
+        "alternatives": [_ref(p) for p in alternatives],
+    }
+    return _queue(session, project, old, new, pair, base, enqueue, response)

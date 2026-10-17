@@ -2,7 +2,7 @@
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import { ApiError, fetchFileDiff, fetchPairAnalysis, fetchReleaseHistory, type Artifact } from "./client";
 
-export const POLL_MS = 5000;
+export const POLL_MS = 3000;
 
 /** Poll every POLL_MS while the analysis is pending; stop once it is done or failed. */
 export function pollWhilePending(data: { status: string } | undefined): number | false {

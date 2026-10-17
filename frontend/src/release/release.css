@@ -551,3 +551,23 @@ details.more-files {
   margin: 0;
   padding-left: 16px;
 }
+
+.steps {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.steps li[data-state="done"] {
+  color: var(--add);
+}
+
+.steps li[data-state="current"] {
+  color: var(--ink);
+  font-weight: 600;
+}

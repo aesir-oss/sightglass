@@ -44,5 +44,5 @@ test("client errors aren't retried; server errors are, twice", () => {
   expect(decide(0, new ApiError(404, "x"))).toBe(false);
   expect(decide(0, new ApiError(503, "x"))).toBe(true);
   expect(decide(2, new ApiError(503, "x"))).toBe(false);
-  expect(POLL_MS).toBe(5000);
+  expect(POLL_MS).toBe(3000);
 });

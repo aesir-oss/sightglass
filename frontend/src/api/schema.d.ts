@@ -81,6 +81,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/{ecosystem}/{package}/{versions}/retry": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Retry Pair Analysis
+     * @description Analyze a pair again after it failed.
+     */
+    post: operations["retryPairAnalysis"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -313,6 +333,19 @@ export interface components {
        * @constant
        */
       status: "pending";
+      /** Step */
+      step?: ("downloading" | "provenance" | "diffing" | "source" | "rules") | null;
+      /**
+       * Steps
+       * @default [
+       *       "downloading",
+       *       "provenance",
+       *       "diffing",
+       *       "source",
+       *       "rules"
+       *     ]
+       */
+      steps: string[];
       /** To Version */
       to_version: string;
     };
@@ -666,6 +699,54 @@ export interface operations {
       };
       /** @description Unknown pair, an analysis that isn't done, or a file that isn't in it */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  retryPairAnalysis: {
+    parameters: {
+      query?: {
+        /** @description Which artifact kind */
+        kind?: ("wheel" | "sdist") | null;
+        /** @description The new release's wheel, from `alternatives` */
+        wheel?: string | null;
+      };
+      header?: never;
+      path: {
+        /** @description Package ecosystem; only pypi for now */
+        ecosystem: string;
+        /** @description Package name, in any spelling */
+        package: string;
+        /** @description `<from>...<to>`, or one version */
+        versions: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PairPending"];
+        };
+      };
+      /** @description The analysis hasn't failed, so there is nothing to retry */
+      409: {
         headers: {
           [name: string]: unknown;
         };

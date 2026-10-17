@@ -79,3 +79,16 @@ export function artifactFromSearch(search: URLSearchParams): Artifact {
   if (wheel) artifact.wheel = wheel;
   return artifact;
 }
+
+export async function retryPairAnalysis(
+  ecosystem: string,
+  pkg: string,
+  versions: string,
+  artifact: Artifact = {},
+): Promise<PairPending> {
+  const { data, error, response } = await api.POST("/api/{ecosystem}/{package}/{versions}/retry", {
+    params: { path: { ecosystem, package: pkg, versions }, query: artifact },
+  });
+  if (!data) throw detail(error, response.status);
+  return data;
+}

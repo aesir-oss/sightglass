@@ -231,6 +231,8 @@ class Analysis(Base):
     finished_at: Mapped[datetime | None]
     # What the page shows besides signals: file pairs, the source check and release facts (sightglass.worker.report).
     report: Mapped[dict[str, Any] | None]
+    # The pipeline step a running analysis is on (sightglass.worker.pipeline.STEPS), for the pending page.
+    step: Mapped[str | None] = mapped_column(Text)
 
     signals: Mapped[list[Signal]] = relationship(back_populates="analysis", passive_deletes=True)
 

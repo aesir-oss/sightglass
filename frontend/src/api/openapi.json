@@ -551,6 +551,38 @@
             "title": "Status",
             "type": "string"
           },
+          "step": {
+            "anyOf": [
+              {
+                "enum": [
+                  "downloading",
+                  "provenance",
+                  "diffing",
+                  "source",
+                  "rules"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step"
+          },
+          "steps": {
+            "default": [
+              "downloading",
+              "provenance",
+              "diffing",
+              "source",
+              "rules"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
           "to_version": {
             "title": "To Version",
             "type": "string"
@@ -1417,6 +1449,113 @@
           }
         },
         "summary": "Get File Diff"
+      }
+    },
+    "/api/{ecosystem}/{package}/{versions}/retry": {
+      "post": {
+        "description": "Analyze a pair again after it failed.",
+        "operationId": "retryPairAnalysis",
+        "parameters": [
+          {
+            "description": "Package ecosystem; only pypi for now",
+            "in": "path",
+            "name": "ecosystem",
+            "required": true,
+            "schema": {
+              "description": "Package ecosystem; only pypi for now",
+              "title": "Ecosystem",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Package name, in any spelling",
+            "in": "path",
+            "name": "package",
+            "required": true,
+            "schema": {
+              "description": "Package name, in any spelling",
+              "title": "Package",
+              "type": "string"
+            }
+          },
+          {
+            "description": "`<from>...<to>`, or one version",
+            "in": "path",
+            "name": "versions",
+            "required": true,
+            "schema": {
+              "description": "`<from>...<to>`, or one version",
+              "title": "Versions",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which artifact kind",
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "wheel",
+                    "sdist"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Which artifact kind",
+              "title": "Kind"
+            }
+          },
+          {
+            "description": "The new release's wheel, from `alternatives`",
+            "in": "query",
+            "name": "wheel",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The new release's wheel, from `alternatives`",
+              "title": "Wheel"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairPending"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "The analysis hasn't failed, so there is nothing to retry"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry Pair Analysis"
       }
     }
   }
