@@ -112,6 +112,9 @@ class PairAnalysis:
     history: tuple[ReleaseFacts, ...] = ()
     # Which artifact the files come from; None when unknown.
     kind: Literal["wheel", "sdist"] | None = None
+    # For an sdist: its paths that the release's wheel installs or that its build runs (see rules.scope.sdist_shipped);
+    # None when there's no wheel to tell, and a list of directory names decides instead.
+    installed: frozenset[str] | None = None
     # Ids of the pattern rules whose calls the old release's package code already makes; None when unknown.
     old_capabilities: frozenset[str] | None = None
 

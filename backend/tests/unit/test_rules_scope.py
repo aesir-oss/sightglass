@@ -4,7 +4,16 @@ import pytest
 
 from sightglass.rules.base import PairAnalysis, ReleaseFacts
 from sightglass.rules.pairing import FilePair, IndexedFile
-from sightglass.rules.scope import code_file, inert, outside_package, same_code, statuses, versioneer
+from sightglass.rules.scope import (
+    build_source,
+    code_file,
+    inert,
+    outside_package,
+    same_code,
+    sdist_shipped,
+    statuses,
+    versioneer,
+)
 
 
 def analysis(kind: str | None) -> PairAnalysis:
@@ -148,3 +157,53 @@ def test_byte_order_mark_and_crlf_are_the_same_code() -> None:
     package = "﻿" + SOURCE.replace("\n", "\r\n")
     assert same_code(package, SOURCE, "orbit/__init__.py")
     assert inert("﻿__version__ = '1.0'\r\n", "orbit/_version.py")
+
+
+SDIST = [
+    "setup.py",
+    "hatch_build.py",
+    "pyproject.toml",
+    "src/orbit/__init__.py",
+    "src/orbit/_speedups.c",
+    "setupsrc/orbit_setup/__init__.py",
+    "setupsrc/orbit_setup/build.py",
+    "openapi/cli.py",
+    "include/cargo/cc/src/lib.rs",
+    "Makefile",
+    "README.md",
+]
+TEXTS = {
+    "setup.py": "import sys\nsys.path.insert(0, 'setupsrc')\nimport orbit_setup\n",
+    "hatch_build.py": "import os\n",
+    "pyproject.toml": '[tool.hatch.build.hooks.custom]\npath = "hatch_build.py"\n',
+}
+
+
+def test_sdist_shipped_is_the_wheel_plus_build_code() -> None:
+    """Files the wheel installs, top-level build scripts, hooks and the local packages they import are shipped."""
+    shipped = sdist_shipped(SDIST, ["src/orbit/__init__.py"], TEXTS.get)
+    assert shipped == {
+        "src/orbit/__init__.py",
+        "setup.py",
+        "hatch_build.py",
+        "setupsrc/orbit_setup/__init__.py",
+        "setupsrc/orbit_setup/build.py",
+    }
+    assert sdist_shipped(["pyproject.toml"], [], {"pyproject.toml": "not [toml"}.get) == frozenset()
+
+
+def test_outside_package_with_the_wheel_known() -> None:
+    """With a wheel, files it doesn't install are outside unless they're build code or compiled sources."""
+    a = analysis("sdist")
+    known = PairAnalysis(**{**a.__dict__, "installed": sdist_shipped(SDIST, ["src/orbit/__init__.py"], TEXTS.get)})
+    outside = {p for p in SDIST if outside_package(known, p)}
+    assert outside == {"openapi/cli.py", "README.md", "pyproject.toml"}
+
+
+@pytest.mark.parametrize(
+    ("path", "expected"),
+    [("src/orbit/core.c", True), ("crates/x/build.rs", True), ("Makefile", True), ("lib.pyx", True), ("a.py", False)],
+)
+def test_build_source(path: str, expected: bool) -> None:
+    """Compiled sources and build scripts are build sources; ordinary Python isn't."""
+    assert build_source(path) is expected

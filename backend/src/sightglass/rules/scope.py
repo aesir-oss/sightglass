@@ -5,6 +5,9 @@ release already had unchanged, or one the sdist carries but never installs or ru
 """
 
 import ast
+import tomllib
+from collections.abc import Callable, Collection
+from typing import Any
 
 from sightglass.rules import pyast
 from sightglass.rules.base import PairAnalysis
@@ -35,11 +38,106 @@ _INERT_IMPORTS = frozenset({"__future__", "typing", "typing_extensions"})
 
 
 def outside_package(analysis: PairAnalysis, path: str) -> bool:
-    """Whether ``path`` is an sdist file in a top-level directory that isn't installed or run at build time."""
-    if analysis.kind != "sdist" or "/" not in path:
+    """Whether ``path`` is an sdist file that isn't installed and doesn't run or compile when the sdist is built.
+
+    With the release's wheel known, a file is inside the package when the wheel installs it, when it's build code
+    (:func:`sdist_shipped`), or when it's a compiled or build source, which ends up in the wheel's binaries. Without
+    a wheel, files in the top-level directories of :data:`NOT_SHIPPED` and dot directories are outside.
+    """
+    if analysis.kind != "sdist":
+        return False
+    if analysis.installed is not None:
+        return path not in analysis.installed and not build_source(path)
+    if "/" not in path:
         return False
     top = path.split("/", 1)[0]
     return top.lower() in NOT_SHIPPED or top.startswith(".")
+
+
+# Sources a build compiles or runs: they end up in the wheel's binaries or drive the build, whether or not the wheel
+# carries them by name.
+_BUILD_SOURCE_EXTENSIONS = frozenset(
+    {"c", "cc", "cpp", "cxx", "h", "hh", "hpp", "hxx", "rs", "pyx", "pxd", "pxi", "f", "f90", "f95", "for", "s", "asm",
+     "m", "mm", "go", "cmake"}
+)  # fmt: skip
+_BUILD_SOURCE_NAMES = frozenset(
+    {"setup.py", "CMakeLists.txt", "meson.build", "meson.options", "meson_options.txt", "Makefile", "configure", "build.rs"}
+)  # fmt: skip
+
+
+def build_source(path: str) -> bool:
+    """Whether a file is compiled or run by a build: C, C++, Rust, Cython, Fortran, assembly, and build scripts."""
+    name = path.rsplit("/", 1)[-1]
+    stem, dot, ext = name.rpartition(".")
+    return name in _BUILD_SOURCE_NAMES or (bool(dot and stem) and ext.lower() in _BUILD_SOURCE_EXTENSIONS)
+
+
+def _imported_modules(text: str, path: str) -> set[str]:
+    tree = pyast.parse(text, path)
+    if tree is None:
+        return set()
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names.update(a.name.split(".", 1)[0] for a in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            names.add(node.module.split(".", 1)[0])
+    return names
+
+
+def _hook_paths(pyproject: dict[str, Any]) -> set[str]:
+    """Build hook and in-tree backend files a ``pyproject.toml`` names."""
+    found: set[str] = set()
+    build_system = pyproject.get("build-system", {})
+    for base in build_system.get("backend-path", []) if isinstance(build_system, dict) else []:
+        if isinstance(base, str):
+            found.add(base.strip("/").removeprefix("./") + "/")
+    hatch = pyproject.get("tool", {}).get("hatch", {}).get("build", {})
+    hooks = [hatch.get("hooks", {})] + [
+        t.get("hooks", {}) for t in hatch.get("targets", {}).values() if isinstance(t, dict)
+    ]
+    for h in hooks:
+        custom = h.get("custom") if isinstance(h, dict) else None
+        if isinstance(custom, dict):
+            found.add(str(custom.get("path", "hatch_build.py")))
+    return found
+
+
+def sdist_shipped(
+    paths: Collection[str], wheel_paths: Collection[str], read: Callable[[str], str | None]
+) -> frozenset[str]:
+    """The sdist paths a wheel installs or a build runs, as :attr:`PairAnalysis.installed` holds them.
+
+    Args:
+        paths: Every path in the sdist, without its top-level directory.
+        wheel_paths: The sdist paths the source check found the wheel's files at.
+        read: Reads an sdist file's text, or None.
+
+    Returns:
+        The wheel's files, Python files at the sdist's top level (``setup.py``, build hooks), the in-tree backend and
+        hooks named in ``pyproject.toml``, and the local modules and packages those import.
+    """
+    shipped = set(wheel_paths) & set(paths)
+    build = {p for p in paths if "/" not in p and p.endswith(".py")}
+    pyproject_text = read("pyproject.toml")
+    if pyproject_text is not None:
+        try:
+            pyproject = tomllib.loads(pyproject_text)
+        except tomllib.TOMLDecodeError:
+            pyproject = {}
+        for hook in _hook_paths(pyproject):
+            build |= {p for p in paths if p == hook or (hook.endswith("/") and p.startswith(hook))}
+    tops = {p.split("/", 1)[0] for p in paths if "/" in p}
+    for script in list(build):
+        text = read(script) if script.endswith(".py") else None
+        for module in _imported_modules(text, script) if text else ():
+            for prefix in ("", *(f"{t}/" for t in tops)):
+                if f"{prefix}{module}.py" in paths:
+                    build.add(f"{prefix}{module}.py")
+                package = f"{prefix}{module}/"
+                if f"{package}__init__.py" in paths:
+                    build |= {p for p in paths if p.startswith(package)}
+    return frozenset(shipped | build)
 
 
 def statuses(analysis: PairAnalysis) -> dict[str, PairStatus]:
