@@ -4,6 +4,7 @@
 
 pub mod filetype;
 pub mod hash;
+pub mod unpack;
 
 /// Version of this crate, as published in its manifest.
 #[must_use]
