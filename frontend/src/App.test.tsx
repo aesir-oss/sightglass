@@ -79,7 +79,7 @@ test("a finished analysis is summarized, and the artifact choice is passed to th
     },
   });
   const router = renderAt("/pypi/orbit-client/2.4.1...2.5.0?kind=sdist");
-  expect((await screen.findByText(/signals across/)).textContent).toBe("0 signals across 2 files.");
+  expect((await screen.findByRole("region", { name: "Signals" })).textContent).toContain("No signals for this pair");
   expect(requests).toContain(`${PAIR}?kind=sdist`);
   expect(requests).toContain("/api/pypi/orbit-client/releases");
   expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("orbit-client 2.4.1 → 2.5.0");
