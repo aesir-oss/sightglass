@@ -12,7 +12,7 @@ not under it are looked for at the other candidate roots. Build metadata (``.dis
 import re
 from collections import Counter, defaultdict
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Literal
 
 from sightglass import _core
@@ -33,12 +33,19 @@ class IndexedFile:
     sha256: str | None
     text: bool
     link_target: str | None = None
+    compiled: bool = False
 
     @classmethod
     def from_entry(cls, entry: _core.ArchiveEntry, prefix: str = "") -> IndexedFile:
         """Build from an unpacker entry, removing ``prefix`` (such as a top-level directory) from its path."""
         category = entry.file_type.category if entry.file_type else None
-        return cls(entry.path.removeprefix(prefix), entry.sha256, category in _TEXT_CATEGORIES, entry.link_target)
+        return cls(
+            entry.path.removeprefix(prefix),
+            entry.sha256,
+            category in _TEXT_CATEGORIES,
+            entry.link_target,
+            category == "compiled",
+        )
 
     def same_content(self, other: IndexedFile) -> bool:
         """Whether both have the same bytes, or are links to the same target."""
@@ -91,7 +98,7 @@ def strip_top_level(files: Iterable[IndexedFile]) -> list[IndexedFile]:
     if len(tops) != 1 or not all("/" in f.path for f in files):
         return files
     prefix = tops.pop() + "/"
-    return [IndexedFile(f.path.removeprefix(prefix), f.sha256, f.text, f.link_target) for f in files]
+    return [replace(f, path=f.path.removeprefix(prefix)) for f in files]
 
 
 def pair_files(old: Iterable[IndexedFile], new: Iterable[IndexedFile]) -> list[FilePair]:
