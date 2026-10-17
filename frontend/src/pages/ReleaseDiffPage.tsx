@@ -1,7 +1,8 @@
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { ApiError, artifactFromSearch } from "../api/client";
 import { usePairAnalysis, useReleaseHistory } from "../api/queries";
-import { Files } from "../release/Files";
+import { DiffViewer } from "../release/DiffViewer";
+import { Files, sortFiles } from "../release/Files";
 import { Header } from "../release/Header";
 import { Signals } from "../release/Signals";
 import { Timeline } from "../release/Timeline";
@@ -15,6 +16,10 @@ export function ReleaseDiffPage() {
   const history = useReleaseHistory(ecosystem, pkg);
   const data = pair.data;
   const navigate = useNavigate();
+  // Without ?file=, show the first flagged or changed file.
+  const selectedFile =
+    search.get("file") ??
+    (data?.status === "done" ? (sortFiles(data.files).find((f) => f.status !== "same")?.path ?? null) : null);
 
   return (
     <>
@@ -78,11 +83,27 @@ export function ReleaseDiffPage() {
             <Files
               files={data.files}
               artifactLabel={artifactLabel(data.artifact).toLowerCase()}
-              selected={search.get("file")}
+              selected={selectedFile}
               onSelect={(path) => {
                 const next = new URLSearchParams(search);
                 next.set("file", path);
                 next.delete("line");
+                setSearch(next);
+              }}
+            />
+            <DiffViewer
+              ecosystem={ecosystem}
+              pkg={data.package}
+              versions={`${data.from_version}...${data.to_version}`}
+              artifact={artifactFromSearch(search)}
+              file={selectedFile}
+              line={Number(search.get("line")) || null}
+              base={search.get("base") === "source" ? "source" : "previous"}
+              inSource={data.source?.files.some((f) => f.path === selectedFile && f.source_path) ?? false}
+              onBase={(base) => {
+                const next = new URLSearchParams(search);
+                if (base === "source") next.set("base", "source");
+                else next.delete("base");
                 setSearch(next);
               }}
             />

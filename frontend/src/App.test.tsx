@@ -80,6 +80,11 @@ test("a finished analysis is summarized, and the artifact choice is passed to th
         status: "done",
         ruleset_version: "rs-1",
         signals: [],
+        source: {
+          state: "compared",
+          files: [{ path: "orbit/__init__.py", status: "matches", source_path: "src/orbit/__init__.py", text: true }],
+          excluded: [],
+        },
         files: [
           {
             path: "orbit/__init__.py",
@@ -99,6 +104,10 @@ test("a finished analysis is summarized, and the artifact choice is passed to th
   const router = renderAt("/pypi/orbit-client/2.4.1...2.5.0?kind=sdist");
   expect((await screen.findByRole("region", { name: "Signals" })).textContent).toContain("No signals for this pair");
   fireEvent.click(screen.getByRole("button", { name: /^orbit\/__init__\.py, changed/ }));
+  expect(router.state.location.search).toBe("?kind=sdist&file=orbit%2F__init__.py");
+  fireEvent.click(screen.getByRole("button", { name: "Source" }));
+  expect(router.state.location.search).toBe("?kind=sdist&file=orbit%2F__init__.py&base=source");
+  fireEvent.click(screen.getByRole("button", { name: "Previous release" }));
   expect(router.state.location.search).toBe("?kind=sdist&file=orbit%2F__init__.py");
   expect(requests).toContain(`${PAIR}?kind=sdist`);
   expect(requests).toContain("/api/pypi/orbit-client/releases");
