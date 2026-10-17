@@ -153,9 +153,13 @@ Each signal has a level: **high** (look before merging), **check** (worth a glan
 | Name | Package name close to a popular package | check | Edit distance against a top-packages list |
 | Dependencies | Version constraint changed, or a dependency removed | note | `Requires-Dist` |
 
-Behavior signals use static pattern matching over added lines only, so an unchanged `urllib.request` call in a file
-that has always had one doesn't fire. GuardDog's rules are a candidate source for patterns; see
-[Open questions](#open-questions).
+Behavior signals use static analysis of added lines only, so an unchanged `urllib.request` call in a file that has
+always had one doesn't fire. They come from two sources ([research](research/pattern-rules.md)):
+
+- **Sightglass's own rules**, which parse Python with `ast`, produce the high-level behavior signals in the table above.
+- **GuardDog's YARA rules**, vendored at a pinned release with its license and notice, run in the Rust core with
+  YARA-X. Their matches are reported at **check** (GuardDog `threat-*` rules) or **note** (`capability-*` rules),
+  never high, and name the GuardDog rule in the evidence.
 
 False positives are expected. Telemetry can be legitimate, and some build systems generate files that aren't in the
 repository. The page shows the evidence so a reviewer can decide quickly, and per-project baselines (phase 3) can learn
@@ -376,7 +380,10 @@ requests.
    name the commit a release was built from. 44% of the top 500 packages attest their latest release. Owners and
    maintainers are public only as they are now, so Sightglass snapshots them. "Previous release" means the previous
    version on the same release line, not the last upload.
-2. **Pattern rules.** Reuse GuardDog's rules, write our own, or both? Licensing and false-positive rate decide this.
+2. **Pattern rules.** Decided 2026-10-17 ([research](research/pattern-rules.md)): both. Sightglass's own AST rules
+   produce the high-level behavior signals. GuardDog's YARA rules (Apache-2.0) are vendored at a pinned tag and run
+   with YARA-X over added lines, at check or note. Scanning added lines instead of whole files cut high-severity
+   GuardDog hits on routine releases from 14% of packages to 1.2% of release pairs.
 3. **Tag discovery.** Measured 2026-10-17 ([research](research/tag-discovery.md)): for the latest stable release of
    the top 500 PyPI packages, `v{version}` or `{version}` finds the tag 87% of the time, and a longer ordered list
    of patterns brings that to 94%. 97% of packages keep one pattern, so the fetcher remembers what matched last time.
