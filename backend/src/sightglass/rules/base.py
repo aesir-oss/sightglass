@@ -91,6 +91,10 @@ class PairAnalysis:
     files: tuple[FilePair, ...] = ()
     diffs: dict[str, _core.FileDiff] = field(default_factory=dict)
     source: SourceComparison | CouldNotCompare | None = None
+    # How the source is named in messages, such as "tag v2.5.0" or "commit 0123abc".
+    source_label: str | None = None
+    # Line diffs of package files that differ from the source, by package path: old is the source, new the package.
+    source_diffs: dict[str, _core.FileDiff] = field(default_factory=dict)
     sdist: SourceComparison | None = None
     # Releases before `old` with what is known about them, oldest first.
     history: tuple[ReleaseFacts, ...] = ()
