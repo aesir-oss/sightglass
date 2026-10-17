@@ -219,8 +219,10 @@ flowchart LR
    ([research](research/pypi-publisher-data.md)). PyPI verifies attestations on upload; Sightglass verifying them
    again is #96.
 5. **Fetch the source.** When an attestation names the source commit, fetch that commit's archive. Otherwise
-   find the repository from the project URLs, find the tag ([research](research/tag-discovery.md)), and fetch the tag
-   archive. Unpack it the same way.
+   find the repository from the project URLs and find the tag ([research](research/tag-discovery.md)) in git's ref
+   advertisement (what `git ls-remote` reads, so no API token or REST rate limit). Archives come from
+   `codeload.github.com` by commit SHA only. Unpack it the same way. Anything that fails is a "couldn't compare"
+   result with a reason, never a guess.
 6. **Diff.** Pair files by path (normalizing the `dist-info` directory name), classify each pair and compute line
    diffs for text files.
 7. **Run signal rules.** Each rule is a pure function from the pair analysis to zero or more signals with evidence.
