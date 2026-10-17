@@ -90,6 +90,8 @@ class PairAnalysis:
     new: ReleaseFacts
     files: tuple[FilePair, ...] = ()
     diffs: dict[str, _core.FileDiff] = field(default_factory=dict)
+    # Decoded text of the new side of each added or changed text pair, by path, for parsing.
+    new_text: dict[str, str] = field(default_factory=dict)
     source: SourceComparison | CouldNotCompare | None = None
     # How the source is named in messages, such as "tag v2.5.0" or "commit 0123abc".
     source_label: str | None = None
