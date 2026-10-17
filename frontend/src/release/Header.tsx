@@ -49,8 +49,11 @@ function VersionPicker({
       }}
     >
       <Label>{label}</Label>
-      <Input />
-      <Button aria-label={`Show ${label.toLowerCase()} versions`}>▾</Button>
+      {/* Input and button form one control; the gap is only between the label and the control. */}
+      <div className="picker-control">
+        <Input />
+        <Button aria-label={`Show ${label.toLowerCase()} versions`}>▾</Button>
+      </div>
       <Popover>
         <ListBox>{(item: { id: string; name: string }) => <ListBoxItem id={item.id}>{item.name}</ListBoxItem>}</ListBox>
       </Popover>

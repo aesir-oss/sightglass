@@ -668,8 +668,9 @@ h1 .vs {
   gap: 6px;
 }
 
-.picker > div {
+.picker-control {
   display: inline-flex;
+  align-items: stretch;
 }
 
 .picker .react-aria-Input {
