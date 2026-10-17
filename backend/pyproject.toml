@@ -23,6 +23,7 @@ testpaths = ["tests"]
 addopts = "-v --tb=short --import-mode=importlib --strict-markers"
 markers = [
     "integration: marks tests as integration tests requiring real I/O, network, or DB",
+    "e2e: browser tests of the built app served by FastAPI",
 ]
 
 [tool.ruff]
