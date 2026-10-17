@@ -371,7 +371,8 @@ requests.
 4. **conda provenance.** What attestation or signing data does conda-forge publish today, and how is it verified?
 5. **Frontend framework.** Decided 2026-10-17: React with Vite and TypeScript, and React Aria Components rather than
    MUI. The mockups already define their own visual system, and most of each page is custom SVG.
-6. **License.** Apache-2.0 or MIT for the code; the rule set may need its own terms if it reuses third-party rules.
+6. **License.** Decided 2026-10-17: Apache-2.0, for its explicit patent grant and contribution terms. It matches
+   GuardDog's license, so reusing its rules (question 2) needs no separate terms beyond keeping its notices.
 7. **Hosting and domain.** `sightglass.dev` and `sightglass.app` are registered by others; `sightglass.io` is listed
    for sale. Pick a domain before the public launch.
 8. **Naming.** The plain name `sightglass` is taken on PyPI, npm and crates.io by unrelated projects. A hosted service

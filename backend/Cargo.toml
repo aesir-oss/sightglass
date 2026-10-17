@@ -8,6 +8,7 @@ edition = "2024"
 rust-version = "1.85"
 authors = ["Kevin Mills <millsks@gmail.com>"]
 repository = "https://github.com/aesir-oss/sightglass"
+license = "Apache-2.0"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
