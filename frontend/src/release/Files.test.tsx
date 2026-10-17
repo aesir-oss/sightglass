@@ -79,24 +79,26 @@ test("the list sorts flagged files first and selects on click", () => {
   expect(screen.getByRole("button", { name: "List" }).getAttribute("aria-pressed")).toBe("true");
 });
 
-test("thousands of files lay out quickly, and the list renders a first page", () => {
-  const many = Array.from({ length: 5000 }, (_, i) =>
-    entry(`orbit/pkg${String(i % 50)}/m${String(i)}.py`, i % 7 === 0 ? "changed" : "same", { new_size: 100 + i }),
-  );
+test("thousands of files lay out quickly", () => {
+  const many = Array.from({ length: 5000 }, (_, i) => ({
+    path: `orbit/pkg${String(i % 50)}/m${String(i)}.py`,
+    status: i % 7 === 0 ? ("changed" as const) : ("same" as const),
+    size: 100 + i,
+    flagged: false,
+  }));
   const started = performance.now();
-  const tiles = treemapLayout(
-    many.map((f) => ({ path: f.path, status: f.status, size: f.new_size ?? 0, flagged: false })),
-    640,
-    340,
-  );
-  expect(tiles).toHaveLength(5000);
+  expect(treemapLayout(many, 640, 340)).toHaveLength(5000);
   expect(performance.now() - started).toBeLessThan(1000);
+});
 
+test("the list renders a first page until Show all", () => {
+  const count = LIST_LIMIT + 5;
+  const many = Array.from({ length: count }, (_, i) => entry(`orbit/m${String(i)}.py`, "same"));
   renderFiles(null, many);
   fireEvent.click(screen.getByRole("button", { name: "List" }));
   expect(within(screen.getByRole("list", { name: "Files" })).getAllByRole("listitem")).toHaveLength(LIST_LIMIT);
-  fireEvent.click(screen.getByRole("button", { name: "Show all 5000 files" }));
-  expect(within(screen.getByRole("list", { name: "Files" })).getAllByRole("listitem")).toHaveLength(5000);
+  fireEvent.click(screen.getByRole("button", { name: `Show all ${String(count)} files` }));
+  expect(within(screen.getByRole("list", { name: "Files" })).getAllByRole("listitem")).toHaveLength(count);
 });
 
 test("descriptions and sort order", () => {
