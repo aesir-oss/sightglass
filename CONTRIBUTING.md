@@ -43,6 +43,11 @@ dependencies go through pnpm inside `frontend/`, which only resolves versions at
    commit-msg hook checks it. Don't use `--no-verify`.
 7. Open a pull request against `main` that says what changed and how you verified it, and links the issue.
 
+## Signal rules
+
+Rules, their versions and how to word their messages are covered in [docs/rules.md](docs/rules.md). Bump a rule's
+`version` whenever its output changes, so stored analyses are recomputed.
+
 ## Benchmarks
 
 Line diff benchmarks run with `pixi run bench-rs` (criterion, not part of `pixi run ci`); run them before and

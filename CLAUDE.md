@@ -35,6 +35,7 @@ Scaffolding. These exist: the root pixi workspace, the Python backend in `backen
 | `backend/tests/` | `unit/` and `integration/` |
 | `frontend/` | React, Vite and TypeScript, managed with pnpm |
 | `docs/design.md` | The design: goals, signals, architecture, data model, phases, risks, open questions |
+| `docs/rules.md` | Writing signal rules: ids, versions, unknown inputs, levels and message wording |
 | `docs/background.md` | Why this project was chosen over the other ideas |
 | `docs/naming.md` | Why the name, and every name that was considered |
 | `docs/mockups/` | Static HTML mockups of the phase 1 and phase 2 pages, with invented data |
