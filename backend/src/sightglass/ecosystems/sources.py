@@ -98,6 +98,10 @@ def tag_candidates(project: str, version: str, repo_name: str) -> list[tuple[str
     """
     normalized = normalize_name("pypi", project)
     names = list(dict.fromkeys([project, normalized, normalized.replace("-", "_")]))
+    # A repository publishing several packages may tag them by the part after its own name: psycopg's `pool-3.3.1`.
+    repo = normalize_name("pypi", repo_name)
+    if normalized.startswith(f"{repo}-") and (short := normalized.removeprefix(f"{repo}-")):
+        names.append(short)
     out = [("v{version}", f"v{version}"), ("{version}", version)]
     templates = ("{name}-v{version}", "{name}_{version}", "{name}=={version}", "{name}-{version}")
     for template in (*templates, "{name}/v{version}", "{name}/{version}"):
@@ -135,9 +139,16 @@ def match_tag(
         preferred_pattern: The pattern that matched the project's previous release, tried first.
 
     Returns:
-        The first candidate that exists, or None.
+        The first candidate that exists, or None. When the project and repository names differ, a tag carrying the
+        project's name comes first, even before the previous release's pattern: a repository that publishes several
+        packages also has bare version tags, and they belong to another package (psycopg-pool's `pool-3.3.1` beside
+        psycopg's `3.3.1`).
     """
     candidates = tag_candidates(project, version, repo_name)
+    if normalize_name("pypi", project) != normalize_name("pypi", repo_name):
+        for pattern, tag in candidates:
+            if "{name}" in pattern and tag in tags:
+                return TagMatch(tag, pattern, tags[tag])
     if preferred_pattern:
         candidates.sort(key=lambda c: c[0] != preferred_pattern)
     for pattern, tag in candidates:

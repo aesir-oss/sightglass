@@ -92,6 +92,20 @@ def test_preferred_pattern_is_tried_first() -> None:
     assert match == TagMatch("orbit-client-2.5.0", "{name}-{version}", "d" * 40)
 
 
+def test_package_named_tag_wins_in_a_repository_of_several_packages() -> None:
+    """A tag carrying the package's name beats the repository's bare version tag, even the previous release's."""
+    tags = {"3.3.1": C, "pool-3.3.1": "d" * 40}
+    match = match_tag(tags, "psycopg-pool", "3.3.1", "psycopg", preferred_pattern="{version}")
+    assert match == TagMatch("pool-3.3.1", "{name}-{version}", "d" * 40)
+    assert match_tag({"3.3.1": C}, "psycopg-pool", "3.3.1", "psycopg") == TagMatch("3.3.1", "{version}", C)
+
+
+def test_one_package_repository_keeps_bare_version_tags() -> None:
+    """A repository named after its package uses v{version} or {version}; a repository with another name too."""
+    assert match_tag({"v1.2.0": C}, "orbit-client", "1.2.0", "orbit-client") == TagMatch("v1.2.0", "v{version}", C)
+    assert match_tag({"1.2.0": C}, "python-dateutil", "1.2.0", "dateutil") == TagMatch("1.2.0", "{version}", C)
+
+
 def test_padded_two_part_version() -> None:
     """A two-part version can match a tag padded with .0."""
     assert match_tag({"3.11.0": C}, "tidepool", "3.11", "tidepool") == TagMatch("3.11.0", "{version}.0", C)
