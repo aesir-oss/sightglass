@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -58,7 +58,7 @@ def save_analysis(
         )
         .on_conflict_do_update(
             index_elements=["from_artifact_id", "to_artifact_id", "ruleset_version"],
-            set_={"status": "done", "error": None, "finished_at": func.now(), "report": report},
+            set_={"status": "done", "error": None, "finished_at": func.now(), "report": report, "step": None},
         )
         .returning(models.Analysis.id)
     )
@@ -92,10 +92,37 @@ def fail_analysis(session: Session, from_id: int, to_id: int, ruleset_version: s
         )
         .on_conflict_do_update(
             index_elements=["from_artifact_id", "to_artifact_id", "ruleset_version"],
-            set_={"status": "failed", "error": reason, "finished_at": func.now(), "report": None},
+            set_={"status": "failed", "error": reason, "finished_at": func.now(), "report": None, "step": None},
         )
         .returning(models.Analysis.id)
     )
     analysis_id = int(session.execute(stmt).scalar_one())
     session.execute(delete(models.Signal).where(models.Signal.analysis_id == analysis_id))
     return analysis_id
+
+
+def mark_step(session: Session, from_id: int, to_id: int, ruleset_version: str, step: str) -> None:
+    """Record that a pair's analysis is running and which step it is on, and commit so readers see it."""
+    stmt = (
+        insert(models.Analysis)
+        .values(
+            from_artifact_id=from_id, to_artifact_id=to_id, ruleset_version=ruleset_version, status="running", step=step
+        )
+        .on_conflict_do_update(
+            index_elements=["from_artifact_id", "to_artifact_id", "ruleset_version"],
+            set_={"status": "running", "step": step, "error": None},
+            where=models.Analysis.status != "done",
+        )
+    )
+    session.execute(stmt)
+    session.commit()
+
+
+def requeue_failed(session: Session, analysis_id: int) -> None:
+    """Turn a failed analysis back into a pending one before it is queued again."""
+    session.execute(
+        update(models.Analysis)
+        .where(models.Analysis.id == analysis_id, models.Analysis.status == "failed")
+        .values(status="pending", error=None, step=None, finished_at=None)
+    )
+    session.commit()

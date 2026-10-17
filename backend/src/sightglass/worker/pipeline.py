@@ -40,7 +40,7 @@ from sightglass.rules import provenance as provenance_rules
 from sightglass.rules.base import PairAnalysis, ReleaseFacts, RuleSet
 from sightglass.rules.pairing import FilePair, IndexedFile, SourceComparison, check_source, normalize_path, pair_files
 from sightglass.rules.ruleset import RULES
-from sightglass.rules.store import current_analysis, fail_analysis, save_analysis
+from sightglass.rules.store import current_analysis, fail_analysis, mark_step, save_analysis
 from sightglass.storage.blobs import BlobStore, LocalBlobStore
 from sightglass.worker.catalog import record_artifact, record_files, record_package, record_release
 from sightglass.worker.report import build_report
@@ -48,6 +48,8 @@ from sightglass.worker.report import build_report
 log = get_logger(__name__)
 
 CACHE_DIR_ENV = "SIGHTGLASS_CACHE_DIR"
+# The steps a pair goes through, in order; the current one is stored on its analysis row while it runs.
+STEPS = ("downloading", "provenance", "diffing", "source", "rules")
 # Text larger than this isn't decoded for the rules; it is still compared by hash.
 MAX_TEXT = _core.DiffLimits().max_size
 _METADATA_RE = re.compile(r"^(pyproject\.toml|setup\.cfg|PKG-INFO|\*\.dist-info/[^/]+)$")
@@ -304,18 +306,26 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
     session.commit()
     if (existing := current_analysis(session, old_id, new_id, version)) is not None:
         return result(existing.id, "done", cached=True)
+
+    def step(name: str) -> None:
+        mark_step(session, old_id, new_id, version, name)
+
     try:
+        step("downloading")
         old, new = run.unpacked(pair.old), run.unpacked(pair.new)
         record_files(session, run.services.blobs, old.root, old.entries, artifact_id=old_id)
         record_files(session, run.services.blobs, new.root, new.entries, artifact_id=new_id)
+        step("provenance")
         old_prov, new_prov = run.provenance(run.old, pair.old), run.provenance(run.new, pair.new)
         for artifact_id, prov in ((old_id, old_prov), (new_id, new_prov)):
             if prov is not None:
                 record_provenance(session, artifact_id, prov)
 
+        step("diffing")
         files = pair_files(old.files, new.files)
         diffs, old_text, new_text = _texts(files, old, new)
 
+        step("source")
         found = run.source(new_prov)
         source: SourceComparison | CouldNotCompare
         source_diffs: dict[str, _core.FileDiff] = {}
@@ -360,6 +370,7 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
             history=run.history(pair.kind),
             analyzed_at=run.now,
         )
+        step("rules")
         signals = run.rules.run(analysis)
         report = build_report(
             analysis,

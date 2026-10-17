@@ -4,6 +4,7 @@ import { usePairAnalysis, useReleaseHistory } from "../api/queries";
 import { DiffViewer } from "../release/DiffViewer";
 import { Files, sortFiles } from "../release/Files";
 import { Header } from "../release/Header";
+import { Failed, Progress } from "../release/Pending";
 import { ReleaseFacts } from "../release/ReleaseFacts";
 import { Signals } from "../release/Signals";
 import { SourceCheck } from "../release/SourceCheck";
@@ -67,16 +68,15 @@ export function ReleaseDiffPage() {
                 : "Sightglass couldn't load this comparison. Try again shortly."}
             </p>
           )}
-          {data?.status === "pending" && (
-            <p className="notice" role="status">
-              Analyzing {data.artifact.old_filename} and {data.artifact.new_filename}. This page updates when it is
-              done.
-            </p>
-          )}
+          {data?.status === "pending" && <Progress pending={data} />}
           {data?.status === "failed" && (
-            <p className="notice" data-tone="warn" role="alert">
-              This pair couldn&apos;t be analyzed: {data.error}
-            </p>
+            <Failed
+              ecosystem={ecosystem}
+              pkg={data.package}
+              versions={`${data.from_version}...${data.to_version}`}
+              artifact={artifactFromSearch(search)}
+              error={data.error}
+            />
           )}
         </div>
         {data?.status === "done" && (

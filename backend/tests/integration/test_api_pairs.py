@@ -11,12 +11,13 @@ from sqlalchemy.orm import Session
 
 from sightglass.api.app import create_app
 from sightglass.api.deps import Index, get_enqueue, get_index, get_session
+from sightglass.db import models
 from sightglass.ecosystems.http import Fetcher, default_client
 from sightglass.ecosystems.provenance import IntegrityClient
 from sightglass.ecosystems.pypi import PYPI_HOSTS, PypiClient, parse_project
 from sightglass.rules.base import Evidence, Signal
 from sightglass.rules.ruleset import RULES
-from sightglass.rules.store import fail_analysis, save_analysis
+from sightglass.rules.store import fail_analysis, mark_step, save_analysis
 from sightglass.worker.catalog import record_artifact, record_package, record_release
 
 VERSIONS = ("2.4.1", "2.5.0", "2.6.0")
@@ -134,7 +135,7 @@ def test_missing_analysis_is_queued(world: tuple[TestClient, list[Any], dict[str
     client, queued, _ = world
     response = client.get("/api/pypi/Orbit_Client/2.4.1...2.5.0")
     assert response.status_code == 202
-    assert (response.headers["retry-after"], response.headers["cache-control"]) == ("5", "no-store")
+    assert (response.headers["retry-after"], response.headers["cache-control"]) == ("3", "no-store")
     body = response.json()
     assert (body["status"], body["artifact"]["new_filename"]) == ("pending", WHEEL_NEW)
     assert [a["kind"] for a in body["alternatives"]] == ["sdist", "wheel", "wheel"]
@@ -217,3 +218,33 @@ def test_releases_route_still_wins(world: tuple[TestClient, list[Any], dict[str,
     respx.get("https://pypi.org/simple/orbit-client/").respond(200, content=b'{"files": []}')
     assert "releases" in client.get("/api/pypi/orbit-client/releases").json()
     assert queued == []
+
+
+@pytest.mark.integration
+def test_pending_shows_the_current_step(
+    world: tuple[TestClient, list[Any], dict[str, int]], db_session: Session
+) -> None:
+    """While a worker runs, the 202 says which step it is on, with the list of steps."""
+    client, _, ids = world
+    mark_step(db_session, ids[WHEEL_OLD], ids[WHEEL_NEW], RULES.version, "source")
+    body = client.get("/api/pypi/orbit-client/2.4.1...2.5.0").json()
+    assert (body["status"], body["step"]) == ("pending", "source")
+    assert body["steps"] == ["downloading", "provenance", "diffing", "source", "rules"]
+
+
+@pytest.mark.integration
+def test_retry_a_failed_analysis(world: tuple[TestClient, list[Any], dict[str, int]], db_session: Session) -> None:
+    """Retrying a failed pair makes it pending and queues it again; anything else is a 409."""
+    client, queued, ids = world
+    assert client.post("/api/pypi/orbit-client/2.4.1...2.5.0/retry").status_code == 409
+    analysis_id = fail_analysis(db_session, ids[WHEEL_OLD], ids[WHEEL_NEW], RULES.version, "ArtifactIntegrityError: x")
+    db_session.commit()
+
+    response = client.post("/api/pypi/orbit-client/2.4.1...2.5.0/retry")
+    assert response.status_code == 202 and response.json()["status"] == "pending"
+    assert queued == [("pypi", "orbit-client", "2.4.1", "2.5.0", None)]
+    row = db_session.get(models.Analysis, analysis_id)
+    assert row is not None
+    db_session.refresh(row)
+    assert (row.status, row.error) == ("pending", None)
+    assert client.get("/api/pypi/orbit-client/2.4.1...2.5.0").status_code == 202

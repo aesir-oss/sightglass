@@ -54,9 +54,14 @@ test("a single version or an empty name is handled on the start page", () => {
 
 test("a pending analysis says so, rendering file names as text", async () => {
   const hostile = { ...ARTIFACT, new_filename: '<img src=x onerror="alert(1)">.whl' };
-  fakeApi({ [PAIR]: { status: 202, body: { ...BASE, status: "pending", artifact: hostile } } });
+  fakeApi({
+    [PAIR]: {
+      status: 202,
+      body: { ...BASE, status: "pending", artifact: hostile, step: null, steps: ["downloading", "rules"] },
+    },
+  });
   renderAt("/pypi/orbit-client/2.4.1...2.5.0");
-  const status = await screen.findByText(/Analyzing/);
+  const status = await screen.findByText(/Queued/);
   expect(status.textContent).toContain('<img src=x onerror="alert(1)">.whl');
   expect(document.querySelector("img")).toBeNull();
 });

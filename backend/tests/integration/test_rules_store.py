@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sightglass.db.models import Analysis, Artifact, Package, Release
 from sightglass.db.models import Signal as SignalRow
 from sightglass.rules.base import Evidence, Signal
-from sightglass.rules.store import current_analysis, save_analysis
+from sightglass.rules.store import current_analysis, fail_analysis, mark_step, save_analysis
 
 
 def artifact_pair(session: Session) -> tuple[int, int]:
@@ -71,3 +71,21 @@ def test_saving_again_replaces_the_signals(db_session: Session) -> None:
     assert first == second == pending.id
     assert db_session.scalar(select(func.count()).select_from(SignalRow)) == 1
     assert db_session.scalar(select(func.count()).select_from(Analysis)) == 1
+
+
+@pytest.mark.integration
+def test_steps_are_recorded_until_done(db_session: Session) -> None:
+    """A running analysis carries its step; finishing clears it, and a done analysis isn't set running again."""
+    old, new = artifact_pair(db_session)
+    mark_step(db_session, old, new, "rs-1", "downloading")
+    mark_step(db_session, old, new, "rs-1", "diffing")
+    row = db_session.scalars(select(Analysis)).one()
+    assert (row.status, row.step) == ("running", "diffing")
+    save_analysis(db_session, old, new, "rs-1", SIGNALS)
+    mark_step(db_session, old, new, "rs-1", "rules")
+    db_session.refresh(row)
+    assert (row.status, row.step) == ("done", None)
+    fail_analysis(db_session, old, new, "rs-2", "boom")
+    mark_step(db_session, old, new, "rs-2", "source")
+    failed = db_session.scalars(select(Analysis).where(Analysis.ruleset_version == "rs-2")).one()
+    assert (failed.status, failed.step, failed.error) == ("running", "source", None)
