@@ -92,6 +92,7 @@ class PairAnalysis:
     diffs: dict[str, _core.FileDiff] = field(default_factory=dict)
     source: SourceComparison | CouldNotCompare | None = None
     sdist: SourceComparison | None = None
+    # Releases before `old` with what is known about them, oldest first.
     history: tuple[ReleaseFacts, ...] = ()
 
 
