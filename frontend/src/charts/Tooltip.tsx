@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
 interface TooltipProps {
-  /** Position in the chart container, in pixels; nothing is shown when null. */
-  at: { x: number; y: number } | null;
+  /** Position in the chart container, in pixels or as CSS lengths; nothing is shown when null. */
+  at: { x: number | string; y: number | string } | null;
   children: ReactNode;
 }
 

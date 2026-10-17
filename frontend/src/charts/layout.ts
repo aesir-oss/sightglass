@@ -13,6 +13,22 @@ export interface TimelinePoint<T extends TimelineInput> {
   x: number;
 }
 
+/** The time scale the timeline uses: first to last publish time across `width`, inside `padding`. */
+export function timelineScale(
+  releases: readonly TimelineInput[],
+  width: number,
+  padding = 12,
+): ((date: Date) => number) | null {
+  const times = releases.flatMap((r) => (r.published_at ? [new Date(r.published_at).getTime()] : []));
+  if (times.length === 0) return null;
+  const first = Math.min(...times);
+  const last = Math.max(...times);
+  const scale = scaleUtc()
+    .domain([new Date(first), new Date(last === first ? first + 1 : last)])
+    .range([padding, Math.max(padding, width - padding)]);
+  return (date) => scale(date);
+}
+
 /**
  * Place releases along a time axis of `width` pixels, keeping at least `minGap` pixels between neighbours so dense
  * release runs stay clickable. Releases without a publish time are left out.
@@ -26,13 +42,8 @@ export function timelineLayout<T extends TimelineInput>(
     .filter((r): r is T & { published_at: string } => r.published_at !== null)
     .map((r) => ({ release: r, time: new Date(r.published_at) }))
     .sort((a, b) => a.time.getTime() - b.time.getTime());
-  const first = dated[0];
-  const last = dated[dated.length - 1];
-  if (!first || !last) return [];
-  const span = first.time.getTime() === last.time.getTime() ? 1 : 0;
-  const scale = scaleUtc()
-    .domain([first.time, new Date(last.time.getTime() + span)])
-    .range([padding, Math.max(padding, width - padding)]);
+  const scale = timelineScale(releases, width, padding);
+  if (!scale) return [];
   const points: TimelinePoint<T>[] = [];
   for (const { release, time } of dated) {
     const previous = points[points.length - 1];

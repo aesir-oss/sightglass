@@ -1,7 +1,9 @@
-import { useParams, useSearchParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { ApiError, artifactFromSearch } from "../api/client";
 import { usePairAnalysis, useReleaseHistory } from "../api/queries";
 import { Header } from "../release/Header";
+import { Timeline } from "../release/Timeline";
+import { pairPath } from "../release/urls";
 
 /** The release diff page for `/:ecosystem/:package/:versions`. Its sections arrive with the page issues. */
 export function ReleaseDiffPage() {
@@ -10,6 +12,7 @@ export function ReleaseDiffPage() {
   const pair = usePairAnalysis(ecosystem, pkg, versions, artifactFromSearch(search));
   const history = useReleaseHistory(ecosystem, pkg);
   const data = pair.data;
+  const navigate = useNavigate();
 
   return (
     <>
@@ -31,6 +34,19 @@ export function ReleaseDiffPage() {
             </h1>
           </div>
         </header>
+      )}
+      {data && history.data && (
+        <Timeline
+          pkg={data.package}
+          releases={history.data.releases}
+          from={data.from_version}
+          to={data.to_version}
+          onCompare={(from, to) => {
+            // Wheel files differ between versions, so only an sdist choice carries over.
+            const query = data.artifact.kind === "sdist" ? "?kind=sdist" : "";
+            void navigate(pairPath(ecosystem, data.package, from, to, query));
+          }}
+        />
       )}
       <main className="wrap">
         {pair.isPending && <p role="status">Loading…</p>}
