@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sightglass</title>
+    <script>
+      // Apply the saved theme before first paint, so a dark page doesn't flash light.
+      try {
+        const theme = localStorage.getItem("sightglass-theme");
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
