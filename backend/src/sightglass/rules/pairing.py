@@ -67,6 +67,7 @@ class SourceCheck:
     path: str
     status: SourceStatus
     source_path: str | None
+    text: bool = True
 
 
 @dataclass(frozen=True)
@@ -166,8 +167,8 @@ def check_source(package: Iterable[IndexedFile], source: Iterable[IndexedFile]) 
     for original, f, wanted in sorted(included, key=lambda t: t[0]):
         found = next((root + wanted for root in roots if root + wanted in source_by_path), None)
         if found is None:
-            checks.append(SourceCheck(original, "missing", None))
+            checks.append(SourceCheck(original, "missing", None, f.text))
         else:
             status: SourceStatus = "matches" if f.same_content(source_by_path[found]) else "differs"
-            checks.append(SourceCheck(original, status, found))
+            checks.append(SourceCheck(original, status, found, f.text))
     return SourceComparison(roots[0] if roots else "", tuple(checks), tuple(sorted(excluded)))
