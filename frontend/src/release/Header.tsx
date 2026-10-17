@@ -43,14 +43,16 @@ function VersionPicker({
       className="picker"
       value={value}
       defaultItems={items}
-      menuTrigger="focus"
       onChange={(key: Key | null) => {
         if (key !== null && String(key) !== value) onChange(String(key));
       }}
     >
       <Label>{label}</Label>
-      <Input />
-      <Button aria-label={`Show ${label.toLowerCase()} versions`}>▾</Button>
+      {/* Input and button form one control; the gap is only between the label and the control. */}
+      <div className="picker-control">
+        <Input />
+        <Button aria-label={`Show ${label.toLowerCase()} versions`}>▾</Button>
+      </div>
       <Popover>
         <ListBox>{(item: { id: string; name: string }) => <ListBoxItem id={item.id}>{item.name}</ListBoxItem>}</ListBox>
       </Popover>
