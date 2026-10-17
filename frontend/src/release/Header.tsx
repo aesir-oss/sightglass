@@ -43,7 +43,6 @@ function VersionPicker({
       className="picker"
       value={value}
       defaultItems={items}
-      menuTrigger="focus"
       onChange={(key: Key | null) => {
         if (key !== null && String(key) !== value) onChange(String(key));
       }}

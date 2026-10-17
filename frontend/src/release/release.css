@@ -668,59 +668,61 @@ h1 .vs {
   gap: 6px;
 }
 
-.picker-control {
+/* The version comboboxes and the artifact select share one look: a single bordered box, text, then the arrow. */
+.picker-control,
+.artifact .react-aria-Button {
   display: inline-flex;
-  align-items: stretch;
+  align-items: center;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.picker-control:hover,
+.artifact .react-aria-Button[data-hovered] {
+  border-color: var(--accent);
+}
+
+.picker-control:focus-within,
+.artifact .react-aria-Button[data-focus-visible] {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
 }
 
 .picker .react-aria-Input {
-  border: 1px solid var(--line);
-  border-right: 0;
-  background: var(--surface);
-  border-radius: 6px 0 0 6px;
-  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  padding: 0 4px 0 10px;
   font: 13.5px var(--mono);
-  width: 11ch;
+  width: 10ch;
+  height: 100%;
   color: var(--ink);
+  outline: none;
 }
 
-.picker .react-aria-Input[data-focused] {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
-}
-
-.picker .react-aria-Button,
-.artifact .react-aria-Button {
-  border: 1px solid var(--line);
-  background: var(--surface);
+.picker .react-aria-Button {
+  border: 0;
+  background: transparent;
   color: var(--muted);
-  border-radius: 0 6px 6px 0;
-  padding: 4px 8px;
-  font-size: 12px;
+  height: 100%;
+  padding: 0 10px 0 4px;
+  font-size: 11px;
+  outline: none;
 }
 
 .artifact .react-aria-Button {
-  border-radius: 6px;
-  color: var(--ink);
+  gap: 10px;
+  padding: 0 10px;
   font-size: 13.5px;
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
 }
 
 .artifact .react-aria-Button::after {
   content: "▾";
   color: var(--muted);
   font-size: 11px;
-}
-
-.react-aria-Button[data-hovered] {
-  border-color: var(--accent);
-}
-
-.react-aria-Button[data-focus-visible] {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
 }
 
 .react-aria-Popover {
