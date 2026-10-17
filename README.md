@@ -38,6 +38,7 @@ pixi run bootstrap   # installs the pre-commit hooks
 | `pixi run test-integration` | Backend integration tests |
 | `pixi run fmt` / `lint` / `check` | ruff format, ruff check, mypy (strict) |
 | `pixi run cov` | Full backend test suite with the 90% coverage gate |
+| `pixi run db-upgrade` / `db-revision -m "..."` | Apply migrations, or autogenerate a new one from the models (needs `SIGHTGLASS_DATABASE_URL`) |
 | `pixi run develop` | Rebuild the Rust extension in place (the Python test tasks run it first) |
 | `pixi run fmt-rs` / `lint-rs` / `test-rs` / `cov-rs` | rustfmt, clippy, cargo test, cargo llvm-cov (90% gate) |
 | `pixi run dev-web` | Vite dev server for the frontend |
