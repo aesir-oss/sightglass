@@ -1,0 +1,42 @@
+# Python tool configuration. Runtime dependencies live in the root pixi.toml.
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sightglass"
+version = "0.1.0"
+description = "See what a package release actually ships."
+requires-python = ">=3.12"
+authors = [{ name = "Kevin Mills", email = "millsks@gmail.com" }]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sightglass"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short --import-mode=importlib --strict-markers"
+markers = [
+    "integration: marks tests as integration tests requiring real I/O, network, or DB",
+]
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "RUF", "D"]
+ignore = ["E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["sightglass"]
+
+[tool.mypy]
+python_version = "3.12"   # the matrix FLOOR, not the dev version — catches 3.13+/3.14-only API use
+strict = true
+warn_return_any = true
+warn_unused_configs = true

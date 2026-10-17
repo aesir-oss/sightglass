@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && pixi run ci 1>&2 || exit 2",
+            "timeout": 900
+          }
+        ]
+      }
+    ]
+  }
+}
