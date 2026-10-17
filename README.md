@@ -48,4 +48,4 @@ Layout: `backend/` holds the Python package (`backend/src/sightglass/`), its tes
 
 ## License
 
-Not chosen yet. See the open questions in the design.
+[Apache-2.0](LICENSE).
