@@ -204,6 +204,23 @@ def test_full_pipeline(db_session: Session, services: Services, provenance_paylo
     assert services.blobs.read(hashlib.sha256(TELEMETRY).hexdigest()) == TELEMETRY
     assert routes["orbit_client-2.5.0.tar.gz"].call_count == 1
 
+    report = db_session.get(models.Analysis, wheel_result.analysis_id).report  # type: ignore[union-attr]
+    assert report is not None
+    assert {f["path"]: f["status"] for f in report["files"]}["orbit/telemetry.py"] == "added"
+    assert (report["source"]["state"], report["source"]["label"], report["source"]["commit"]) == (
+        "compared",
+        "tag v2.5.0",
+        COMMIT,
+    )
+    assert {c["path"]: c["status"] for c in report["source"]["files"]}["orbit/telemetry.py"] == "missing"
+    assert report["sdist"]["root"] == "src/"
+    facts = report["facts"]
+    assert (facts["old"]["attestation"], facts["new"]["attestation"]) == ("present", "absent")
+    assert facts["old"]["publisher"]["workflow"] == "release.yml" and facts["new"]["publisher"] is None
+    assert facts["new"]["build_tool"] == "hatchling"
+    assert facts["new"]["requires_dist"] == ["httpx>=0.27", "requests>=2.32"]
+    assert facts["new"]["file_count"] == 5 and facts["new"]["total_size"] > 0
+
 
 @pytest.mark.integration
 @respx.mock
@@ -286,3 +303,16 @@ def test_unresolvable_requests(db_session: Session, services: Services) -> None:
     respx.get("https://pypi.org/pypi/gale/json").respond(200, content=project_json(wheel_only))
     with pytest.raises(PipelineError, match="nothing_to_compare"):
         analyze_release_pair(db_session, services, "gale", "2.4.1", "2.5.0")
+
+
+@pytest.mark.integration
+@respx.mock
+def test_a_chosen_wheel_only(db_session: Session, services: Services, provenance_payload: Callable[..., bytes]) -> None:
+    """With a wheel named, only that pair is analyzed; an unknown wheel is a pipeline error."""
+    mock_world(provenance_payload)
+    [result] = analyze_release_pair(
+        db_session, services, "orbit-client", "2.4.1", "2.5.0", now=NOW, wheel="orbit_client-2.5.0-py3-none-any.whl"
+    )
+    assert (result.kind, result.status) == ("wheel", "done")
+    with pytest.raises(PipelineError, match="artifact_not_found"):
+        analyze_release_pair(db_session, services, "orbit-client", "2.4.1", "2.5.0", wheel="nope.whl")

@@ -229,6 +229,8 @@ class Analysis(Base):
     error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     finished_at: Mapped[datetime | None]
+    # What the page shows besides signals: file pairs, the source check and release facts (sightglass.worker.report).
+    report: Mapped[dict[str, Any] | None]
 
     signals: Mapped[list[Signal]] = relationship(back_populates="analysis", passive_deletes=True)
 

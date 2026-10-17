@@ -43,6 +43,7 @@ from sightglass.rules.ruleset import RULES
 from sightglass.rules.store import current_analysis, fail_analysis, save_analysis
 from sightglass.storage.blobs import BlobStore, LocalBlobStore
 from sightglass.worker.catalog import record_artifact, record_files, record_package, record_release
+from sightglass.worker.report import build_report
 
 log = get_logger(__name__)
 
@@ -360,6 +361,14 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
             analyzed_at=run.now,
         )
         signals = run.rules.run(analysis)
+        report = build_report(
+            analysis,
+            old_file=pair.old,
+            new_file=pair.new,
+            old_files=old.files,
+            new_files=new.files,
+            snapshot=found if isinstance(found, SourceSnapshot) else None,
+        )
     except UnavailableError, TransientError:
         session.rollback()
         raise
@@ -370,7 +379,7 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
         analysis_id = fail_analysis(session, old_id, new_id, version, reason)
         session.commit()
         return result(analysis_id, "failed", cached=False, error=reason)
-    analysis_id = save_analysis(session, old_id, new_id, version, signals)
+    analysis_id = save_analysis(session, old_id, new_id, version, signals, report)
     session.commit()
     log.info("pair_analyzed", signals=len(signals), **names)
     return result(analysis_id, "done", cached=False)
@@ -386,6 +395,7 @@ def analyze_release_pair(
     rules: RuleSet = RULES,
     now: datetime | None = None,
     final_attempt: bool = True,
+    wheel: str | None = None,
 ) -> list[PairResult]:
     """Analyze the chosen artifact pairs of two releases of a PyPI package.
 
@@ -397,6 +407,8 @@ def analyze_release_pair(
         to_version: The later release.
         rules: The rule set to run.
         now: When the analysis runs, for timing rules; defaults to the current time.
+        wheel: Analyze only the wheel pair whose new file is named this, instead of the default pairs; for the
+            artifact picker.
         final_attempt: Whether this is the job's last try. Before it, an unreachable source repository raises
             :class:`TransientError` so the job is retried, instead of storing "couldn't compare".
 
@@ -421,7 +433,12 @@ def analyze_release_pair(
     selection = select_artifacts(old, new)
     if not selection.chosen:
         raise PipelineError("nothing_to_compare", f"{from_version} and {to_version} share no artifact kind")
+    pairs = selection.chosen
+    if wheel is not None:
+        pairs = tuple(p for p in selection.wheels if p.new.filename == wheel)
+        if not pairs:
+            raise PipelineError("artifact_not_found", f"{to_version} has no wheel {wheel} to compare")
     with tempfile.TemporaryDirectory(prefix="sg-analysis-") as tmp:
         run = _Run(session, services, project, old, new, Path(tmp), rules, now or datetime.now(UTC), final_attempt)
         session.commit()
-        return [_analyze(run, pair) for pair in selection.chosen]
+        return [_analyze(run, pair) for pair in pairs]

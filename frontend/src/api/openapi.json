@@ -1,6 +1,148 @@
 {
   "components": {
     "schemas": {
+      "ArtifactRef": {
+        "description": "One artifact pair the page can show.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "sdist",
+              "wheel"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "match": {
+            "enum": [
+              "same_tag",
+              "platform_changed"
+            ],
+            "title": "Match",
+            "type": "string"
+          },
+          "new_filename": {
+            "title": "New Filename",
+            "type": "string"
+          },
+          "old_filename": {
+            "title": "Old Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "old_filename",
+          "new_filename",
+          "match"
+        ],
+        "title": "ArtifactRef",
+        "type": "object"
+      },
+      "Facts": {
+        "description": "Release facts before and after.",
+        "properties": {
+          "new": {
+            "$ref": "#/components/schemas/ReleaseFacts"
+          },
+          "old": {
+            "$ref": "#/components/schemas/ReleaseFacts"
+          }
+        },
+        "required": [
+          "old",
+          "new"
+        ],
+        "title": "Facts",
+        "type": "object"
+      },
+      "FileEntry": {
+        "description": "One path across the two artifacts.",
+        "properties": {
+          "compiled": {
+            "title": "Compiled",
+            "type": "boolean"
+          },
+          "flagged": {
+            "title": "Flagged",
+            "type": "boolean"
+          },
+          "new_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Sha256"
+          },
+          "new_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Size"
+          },
+          "old_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Sha256"
+          },
+          "old_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Size"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "added",
+              "removed",
+              "changed",
+              "same"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "status",
+          "text",
+          "compiled",
+          "old_size",
+          "new_size",
+          "old_sha256",
+          "new_sha256",
+          "flagged"
+        ],
+        "title": "FileEntry",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -32,6 +174,167 @@
           "version"
         ],
         "title": "Health",
+        "type": "object"
+      },
+      "PairAnalysis": {
+        "description": "A finished (or failed) analysis of one artifact pair.",
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactRef"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "artifact": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "ecosystem": {
+            "const": "pypi",
+            "title": "Ecosystem",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "facts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Facts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "files": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FileEntry"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "from_version": {
+            "title": "From Version",
+            "type": "string"
+          },
+          "package": {
+            "title": "Package",
+            "type": "string"
+          },
+          "ruleset_version": {
+            "title": "Ruleset Version",
+            "type": "string"
+          },
+          "sdist": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SdistCheck"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "signals": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SignalOut"
+            },
+            "title": "Signals",
+            "type": "array"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceCheck"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "done",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "to_version": {
+            "title": "To Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "ecosystem",
+          "package",
+          "from_version",
+          "to_version",
+          "ruleset_version",
+          "artifact",
+          "alternatives"
+        ],
+        "title": "PairAnalysis",
+        "type": "object"
+      },
+      "PairPending": {
+        "description": "The analysis is queued or running; poll again after ``Retry-After`` seconds.",
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactRef"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "artifact": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "ecosystem": {
+            "const": "pypi",
+            "title": "Ecosystem",
+            "type": "string"
+          },
+          "from_version": {
+            "title": "From Version",
+            "type": "string"
+          },
+          "package": {
+            "title": "Package",
+            "type": "string"
+          },
+          "status": {
+            "const": "pending",
+            "title": "Status",
+            "type": "string"
+          },
+          "to_version": {
+            "title": "To Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "ecosystem",
+          "package",
+          "from_version",
+          "to_version",
+          "artifact",
+          "alternatives"
+        ],
+        "title": "PairPending",
         "type": "object"
       },
       "Publisher": {
@@ -82,6 +385,96 @@
           "environment"
         ],
         "title": "Publisher",
+        "type": "object"
+      },
+      "ReleaseFacts": {
+        "description": "One side of the before-and-after table.",
+        "properties": {
+          "artifact_sha256": {
+            "title": "Artifact Sha256",
+            "type": "string"
+          },
+          "attestation": {
+            "enum": [
+              "present",
+              "absent",
+              "unknown"
+            ],
+            "title": "Attestation",
+            "type": "string"
+          },
+          "build_tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Build Tool"
+          },
+          "file_count": {
+            "title": "File Count",
+            "type": "integer"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "publisher": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Publisher"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requires_dist": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires Dist"
+          },
+          "total_size": {
+            "title": "Total Size",
+            "type": "integer"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "published_at",
+          "attestation",
+          "publisher",
+          "build_tool",
+          "file_count",
+          "total_size",
+          "artifact_sha256",
+          "requires_dist"
+        ],
+        "title": "ReleaseFacts",
         "type": "object"
       },
       "ReleaseHistory": {
@@ -169,6 +562,243 @@
           "publisher"
         ],
         "title": "ReleaseSummary",
+        "type": "object"
+      },
+      "SdistCheck": {
+        "description": "The wheel compared with the release's sdist.",
+        "properties": {
+          "excluded": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Excluded",
+            "type": "array"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFile"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "root": {
+            "title": "Root",
+            "type": "string"
+          }
+        },
+        "required": [
+          "root",
+          "files",
+          "excluded"
+        ],
+        "title": "SdistCheck",
+        "type": "object"
+      },
+      "SignalOut": {
+        "description": "A signal with its evidence items.",
+        "properties": {
+          "evidence": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "level": {
+            "enum": [
+              "high",
+              "check",
+              "note",
+              "clean"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "level",
+          "message",
+          "evidence"
+        ],
+        "title": "SignalOut",
+        "type": "object"
+      },
+      "SourceCheck": {
+        "description": "The source check: compared with a tag or commit, couldn't compare, or unknown.",
+        "properties": {
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "excluded": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Excluded",
+            "type": "array"
+          },
+          "files": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SourceFile"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "enum": [
+                  "attestation",
+                  "tag"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref"
+          },
+          "repository": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repository"
+          },
+          "root": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Root"
+          },
+          "state": {
+            "enum": [
+              "compared",
+              "could_not_compare",
+              "unknown"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state"
+        ],
+        "title": "SourceCheck",
+        "type": "object"
+      },
+      "SourceFile": {
+        "description": "Where a package file was found in the source.",
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "source_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Path"
+          },
+          "status": {
+            "enum": [
+              "matches",
+              "differs",
+              "missing"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "status",
+          "source_path",
+          "text"
+        ],
+        "title": "SourceFile",
         "type": "object"
       },
       "ValidationError": {
@@ -294,6 +924,134 @@
           }
         },
         "summary": "Get Release History"
+      }
+    },
+    "/api/{ecosystem}/{package}/{versions}": {
+      "get": {
+        "description": "The analysis of one artifact pair of two releases; ``202`` while it is queued or running.",
+        "operationId": "getPairAnalysis",
+        "parameters": [
+          {
+            "description": "Package ecosystem; only pypi for now",
+            "in": "path",
+            "name": "ecosystem",
+            "required": true,
+            "schema": {
+              "description": "Package ecosystem; only pypi for now",
+              "title": "Ecosystem",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Package name, in any spelling",
+            "in": "path",
+            "name": "package",
+            "required": true,
+            "schema": {
+              "description": "Package name, in any spelling",
+              "title": "Package",
+              "type": "string"
+            }
+          },
+          {
+            "description": "`<from>...<to>`, or one version to compare with its predecessor",
+            "in": "path",
+            "name": "versions",
+            "required": true,
+            "schema": {
+              "description": "`<from>...<to>`, or one version to compare with its predecessor",
+              "title": "Versions",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which artifact kind to show",
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "wheel",
+                    "sdist"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Which artifact kind to show",
+              "title": "Kind"
+            }
+          },
+          {
+            "description": "The new release's wheel to compare, from `alternatives`",
+            "in": "query",
+            "name": "wheel",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The new release's wheel to compare, from `alternatives`",
+              "title": "Wheel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PairAnalysis"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PairPending"
+                    }
+                  ],
+                  "title": "Response Getpairanalysis"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairPending"
+                }
+              }
+            },
+            "description": "Queued or running; poll again after Retry-After seconds"
+          },
+          "404": {
+            "description": "Unknown ecosystem, package, version or artifact"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "The index is unavailable"
+          }
+        },
+        "summary": "Get Pair Analysis"
       }
     }
   }
