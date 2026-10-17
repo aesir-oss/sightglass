@@ -7,10 +7,12 @@ covers what is specific here.
 
 ## Status
 
-Scaffolding. The root pixi workspace, the Python backend in `backend/` and the Rust crates in `backend/crates/` exist;
-the frontend and CI come next (Foundation milestone). After a Rust change, `pixi run develop` rebuilds
-`sightglass._core`; the Python test tasks run it first. Python tasks run with `cwd = "backend"`, and pre-commit points ruff and mypy at
-`backend/pyproject.toml`.
+Scaffolding. These exist: the root pixi workspace, the Python backend in `backend/`, the Rust crates in
+`backend/crates/` and the React frontend in `frontend/`. CI comes next (Foundation milestone).
+
+- Python tasks run with `cwd = "backend"`; pre-commit points ruff and mypy at `backend/pyproject.toml`.
+- After a Rust change, `pixi run develop` rebuilds `sightglass._core`; the Python test tasks run it first.
+- Frontend tasks run with `cwd = "frontend"` through pnpm, with Node from pixi.
 
 ## Layout
 
@@ -27,6 +29,10 @@ the frontend and CI come next (Foundation milestone). After a Rust change, `pixi
 - Branch names and commits follow the global CLAUDE.md (§5).
 
 ## Off-limits and traps
+
+- `frontend/pnpm-workspace.yaml` sets `minimumReleaseAge` to 7 days. `pnpm add` picks the newest version that old, and an
+  explicit range whose floor is newer fails to resolve. Don't add packages to `minimumReleaseAgeExclude` to get around it.
+- Dependency install scripts are blocked (`onlyBuiltDependencies: []`). Allow one only with a reason in the PR.
 
 - Mockup data must stay invented. Never put fabricated findings about a real package, person or organization in a
   mockup, a test fixture or the docs.
