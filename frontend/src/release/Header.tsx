@@ -128,6 +128,9 @@ export function Header({ ecosystem, pkg, from, to, versions, artifact, alternati
             <Label>Artifact</Label>
             <Button>
               <SelectValue />
+              <span className="arrow" aria-hidden="true">
+                ▾
+              </span>
             </Button>
             <Popover>
               <ListBox>
