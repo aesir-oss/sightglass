@@ -78,6 +78,8 @@ build = { cmd = "python -m build --no-isolation --outdir dist/", cwd = "backend"
 # Migrations; both need SIGHTGLASS_DATABASE_URL. Tests start their own throwaway Postgres instead.
 # Refresh the top-packages list for the lookalike-name rule, then review and commit the diff.
 # Process analysis jobs from the queue in SIGHTGLASS_DATABASE_URL; downloads are cached in SIGHTGLASS_CACHE_DIR.
+# Analyze one release pair: pixi run analyze pypi <package> <from> <to> [--format json]
+analyze = { cmd = "python -m sightglass.analyze", cwd = "backend", depends-on = ["develop"] }
 worker = { cmd = "python -m sightglass.worker", cwd = "backend", depends-on = ["develop"] }
 refresh-top-packages = { cmd = "python -m sightglass.rules.top_packages", cwd = "backend", depends-on = ["develop"] }
 db-upgrade = { cmd = "alembic upgrade head", cwd = "backend" }

@@ -7,8 +7,9 @@ covers what is specific here.
 
 ## Status
 
-Scaffolding. These exist: the root pixi workspace, the Python backend in `backend/`, the Rust crates in
-`backend/crates/`, the React frontend in `frontend/`, and CI in `.github/workflows/ci.yml`.
+Phase 1 analysis engine. The backend analyzes a PyPI release pair end to end: `pixi run analyze pypi <pkg> <from> <to>`
+runs the pipeline locally, and `pixi run worker` processes queued jobs. The API and pages are next. The root pixi
+workspace, the Rust crates in `backend/crates/`, the React frontend in `frontend/`, and CI exist.
 
 - Python tasks run with `cwd = "backend"`; pre-commit points ruff and mypy at `backend/pyproject.toml`.
 - After a Rust change, `pixi run develop` rebuilds `sightglass._core`; the Python test tasks run it first.

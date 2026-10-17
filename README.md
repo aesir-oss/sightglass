@@ -30,6 +30,19 @@ pixi install
 pixi run bootstrap   # installs the pre-commit hooks
 ```
 
+## Quick start
+
+Analyze one release pair of a PyPI package, without the web service:
+
+```bash
+pixi run analyze pypi <package> <from-version> <to-version>                # signals as JSON log events on stderr
+pixi run analyze pypi <package> <from-version> <to-version> --format json  # one JSON document on stdout
+```
+
+It downloads and verifies the artifacts, finds the source on GitHub, and runs the rules; nothing from the package is
+executed. Results go to `SIGHTGLASS_DATABASE_URL` if set, or to a local Postgres under `~/.cache/sightglass`
+(`SIGHTGLASS_CACHE_DIR`), which also caches downloads between runs.
+
 ## Development
 
 | Command | What it runs |
@@ -39,6 +52,8 @@ pixi run bootstrap   # installs the pre-commit hooks
 | `pixi run fmt` / `lint` / `check` | ruff format, ruff check, mypy (strict) |
 | `pixi run cov` | Full backend test suite with the 90% coverage gate |
 | `pixi run db-upgrade` / `db-revision -m "..."` | Apply migrations, or autogenerate a new one from the models (needs `SIGHTGLASS_DATABASE_URL`) |
+| `pixi run worker` | Process queued analysis jobs (needs `SIGHTGLASS_DATABASE_URL`) |
+| `pixi run refresh-top-packages` | Refresh the top-packages list for the lookalike-name rule; review and commit the diff |
 | `pixi run develop` | Rebuild the Rust extension in place (the Python test tasks run it first) |
 | `pixi run fmt-rs` / `lint-rs` / `test-rs` / `cov-rs` | rustfmt, clippy, cargo test, cargo llvm-cov (90% gate) |
 | `pixi run dev-web` | Vite dev server for the frontend |

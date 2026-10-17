@@ -6,14 +6,14 @@ import pytest
 from alembic import command
 from sqlalchemy import create_engine, text
 
+from sightglass.db.local import LocalPostgres
+from sightglass.db.migrate import alembic_config
 from sightglass.worker import jobs
 from sightglass.worker.pipeline import PairResult
 
-from .conftest import PostgresServer, alembic_config
-
 
 @pytest.mark.integration
-def test_queue_deduplicates_and_runs(postgres: PostgresServer, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_queue_deduplicates_and_runs(postgres: LocalPostgres, monkeypatch: pytest.MonkeyPatch) -> None:
     """The queueing lock is enforced by the database, and a worker runs the job to success."""
     url = postgres.create_database("job_queue")
     command.upgrade(alembic_config(url), "head")

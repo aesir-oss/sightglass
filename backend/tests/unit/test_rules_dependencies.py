@@ -1,5 +1,7 @@
 """Tests for the dependency rules."""
 
+import pytest
+
 from sightglass.rules.base import PairAnalysis, ReleaseFacts
 from sightglass.rules.dependencies import added, changed, environment_specific, read_requirements
 from sightglass.rules.ruleset import RULES
@@ -105,3 +107,20 @@ def test_sdist_pkg_info_and_unknown_metadata() -> None:
     assert added(unknown) == environment_specific(unknown) == changed(unknown) == []
     reqs = read_requirements({"PKG-INFO": metadata("1.0", "not a requirement !!", "tidepool")})
     assert reqs is not None and list(reqs.by_name) == ["tidepool"]
+
+
+@pytest.mark.parametrize(
+    "header",
+    [
+        "Metadata-Version: 2.1\n",
+        "Metadata-Version: 2.4\nDynamic: Requires-Dist\n",
+        "Metadata-Version: two\n",
+    ],
+)
+def test_sdist_requirements_that_are_not_authoritative_are_unknown(header: str) -> None:
+    """Before Metadata 2.2, or with Requires-Dist marked Dynamic, an sdist's PKG-INFO says nothing about dependencies."""
+    old = header + "Name: orbit-client\nVersion: 2.4.1\n"
+    new = metadata("2.5.0", "requests>=2.31", "kestrel-telemetry")
+    analysis = pair(new, old=old, path="PKG-INFO")
+    assert read_requirements({"PKG-INFO": old}) is None
+    assert added(analysis) == changed(analysis) == []

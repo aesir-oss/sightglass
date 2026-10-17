@@ -5,11 +5,13 @@ compared by normalized name, so ``Orbit_Client`` and ``orbit-client`` are the sa
 """
 
 from dataclasses import dataclass
+from email.message import Message
 from email.parser import HeaderParser
 
 from packaging.markers import Marker
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.utils import NormalizedName, canonicalize_name
+from packaging.version import InvalidVersion, Version
 
 from sightglass.log import get_logger
 from sightglass.rules.base import RULES, Evidence, PairAnalysis, Signal
@@ -63,13 +65,26 @@ class Requirements:
     by_name: dict[NormalizedName, list[Entry]]
 
 
+def _sdist_requirements_are_static(headers: Message) -> bool:
+    # Before Metadata 2.2 (PEP 643) an sdist's PKG-INFO needn't list dependencies at all, and from 2.2 on a backend can
+    # mark them Dynamic, to be computed at build time. Either way the sdist's Requires-Dist isn't authoritative.
+    try:
+        version = Version(headers.get("Metadata-Version", "0"))
+    except InvalidVersion:
+        return False
+    dynamic = {d.strip().lower() for d in headers.get_all("Dynamic") or []}
+    return version >= Version("2.2") and "requires-dist" not in dynamic
+
+
 def read_requirements(texts: dict[str, str]) -> Requirements | None:
-    """Parse ``Requires-Dist`` from the first metadata file present, or None when there is none."""
+    """Parse ``Requires-Dist`` from the first metadata file present, or None when there is none or it isn't reliable."""
     path = next((p for p in METADATA_FILES if p in texts), None)
     if path is None:
         return None
     text = texts[path]
     headers = HeaderParser().parsestr(text)
+    if path == "PKG-INFO" and not _sdist_requirements_are_static(headers):
+        return None
     lines = text.splitlines()
     by_name: dict[NormalizedName, list[Entry]] = {}
     for raw in headers.get_all("Requires-Dist") or []:
@@ -105,7 +120,7 @@ def _pair(analysis: PairAnalysis) -> tuple[Requirements, Requirements] | None:
     return None if old is None or new is None else (old, new)
 
 
-@RULES.rule("dependencies.added", 1, "New declared dependency")
+@RULES.rule("dependencies.added", 2, "New declared dependency")
 def added(analysis: PairAnalysis) -> list[Signal]:
     """Report each newly declared dependency that applies in every environment."""
     pair = _pair(analysis)
@@ -133,7 +148,7 @@ def added(analysis: PairAnalysis) -> list[Signal]:
     return signals
 
 
-@RULES.rule("dependencies.environment_specific", 1, "New dependency only on some platforms or markers")
+@RULES.rule("dependencies.environment_specific", 2, "New dependency only on some platforms or markers")
 def environment_specific(analysis: PairAnalysis) -> list[Signal]:
     """Report new dependencies whose markers limit them to some platforms, interpreters or Python versions."""
     pair = _pair(analysis)
@@ -157,7 +172,7 @@ def environment_specific(analysis: PairAnalysis) -> list[Signal]:
     return signals
 
 
-@RULES.rule("dependencies.changed", 1, "Dependency constraint changed, or dependency removed")
+@RULES.rule("dependencies.changed", 2, "Dependency constraint changed, or dependency removed")
 def changed(analysis: PairAnalysis) -> list[Signal]:
     """Report dependencies whose specifiers, extras or markers changed, and dependencies that were dropped."""
     pair = _pair(analysis)

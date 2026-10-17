@@ -36,7 +36,7 @@ def _source(analysis: PairAnalysis) -> SourceComparison | None:
     return analysis.source if isinstance(analysis.source, SourceComparison) else None
 
 
-@RULES.rule("source.not_in_tag", 1, "A package file in the wheel isn't in the git tag")
+@RULES.rule("source.not_in_tag", 2, "A package file in the wheel isn't in the git tag")
 def not_in_tag(analysis: PairAnalysis) -> list[Signal]:
     """Report the package's text files that aren't anywhere in the source tree."""
     missing = _files(_source(analysis), "missing")
@@ -51,7 +51,7 @@ def not_in_tag(analysis: PairAnalysis) -> list[Signal]:
     return [Signal("source.not_in_tag", "high", message, tuple(Evidence(c.path, side="new") for c in missing))]
 
 
-@RULES.rule("source.differs_from_tag", 1, "A package file differs from the same path in the git tag")
+@RULES.rule("source.differs_from_tag", 2, "A package file differs from the same path in the git tag")
 def differs_from_tag(analysis: PairAnalysis) -> list[Signal]:
     """Report the package's text files whose content differs from the source, with the lines only the package has."""
     differs = _files(_source(analysis), "differs")
