@@ -241,7 +241,7 @@ analyzed once for every user who asks for it.
 
 ## Data model
 
-Initial tables, simplified:
+Tables, simplified. The phase 1 ones are defined in `backend/src/sightglass/db/models.py`, with Alembic migrations:
 
 | Table | Key columns |
 |---|---|
@@ -250,10 +250,10 @@ Initial tables, simplified:
 | `artifact` | release, filename, kind (wheel, sdist, conda), sha256, size, upload metadata |
 | `attestation` | artifact, publisher kind, repository, workflow, environment, service account email, source commit, source ref, runner environment, build trigger, run URL, verified, raw bundle |
 | `ownership_snapshot` | package, seen_at, organization, roles (account and role) |
-| `file` | artifact, path, sha256, size, type |
-| `blob` | sha256, size, storage location |
-| `source_snapshot` | package, ref (tag), commit, archive sha256 |
-| `analysis` | from artifact, to artifact, rule-set version, status, created_at |
+| `file` | artifact or source snapshot (exactly one), path, sha256, size, type |
+| `blob` | sha256, size, storage location (null when too large to keep) |
+| `source_snapshot` | package, repository, commit, ref, archive sha256, origin (attestation or tag), tag pattern |
+| `analysis` | from artifact, to artifact, rule-set version, status, error, created_at, finished_at |
 | `signal` | analysis, rule id, level, message, evidence (JSON) |
 | `review` | repository, pull request number, base and head lockfile sha |
 | `review_change` | review, package, from and to versions, platforms, dependency path |
