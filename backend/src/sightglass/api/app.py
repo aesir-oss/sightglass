@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from sightglass import __version__
+from sightglass.api import releases
 
 
 class Health(BaseModel):
@@ -27,4 +28,5 @@ def create_app() -> FastAPI:
     def health() -> Health:
         return Health(status="ok", version=__version__)
 
+    app.include_router(releases.router)
     return app
