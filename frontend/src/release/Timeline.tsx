@@ -112,44 +112,52 @@ export function Timeline({ pkg, releases, from, to, onCompare }: TimelineProps) 
             const end = r.version === from || r.version === to;
             const label = describe(r);
             return (
-              <Mark
-                key={r.version}
-                className={`tl-g${end ? " end" : ""}`}
-                label={label}
-                tabIndex={focus.tabIndexFor(i)}
-                onActivate={() => {
-                  activate(r.version, false);
-                }}
-                onClick={(event: MouseEvent) => {
-                  activate(r.version, event.shiftKey);
-                }}
-                onKeyDownCapture={(event) => {
-                  if (event.shiftKey && (event.key === "Enter" || event.key === " ")) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    activate(r.version, true);
-                  }
-                }}
-                onFocus={() => {
-                  focus.setActive(i);
-                  setTip({ x: px, label });
-                }}
-                onBlur={() => {
-                  setTip(null);
-                }}
-                onMouseEnter={() => {
-                  setTip({ x: px, label });
-                }}
-                onMouseLeave={() => {
-                  setTip(null);
-                }}
-              >
-                <circle className="tl-ring" cx={px} cy={AXIS} r={11} />
-                <circle className={`tl-dot ${r.publisher ? "trusted" : "other"}`} cx={px} cy={AXIS} r={end ? 7 : 5.5} />
-                <text className="tl-lbl" x={px} y={up ? AXIS - 20 : AXIS + 28} textAnchor="middle">
-                  {r.version}
-                </text>
+              <g key={r.version}>
+                <Mark
+                  className={`tl-g${end ? " end" : ""}`}
+                  label={label}
+                  tabIndex={focus.tabIndexFor(i)}
+                  onActivate={() => {
+                    activate(r.version, false);
+                  }}
+                  onClick={(event: MouseEvent) => {
+                    activate(r.version, event.shiftKey);
+                  }}
+                  onKeyDownCapture={(event) => {
+                    if (event.shiftKey && (event.key === "Enter" || event.key === " ")) {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      activate(r.version, true);
+                    }
+                  }}
+                  onFocus={() => {
+                    focus.setActive(i);
+                    setTip({ x: px, label });
+                  }}
+                  onBlur={() => {
+                    setTip(null);
+                  }}
+                  onMouseEnter={() => {
+                    setTip({ x: px, label });
+                  }}
+                  onMouseLeave={() => {
+                    setTip(null);
+                  }}
+                >
+                  <circle className="tl-ring" cx={px} cy={AXIS} r={11} />
+                  <circle
+                    className={`tl-dot ${r.publisher ? "trusted" : "other"}`}
+                    cx={px}
+                    cy={AXIS}
+                    r={end ? 7 : 5.5}
+                  />
+                  <text aria-hidden="true" className="tl-lbl" x={px} y={up ? AXIS - 20 : AXIS + 28} textAnchor="middle">
+                    {r.version}
+                  </text>
+                </Mark>
+                {/* Outside the mark: its label already says how the release is attested, in words. */}
                 <text
+                  aria-hidden="true"
                   className={`tl-att${r.attestation === "none" ? " no" : ""}`}
                   x={px}
                   y={up ? AXIS - 32 : AXIS + 40}
@@ -157,7 +165,7 @@ export function Timeline({ pkg, releases, from, to, onCompare }: TimelineProps) 
                 >
                   {r.attestation === "unknown" ? "?" : r.attestation === "none" ? "NO ATT" : "ATT"}
                 </text>
-              </Mark>
+              </g>
             );
           })}
         </svg>

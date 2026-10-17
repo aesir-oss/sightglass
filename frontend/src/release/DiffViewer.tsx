@@ -48,7 +48,8 @@ function DiffTable({ diff, line }: { diff: FileDiff; line: number | null }) {
     row?.scrollIntoView?.({ block: "center" });
   }, [line, diff]);
   return (
-    <div className="diff">
+    // Focusable so keyboard users can scroll long lines sideways.
+    <div className="diff" tabIndex={0} role="region" aria-label={`Diff of ${diff.path}, scrollable`}>
       <table aria-label={`Diff of ${diff.path}`}>
         <tbody>
           {diff.hunks.map((h, i) => (

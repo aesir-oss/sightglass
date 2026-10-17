@@ -90,7 +90,7 @@ function Treemap({ files, selected, onSelect, artifactLabel }: FilesProps) {
             >
               <rect x={t.x} y={t.y} width={t.width} height={t.height} rx={3} />
               {t.width > 58 && t.height > 20 && (
-                <text x={t.x + 7} y={t.y + 16}>
+                <text aria-hidden="true" x={t.x + 7} y={t.y + 16}>
                   {name.length > chars ? `${name.slice(0, Math.max(3, chars - 1))}…` : name}
                 </text>
               )}

@@ -82,5 +82,8 @@ jobs:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
 
+      - name: Install Chromium for the browser tests
+        run: pixi run playwright install --with-deps chromium
+
       - name: Run full CI
         run: pixi run ci
