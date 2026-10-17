@@ -16,6 +16,7 @@ pip = ">=26.2.1,<27"
 # Node is a build tool for frontend/ only.
 nodejs = "24.*"
 pnpm = ">=12.4.1,<13"
+fastapi = ">=0.143.3,<0.144"
 
 [pypi-dependencies]
 sightglass = { path = "./backend", editable = true }
@@ -28,6 +29,7 @@ pytest = ">=9.1.1,<10"
 pytest-cov = ">=7.1.0,<8"
 cargo-llvm-cov = ">=0.9.1,<0.10"
 llvm-tools = ">=23.1.3,<24"
+httpx2 = ">=2.13.1,<3"
 
 [feature.lint.dependencies]
 # Pinned to the pre-commit hook revisions so both runs agree.
@@ -73,6 +75,10 @@ check-web = { cmd = "pnpm run check", cwd = "frontend", depends-on = ["install-w
 test-web = { cmd = "pnpm run test", cwd = "frontend", depends-on = ["install-web"] }
 cov-web = { cmd = "pnpm run cov", cwd = "frontend", depends-on = ["install-web"] }
 build-web = { cmd = "pnpm run build", cwd = "frontend", depends-on = ["install-web"] }
+# API contract: export the FastAPI schema, generate frontend types, and fail CI if the committed copies are stale.
+openapi = { cmd = "python -m sightglass.api.openapi ../frontend/src/api/openapi.json", cwd = "backend" }
+gen-api-types = { cmd = "pnpm run gen:api", cwd = "frontend", depends-on = ["openapi", "install-web"] }
+check-api-types = { cmd = "git diff --exit-code -- frontend/src/api", depends-on = ["gen-api-types"] }
 changelog = "git cliff -o CHANGELOG.md"
 pre-commit = "pre-commit run --all-files"
 act = "act --container-architecture linux/amd64"
@@ -82,6 +88,7 @@ ci = { depends-on = [
     "build-web",
     "check",
     "check-web",
+    "check-api-types",
     "lint",
     "lint-web",
     "fmt-rs-check",

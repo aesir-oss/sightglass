@@ -42,6 +42,7 @@ pixi run bootstrap   # installs the pre-commit hooks
 | `pixi run fmt-rs` / `lint-rs` / `test-rs` / `cov-rs` | rustfmt, clippy, cargo test, cargo llvm-cov (90% gate) |
 | `pixi run dev-web` | Vite dev server for the frontend |
 | `pixi run fmt-web` / `lint-web` / `check-web` / `test-web` / `cov-web` | prettier, eslint, tsc, vitest, vitest coverage (90% gate) |
+| `pixi run gen-api-types` | Export the FastAPI schema and regenerate `frontend/src/api/schema.d.ts`; commit both |
 | `pixi run build-web` | Production frontend bundle in `frontend/dist/` |
 | `pixi run ci` | Everything above plus pre-commit and the build; must pass before a commit |
 

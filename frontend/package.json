@@ -16,7 +16,8 @@
     "fmt": "prettier --write .",
     "fmt:check": "prettier --check .",
     "test": "vitest run",
-    "cov": "vitest run --coverage"
+    "cov": "vitest run --coverage",
+    "gen:api": "openapi-typescript src/api/openapi.json -o src/api/schema.d.ts && prettier --write src/api/schema.d.ts"
   },
   "dependencies": {
     "react": "^19.3.0",
@@ -34,6 +35,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "jsdom": "^30.1.2",
+    "openapi-typescript": "^7.13.0",
     "prettier": "^3.9.9",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.1",
