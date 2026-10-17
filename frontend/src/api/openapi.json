@@ -1,6 +1,19 @@
 {
   "components": {
     "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
       "Health": {
         "description": "Liveness response.",
         "properties": {
@@ -19,6 +32,183 @@
           "version"
         ],
         "title": "Health",
+        "type": "object"
+      },
+      "Publisher": {
+        "description": "Who published a release, from its attestation.",
+        "properties": {
+          "environment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Environment"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "repository": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repository"
+          },
+          "workflow": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow"
+          }
+        },
+        "required": [
+          "kind",
+          "repository",
+          "workflow",
+          "environment"
+        ],
+        "title": "Publisher",
+        "type": "object"
+      },
+      "ReleaseHistory": {
+        "description": "A package's releases, oldest first.",
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "ecosystem": {
+            "const": "pypi",
+            "title": "Ecosystem",
+            "type": "string"
+          },
+          "package": {
+            "title": "Package",
+            "type": "string"
+          },
+          "releases": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseSummary"
+            },
+            "title": "Releases",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ecosystem",
+          "package",
+          "display_name",
+          "releases"
+        ],
+        "title": "ReleaseHistory",
+        "type": "object"
+      },
+      "ReleaseSummary": {
+        "description": "One release in the history.",
+        "properties": {
+          "attestation": {
+            "enum": [
+              "all",
+              "some",
+              "none",
+              "unknown"
+            ],
+            "title": "Attestation",
+            "type": "string"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "publisher": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Publisher"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "yanked": {
+            "title": "Yanked",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version",
+          "published_at",
+          "yanked",
+          "attestation",
+          "publisher"
+        ],
+        "title": "ReleaseSummary",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
         "type": "object"
       }
     }
@@ -45,6 +235,65 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/{ecosystem}/{package}/releases": {
+      "get": {
+        "description": "Every release of a package, oldest first, with its attestation state and publisher.",
+        "operationId": "getReleaseHistory",
+        "parameters": [
+          {
+            "description": "Package ecosystem; only pypi for now",
+            "in": "path",
+            "name": "ecosystem",
+            "required": true,
+            "schema": {
+              "description": "Package ecosystem; only pypi for now",
+              "title": "Ecosystem",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Package name, in any spelling",
+            "in": "path",
+            "name": "package",
+            "required": true,
+            "schema": {
+              "description": "Package name, in any spelling",
+              "title": "Package",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Unknown ecosystem or package"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "description": "The index is unavailable"
+          }
+        },
+        "summary": "Get Release History"
       }
     }
   }

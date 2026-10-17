@@ -21,10 +21,35 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/{ecosystem}/{package}/releases": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Release History
+     * @description Every release of a package, oldest first, with its attestation state and publisher.
+     */
+    get: operations["getReleaseHistory"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components["schemas"]["ValidationError"][];
+    };
     /**
      * Health
      * @description Liveness response.
@@ -37,6 +62,68 @@ export interface components {
       status: "ok";
       /** Version */
       version: string;
+    };
+    /**
+     * Publisher
+     * @description Who published a release, from its attestation.
+     */
+    Publisher: {
+      /** Environment */
+      environment: string | null;
+      /** Kind */
+      kind: string;
+      /** Repository */
+      repository: string | null;
+      /** Workflow */
+      workflow: string | null;
+    };
+    /**
+     * ReleaseHistory
+     * @description A package's releases, oldest first.
+     */
+    ReleaseHistory: {
+      /** Display Name */
+      display_name: string;
+      /**
+       * Ecosystem
+       * @constant
+       */
+      ecosystem: "pypi";
+      /** Package */
+      package: string;
+      /** Releases */
+      releases: components["schemas"]["ReleaseSummary"][];
+    };
+    /**
+     * ReleaseSummary
+     * @description One release in the history.
+     */
+    ReleaseSummary: {
+      /**
+       * Attestation
+       * @enum {string}
+       */
+      attestation: "all" | "some" | "none" | "unknown";
+      /** Published At */
+      published_at: string | null;
+      publisher: components["schemas"]["Publisher"] | null;
+      /** Version */
+      version: string;
+      /** Yanked */
+      yanked: boolean;
+    };
+    /** ValidationError */
+    ValidationError: {
+      /** Context */
+      ctx?: Record<string, never>;
+      /** Input */
+      input?: unknown;
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
     };
   };
   responses: never;
@@ -64,6 +151,54 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["Health"];
         };
+      };
+    };
+  };
+  getReleaseHistory: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Package ecosystem; only pypi for now */
+        ecosystem: string;
+        /** @description Package name, in any spelling */
+        package: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReleaseHistory"];
+        };
+      };
+      /** @description Unknown ecosystem or package */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description The index is unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
