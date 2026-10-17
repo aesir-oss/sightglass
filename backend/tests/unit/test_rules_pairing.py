@@ -157,3 +157,11 @@ def test_nothing_found() -> None:
     """With no source files in common every package file is missing and there is no root."""
     result = check_source([f("orbit/__init__.py")], [f("README.md")])
     assert (result.root, [c.status for c in result.files]) == ("", ["missing"])
+
+
+def test_sdist_setup_cfg_is_build_output() -> None:
+    """Setuptools adds an [egg_info] section to setup.cfg in every sdist, so it isn't compared with the source."""
+    sdist = [f("setup.cfg", "[egg_info]\ntag_build =\n"), f("orbit/__init__.py", "x")]
+    result = check_source(sdist, [f("orbit/__init__.py", "x")])
+    assert [c.path for c in result.files] == ["orbit/__init__.py"]
+    assert result.excluded == ("setup.cfg",)

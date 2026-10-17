@@ -133,3 +133,11 @@ def test_long_gap_respects_cadence() -> None:
 def test_long_gap_does_not_fire(old: float | None, new: float | None) -> None:
     """Short gaps and unknown dates don't fire."""
     assert long_gap(base(old=facts("2.4.1", old), new=facts("2.5.0", new))) == []
+
+
+def test_bdist_wheel_is_setuptools() -> None:
+    """A move from the wheel package's bdist_wheel to setuptools' own is the same backend."""
+    analysis = base(
+        old_text={WHEEL: wheel_file("bdist_wheel (0.38.4)")}, new_text={WHEEL: wheel_file("setuptools (75.3.0)")}
+    )
+    assert backend_changed(analysis) == []

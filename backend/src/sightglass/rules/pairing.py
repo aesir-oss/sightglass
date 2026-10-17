@@ -5,7 +5,7 @@ Release-to-release pairs match paths after normalizing the parts that change wit
 
 The source check looks for each package file in a source tree (the git tag, or the sdist). Projects keep their code
 under a root such as ``src/`` or ``python/``, so the root is the prefix under which most package files are found; files
-not under it are looked for at the other candidate roots. Build metadata (``.dist-info``, ``PKG-INFO``,
+not under it are looked for at the other candidate roots. Build metadata (``.dist-info``, ``PKG-INFO``, ``setup.cfg``,
 ``.egg-info``) is excluded, since a build always generates it.
 """
 
@@ -21,7 +21,8 @@ PairStatus = Literal["added", "removed", "changed", "same"]
 SourceStatus = Literal["matches", "differs", "missing"]
 
 _DIST_INFO_RE = re.compile(r"^[^/]+-[^/]+\.(dist-info|data)/")
-_SDIST_METADATA_RE = re.compile(r"^(?:[^/]+/)*(?:PKG-INFO$|[^/]+\.egg-info/)")
+# setuptools writes PKG-INFO and *.egg-info/ into every sdist it builds, and adds an [egg_info] section to setup.cfg.
+_SDIST_METADATA_RE = re.compile(r"^(?:setup\.cfg$|(?:[^/]+/)*(?:PKG-INFO$|[^/]+\.egg-info/))")
 _TEXT_CATEGORIES = frozenset({"python", "text"})
 
 

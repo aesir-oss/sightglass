@@ -6,6 +6,8 @@ from pathlib import PurePosixPath
 from sightglass.rules.base import RULES, Evidence, PairAnalysis, Signal
 
 WHEEL_FILE = "*.dist-info/WHEEL"
+# Generators that are one backend under another name: bdist_wheel was the wheel package's command run by setuptools.
+GENERATOR_ALIASES = {"bdist_wheel": "setuptools"}
 # Source extensions that compile to extension modules, matched by file stem.
 NATIVE_SOURCES = frozenset({".c", ".cc", ".cpp", ".cxx", ".pyx", ".rs", ".go", ".f", ".f90", ".m", ".mm", ".zig"})
 # Build manifests whose presence accounts for compiled files whose names don't follow their sources.
@@ -15,15 +17,16 @@ NAMED = 5
 
 
 def generator(texts: dict[str, str]) -> str | None:
-    """The tool named in a wheel's ``WHEEL`` ``Generator`` header, without its version."""
+    """The backend named in a wheel's ``WHEEL`` ``Generator`` header, without its version, with aliases resolved."""
     text = texts.get(WHEEL_FILE)
     value = HeaderParser().parsestr(text).get("Generator") if text is not None else None
     if not value or not value.split():
         return None
-    return value.split()[0].lower()
+    name = value.split()[0].lower()
+    return GENERATOR_ALIASES.get(name, name)
 
 
-@RULES.rule("build.backend_changed", 1, "Build backend changed, from the WHEEL Generator")
+@RULES.rule("build.backend_changed", 2, "Build backend changed, from the WHEEL Generator")
 def backend_changed(analysis: PairAnalysis) -> list[Signal]:
     """Report a wheel built by a different tool than the previous release's, ignoring version changes."""
     before, after = generator(analysis.old_text), generator(analysis.new_text)

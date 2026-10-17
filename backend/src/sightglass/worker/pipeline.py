@@ -9,6 +9,7 @@ about a pair (a hash mismatch, an archive the unpacker refuses) is recorded on i
 a reason, and the other pairs still run.
 """
 
+import os
 import re
 import tempfile
 from dataclasses import dataclass, field
@@ -45,9 +46,15 @@ from sightglass.worker.catalog import record_artifact, record_files, record_pack
 
 log = get_logger(__name__)
 
+CACHE_DIR_ENV = "SIGHTGLASS_CACHE_DIR"
 # Text larger than this isn't decoded for the rules; it is still compared by hash.
 MAX_TEXT = _core.DiffLimits().max_size
 _METADATA_RE = re.compile(r"^(pyproject\.toml|setup\.cfg|PKG-INFO|\*\.dist-info/[^/]+)$")
+
+
+def default_cache_dir() -> Path:
+    """``SIGHTGLASS_CACHE_DIR``, or ``~/.cache/sightglass``: downloads, source archives and the blob store."""
+    return Path(os.environ.get(CACHE_DIR_ENV) or Path.home() / ".cache" / "sightglass")
 
 
 class TransientError(Exception):

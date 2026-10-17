@@ -5,9 +5,7 @@ lock on the same key keeps two workers from analyzing one pair at once. Transien
 exponential backoff; on the last attempt an unreachable source repository is stored as "couldn't compare".
 """
 
-import os
 from functools import cache
-from pathlib import Path
 
 import procrastinate
 from procrastinate.exceptions import AlreadyEnqueued
@@ -17,11 +15,16 @@ from sqlalchemy.orm import Session
 from sightglass.db.engine import database_url, make_engine
 from sightglass.db.names import normalize_name
 from sightglass.log import get_logger
-from sightglass.worker.pipeline import PipelineError, Services, TransientError, analyze_release_pair
+from sightglass.worker.pipeline import (
+    PipelineError,
+    Services,
+    TransientError,
+    analyze_release_pair,
+    default_cache_dir,
+)
 
 log = get_logger(__name__)
 
-CACHE_DIR_ENV = "SIGHTGLASS_CACHE_DIR"
 TASK = "sightglass:analyze_pair"
 # Retries after the first run; waits 4, 16, 64, 256 and 1024 seconds.
 MAX_ATTEMPTS = 5
@@ -65,8 +68,7 @@ def enqueue_analysis(
 
 @cache
 def _services() -> Services:
-    cache_dir = Path(os.environ.get(CACHE_DIR_ENV) or Path.home() / ".cache" / "sightglass")
-    return Services.default(cache_dir)
+    return Services.default(default_cache_dir())
 
 
 @cache
