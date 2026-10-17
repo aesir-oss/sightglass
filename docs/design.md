@@ -366,8 +366,10 @@ requests.
 1. **Publisher data.** How much upload information does PyPI expose per file beyond attestations? The mockups show an
    uploader name, which may not be public. Design for attestations as the source of truth.
 2. **Pattern rules.** Reuse GuardDog's rules, write our own, or both? Licensing and false-positive rate decide this.
-3. **Tag discovery.** How often does `v{version}` or `{version}` find the right tag across popular packages? Measure
-   before building more heuristics.
+3. **Tag discovery.** Measured 2026-10-17 ([research](research/tag-discovery.md)): for the latest stable release of
+   the top 500 PyPI packages, `v{version}` or `{version}` finds the tag 87% of the time, and a longer ordered list
+   of patterns brings that to 94%. 97% of packages keep one pattern, so the fetcher remembers what matched last time.
+   No loose fallback: when nothing matches, the page says "couldn't compare".
 4. **conda provenance.** What attestation or signing data does conda-forge publish today, and how is it verified?
 5. **Frontend framework.** Decided 2026-10-17: React with Vite and TypeScript, and React Aria Components rather than
    MUI. The mockups already define their own visual system, and most of each page is custom SVG.
