@@ -12,7 +12,9 @@ from sightglass.db.engine import make_engine
 from sightglass.ecosystems.http import Fetcher, MemoryCache, default_client
 from sightglass.ecosystems.provenance import IntegrityClient
 from sightglass.ecosystems.pypi import PYPI_HOSTS, PypiClient
+from sightglass.storage.blobs import BlobStore, LocalBlobStore
 from sightglass.worker.jobs import enqueue_analysis, make_app
+from sightglass.worker.pipeline import default_cache_dir
 
 # Queue an analysis: (ecosystem, package, from, to, wheel or None) -> job id, or None if already queued.
 Enqueue = Callable[[str, str, str, str, str | None], int | None]
@@ -63,3 +65,13 @@ def get_enqueue() -> Enqueue:
         return enqueue_analysis(_queue(), ecosystem, package, from_version, to_version, wheel)
 
     return enqueue
+
+
+@cache
+def _blobs() -> BlobStore:
+    return LocalBlobStore(default_cache_dir() / "blobs")
+
+
+def get_blobs() -> BlobStore:
+    """The blob store the workers write file contents to."""
+    return _blobs()

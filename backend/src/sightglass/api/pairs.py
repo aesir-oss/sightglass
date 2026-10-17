@@ -185,7 +185,30 @@ def _choose(
     return chosen, alternatives
 
 
-def _analysis(session: Session, project: PypiProject, pair: ArtifactPair) -> models.Analysis | None:
+def locate(
+    index: Index, ecosystem: str, package: str, versions: str, kind: str | None, wheel: str | None
+) -> tuple[PypiProject, PypiRelease, PypiRelease, ArtifactPair, list[ArtifactPair]]:
+    """Resolve a request to the project, both releases, the chosen artifact pair and its alternatives.
+
+    Raises:
+        HTTPException: 404 for unknown ecosystems, packages, versions or artifacts; 503 if the index is down.
+    """
+    if ecosystem != "pypi":
+        raise HTTPException(404, f"unsupported ecosystem {ecosystem!r}")
+    try:
+        project = index.pypi.project(package)
+    except NotFoundError as exc:
+        raise HTTPException(404, f"{package} isn't on PyPI") from exc
+    except HttpError as exc:
+        log.warning("index_unavailable", package=package, error=str(exc))
+        raise HTTPException(503, "PyPI is unavailable; try again shortly", headers={"Retry-After": "30"}) from exc
+    old, new = _resolve(project, versions)
+    pair, alternatives = _choose(old, new, kind, wheel)
+    return project, old, new, pair, alternatives
+
+
+def find_analysis(session: Session, project: PypiProject, pair: ArtifactPair) -> models.Analysis | None:
+    """The finished or failed analysis of an artifact pair under the current rule set, if there is one."""
     package = session.scalar(
         select(models.Package).where(models.Package.ecosystem == "pypi", models.Package.name == project.normalized_name)
     )
@@ -254,17 +277,7 @@ def get_pair_analysis(
     wheel: Annotated[str | None, Query(description="The new release's wheel to compare, from `alternatives`")] = None,
 ) -> PairAnalysis | PairPending:
     """The analysis of one artifact pair of two releases; ``202`` while it is queued or running."""
-    if ecosystem != "pypi":
-        raise HTTPException(404, f"unsupported ecosystem {ecosystem!r}")
-    try:
-        project = index.pypi.project(package)
-    except NotFoundError as exc:
-        raise HTTPException(404, f"{package} isn't on PyPI") from exc
-    except HttpError as exc:
-        log.warning("index_unavailable", package=package, error=str(exc))
-        raise HTTPException(503, "PyPI is unavailable; try again shortly", headers={"Retry-After": "30"}) from exc
-    old, new = _resolve(project, versions)
-    pair, alternatives = _choose(old, new, kind, wheel)
+    project, old, new, pair, alternatives = locate(index, ecosystem, package, versions, kind, wheel)
     base: dict[str, Any] = {
         "ecosystem": "pypi",
         "package": project.normalized_name,
@@ -273,7 +286,7 @@ def get_pair_analysis(
         "artifact": _ref(pair),
         "alternatives": [_ref(p) for p in alternatives],
     }
-    row = _analysis(session, project, pair)
+    row = find_analysis(session, project, pair)
     if row is not None:
         response.headers["Cache-Control"] = "public, max-age=300"
         return _result(session, row, {**base, "ruleset_version": RULES.version})
