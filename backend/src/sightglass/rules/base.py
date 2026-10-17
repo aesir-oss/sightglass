@@ -119,6 +119,13 @@ class Rule:
     version: int
     summary: str
     check: Check
+    # Identifies data the rule reads (such as a dated list), so refreshing it makes stored analyses stale.
+    data_version: str = ""
+
+    @property
+    def manifest(self) -> str:
+        """``id@version``, plus ``+data_version`` when the rule reads versioned data."""
+        return f"{self.id}@{self.version}" + (f"+{self.data_version}" if self.data_version else "")
 
     def run(self, analysis: PairAnalysis) -> list[Signal]:
         """Run the check and make sure every signal names this rule."""
@@ -149,17 +156,18 @@ class RuleSet:
         self._rules[rule.id] = rule
         return rule
 
-    def rule(self, rule_id: str, version: int, summary: str) -> Callable[[Check], Check]:
+    def rule(self, rule_id: str, version: int, summary: str, data_version: str = "") -> Callable[[Check], Check]:
         """Register the decorated function as a rule.
 
         Args:
             rule_id: ``group.name``, such as ``provenance.attestation_dropped``.
             version: Bumped whenever what the rule reports changes.
             summary: One line saying what the rule looks for.
+            data_version: Identifies data the rule reads, when it reads any.
         """
 
         def register(check: Check) -> Check:
-            self.add(Rule(rule_id, version, summary, check))
+            self.add(Rule(rule_id, version, summary, check, data_version))
             return check
 
         return register
@@ -174,8 +182,8 @@ class RuleSet:
 
     @property
     def version(self) -> str:
-        """``rs-`` and the first 16 hex digits of a hash over every rule's id and version."""
-        manifest = "\n".join(f"{r.id}@{r.version}" for r in self)
+        """``rs-`` and the first 16 hex digits of a hash over every rule's id, version and data version."""
+        manifest = "\n".join(r.manifest for r in self)
         return "rs-" + hashlib.sha256(manifest.encode()).hexdigest()[:16]
 
     def run(self, analysis: PairAnalysis) -> list[Signal]:

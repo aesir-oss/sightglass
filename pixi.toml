@@ -70,6 +70,8 @@ cov = { cmd = "pytest tests/ --cov=src --cov-report=term-missing --cov-fail-unde
 ] }
 build = { cmd = "python -m build --no-isolation --outdir dist/", cwd = "backend" }
 # Migrations; both need SIGHTGLASS_DATABASE_URL. Tests start their own throwaway Postgres instead.
+# Refresh the top-packages list for the lookalike-name rule, then review and commit the diff.
+refresh-top-packages = { cmd = "python -m sightglass.rules.top_packages", cwd = "backend", depends-on = ["develop"] }
 db-upgrade = { cmd = "alembic upgrade head", cwd = "backend" }
 db-revision = { cmd = "alembic revision --autogenerate", cwd = "backend" }
 fmt-rs = { cmd = "cargo fmt --all", cwd = "backend" }
