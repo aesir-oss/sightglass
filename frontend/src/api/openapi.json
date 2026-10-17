@@ -38,6 +38,64 @@
         "title": "ArtifactRef",
         "type": "object"
       },
+      "DiffLine": {
+        "description": "One line of a hunk; ``marked`` when a signal's evidence points at it.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "context",
+              "added",
+              "removed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "marked": {
+            "title": "Marked",
+            "type": "boolean"
+          },
+          "missing_newline": {
+            "title": "Missing Newline",
+            "type": "boolean"
+          },
+          "new_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Line"
+          },
+          "old_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Line"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "old_line",
+          "new_line",
+          "text",
+          "missing_newline",
+          "marked"
+        ],
+        "title": "DiffLine",
+        "type": "object"
+      },
       "Facts": {
         "description": "Release facts before and after.",
         "properties": {
@@ -53,6 +111,142 @@
           "new"
         ],
         "title": "Facts",
+        "type": "object"
+      },
+      "FileDiff": {
+        "description": "A file's diff, or why there is only metadata.",
+        "properties": {
+          "added": {
+            "default": 0,
+            "title": "Added",
+            "type": "integer"
+          },
+          "base": {
+            "enum": [
+              "previous",
+              "source"
+            ],
+            "title": "Base",
+            "type": "string"
+          },
+          "base_label": {
+            "title": "Base Label",
+            "type": "string"
+          },
+          "diff": {
+            "enum": [
+              "shown",
+              "binary",
+              "too_large",
+              "unavailable",
+              "identical"
+            ],
+            "title": "Diff",
+            "type": "string"
+          },
+          "hunks": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Hunk"
+            },
+            "title": "Hunks",
+            "type": "array"
+          },
+          "new_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Sha256"
+          },
+          "new_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Size"
+          },
+          "old_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Path"
+          },
+          "old_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Sha256"
+          },
+          "old_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Size"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "removed": {
+            "default": 0,
+            "title": "Removed",
+            "type": "integer"
+          },
+          "signals": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Signals",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "base",
+          "base_label",
+          "status",
+          "text",
+          "old_path",
+          "old_sha256",
+          "new_sha256",
+          "old_size",
+          "new_size",
+          "diff"
+        ],
+        "title": "FileDiff",
         "type": "object"
       },
       "FileEntry": {
@@ -174,6 +368,43 @@
           "version"
         ],
         "title": "Health",
+        "type": "object"
+      },
+      "Hunk": {
+        "description": "A unified diff hunk.",
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/DiffLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "new_len": {
+            "title": "New Len",
+            "type": "integer"
+          },
+          "new_start": {
+            "title": "New Start",
+            "type": "integer"
+          },
+          "old_len": {
+            "title": "Old Len",
+            "type": "integer"
+          },
+          "old_start": {
+            "title": "Old Start",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "old_start",
+          "old_len",
+          "new_start",
+          "new_len",
+          "lines"
+        ],
+        "title": "Hunk",
         "type": "object"
       },
       "PairAnalysis": {
@@ -1052,6 +1283,140 @@
           }
         },
         "summary": "Get Pair Analysis"
+      }
+    },
+    "/api/{ecosystem}/{package}/{versions}/files/{path}": {
+      "get": {
+        "description": "One file's diff in an analyzed pair, with the lines signals point at marked.",
+        "operationId": "getFileDiff",
+        "parameters": [
+          {
+            "description": "Package ecosystem; only pypi for now",
+            "in": "path",
+            "name": "ecosystem",
+            "required": true,
+            "schema": {
+              "description": "Package ecosystem; only pypi for now",
+              "title": "Ecosystem",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Package name, in any spelling",
+            "in": "path",
+            "name": "package",
+            "required": true,
+            "schema": {
+              "description": "Package name, in any spelling",
+              "title": "Package",
+              "type": "string"
+            }
+          },
+          {
+            "description": "`<from>...<to>`, or one version",
+            "in": "path",
+            "name": "versions",
+            "required": true,
+            "schema": {
+              "description": "`<from>...<to>`, or one version",
+              "title": "Versions",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The file's path in the pair, as in the analysis's `files`",
+            "in": "path",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "description": "The file's path in the pair, as in the analysis's `files`",
+              "title": "Path",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Diff against the previous release or the source",
+            "in": "query",
+            "name": "base",
+            "required": false,
+            "schema": {
+              "default": "previous",
+              "description": "Diff against the previous release or the source",
+              "enum": [
+                "previous",
+                "source"
+              ],
+              "title": "Base",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Which artifact kind",
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "wheel",
+                    "sdist"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Which artifact kind",
+              "title": "Kind"
+            }
+          },
+          {
+            "description": "The new release's wheel, from `alternatives`",
+            "in": "query",
+            "name": "wheel",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The new release's wheel, from `alternatives`",
+              "title": "Wheel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileDiff"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Unknown pair, an analysis that isn't done, or a file that isn't in it"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get File Diff"
       }
     }
   }

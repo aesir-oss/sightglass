@@ -61,6 +61,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/{ecosystem}/{package}/{versions}/files/{path}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get File Diff
+     * @description One file's diff in an analyzed pair, with the lines signals point at marked.
+     */
+    get: operations["getFileDiff"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -86,12 +106,87 @@ export interface components {
       old_filename: string;
     };
     /**
+     * DiffLine
+     * @description One line of a hunk; ``marked`` when a signal's evidence points at it.
+     */
+    DiffLine: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "context" | "added" | "removed";
+      /** Marked */
+      marked: boolean;
+      /** Missing Newline */
+      missing_newline: boolean;
+      /** New Line */
+      new_line: number | null;
+      /** Old Line */
+      old_line: number | null;
+      /** Text */
+      text: string;
+    };
+    /**
      * Facts
      * @description Release facts before and after.
      */
     Facts: {
       new: components["schemas"]["ReleaseFacts"];
       old: components["schemas"]["ReleaseFacts"];
+    };
+    /**
+     * FileDiff
+     * @description A file's diff, or why there is only metadata.
+     */
+    FileDiff: {
+      /**
+       * Added
+       * @default 0
+       */
+      added: number;
+      /**
+       * Base
+       * @enum {string}
+       */
+      base: "previous" | "source";
+      /** Base Label */
+      base_label: string;
+      /**
+       * Diff
+       * @enum {string}
+       */
+      diff: "shown" | "binary" | "too_large" | "unavailable" | "identical";
+      /**
+       * Hunks
+       * @default []
+       */
+      hunks: components["schemas"]["Hunk"][];
+      /** New Sha256 */
+      new_sha256: string | null;
+      /** New Size */
+      new_size: number | null;
+      /** Old Path */
+      old_path: string | null;
+      /** Old Sha256 */
+      old_sha256: string | null;
+      /** Old Size */
+      old_size: number | null;
+      /** Path */
+      path: string;
+      /**
+       * Removed
+       * @default 0
+       */
+      removed: number;
+      /**
+       * Signals
+       * @default []
+       */
+      signals: string[];
+      /** Status */
+      status: string;
+      /** Text */
+      text: boolean;
     };
     /**
      * FileEntry
@@ -137,6 +232,22 @@ export interface components {
       status: "ok";
       /** Version */
       version: string;
+    };
+    /**
+     * Hunk
+     * @description A unified diff hunk.
+     */
+    Hunk: {
+      /** Lines */
+      lines: components["schemas"]["DiffLine"][];
+      /** New Len */
+      new_len: number;
+      /** New Start */
+      new_start: number;
+      /** Old Len */
+      old_len: number;
+      /** Old Start */
+      old_start: number;
     };
     /**
      * PairAnalysis
@@ -516,6 +627,58 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  getFileDiff: {
+    parameters: {
+      query?: {
+        /** @description Diff against the previous release or the source */
+        base?: "previous" | "source";
+        /** @description Which artifact kind */
+        kind?: ("wheel" | "sdist") | null;
+        /** @description The new release's wheel, from `alternatives` */
+        wheel?: string | null;
+      };
+      header?: never;
+      path: {
+        /** @description Package ecosystem; only pypi for now */
+        ecosystem: string;
+        /** @description Package name, in any spelling */
+        package: string;
+        /** @description `<from>...<to>`, or one version */
+        versions: string;
+        /** @description The file's path in the pair, as in the analysis's `files` */
+        path: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FileDiff"];
+        };
+      };
+      /** @description Unknown pair, an analysis that isn't done, or a file that isn't in it */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
       };
     };
   };

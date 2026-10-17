@@ -38,3 +38,13 @@ def test_enqueue_opens_the_queue_once(monkeypatch: pytest.MonkeyPatch) -> None:
         ("pypi", "orbit-client", "1.1", "1.2", "x.whl"),
     ]
     deps._queue.cache_clear()
+
+
+def test_blobs_use_the_shared_cache_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: object) -> None:
+    """The API reads the blob store the workers write, under SIGHTGLASS_CACHE_DIR."""
+    monkeypatch.setenv("SIGHTGLASS_CACHE_DIR", str(tmp_path))
+    deps._blobs.cache_clear()
+    store = deps.get_blobs()
+    assert store is deps.get_blobs()
+    assert str(store.root) == f"{tmp_path}/blobs"  # type: ignore[attr-defined]
+    deps._blobs.cache_clear()

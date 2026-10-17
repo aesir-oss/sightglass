@@ -13,3 +13,6 @@ export type FileEntry = components["schemas"]["FileEntry"];
 export type SourceCheck = components["schemas"]["SourceCheck"];
 export type SourceFile = components["schemas"]["SourceFile"];
 export type Facts = components["schemas"]["Facts"];
+export type FileDiff = components["schemas"]["FileDiff"];
+export type DiffHunk = components["schemas"]["Hunk"];
+export type DiffLine = components["schemas"]["DiffLine"];
