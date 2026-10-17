@@ -7,8 +7,9 @@ covers what is specific here.
 
 ## Status
 
-Scaffolding. The root pixi workspace and the Python backend in `backend/` exist; the Rust crates, the frontend and CI
-come next (Foundation milestone). Python tasks run with `cwd = "backend"`, and pre-commit points ruff and mypy at
+Scaffolding. The root pixi workspace, the Python backend in `backend/` and the Rust crates in `backend/crates/` exist;
+the frontend and CI come next (Foundation milestone). After a Rust change, `pixi run develop` rebuilds
+`sightglass._core`; the Python test tasks run it first. Python tasks run with `cwd = "backend"`, and pre-commit points ruff and mypy at
 `backend/pyproject.toml`.
 
 ## Layout

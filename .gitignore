@@ -29,3 +29,10 @@ CLAUDE.local.md
 
 # Triage reports, never commit
 triage-*.md
+
+# Rust
+target/
+
+# Compiled extension placed in the source tree by maturin
+backend/src/sightglass/*.so
+backend/src/sightglass/*.pyd

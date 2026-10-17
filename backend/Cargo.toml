@@ -1,0 +1,16 @@
+[workspace]
+resolver = "3"
+members = ["crates/sightglass-core", "crates/sightglass-py"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["Kevin Mills <millsks@gmail.com>"]
+repository = "https://github.com/aesir-oss/sightglass"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
