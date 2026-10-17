@@ -101,11 +101,11 @@ def record_files(
     owner_id = artifact_id if artifact_id is not None else source_snapshot_id
     if session.scalar(select(models.File.id).where(owner == owner_id).limit(1)) is not None:
         return 0
-    count = 0
-    for entry in entries:
-        if entry.kind != "file" or entry.sha256 is None:
-            continue
+    files = [e for e in entries if e.kind == "file" and e.sha256 is not None]
+    # Workers recording overlapping files lock blob rows; taking them in one order across workers avoids deadlocks.
+    for entry in sorted(files, key=lambda e: (e.sha256 or "", e.path)):
         record_blob(session, blobs.put_file(root / entry.path))
+    for entry in files:
         session.add(
             models.File(
                 artifact_id=artifact_id,
@@ -116,6 +116,5 @@ def record_files(
                 file_type=entry.file_type.category if entry.file_type else "other",
             )
         )
-        count += 1
     session.flush()
-    return count
+    return len(files)
