@@ -12,6 +12,20 @@ export default tseslint.config(
       globals: globals.browser,
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
     },
+    rules: {
+      // Package contents are hostile input: render them as text, never as HTML.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message: "Render text only; dangerouslySetInnerHTML would let package contents inject HTML.",
+        },
+        {
+          selector: "MemberExpression[property.name=/^(innerHTML|outerHTML)$/]",
+          message: "Render text only; innerHTML would let package contents inject HTML.",
+        },
+      ],
+    },
   },
   {
     files: ["**/*.js"],

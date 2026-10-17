@@ -1,0 +1,112 @@
+/* Theme tokens from docs/mockups/release-diff.html. Dark follows the system unless data-theme on <html> overrides it. */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --sunk: #eaeeec;
+  --ink: #16201e;
+  --muted: #5a6865;
+  --line: #d9e0dd;
+  --accent: #0d6f68;
+  --accent-soft: #d6ece9;
+  --add: #1d7a3e;
+  --add-soft: #dcf1e2;
+  --rm: #b3261e;
+  --rm-soft: #f8dedb;
+  --up: #3b5b8c;
+  --up-soft: #e0e8f4;
+  --warn: #9a5b00;
+  --warn-soft: #fbecd2;
+  --same: #e3e8e6;
+  --display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Sans 3 Variable", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1413;
+    --surface: #151d1c;
+    --sunk: #1b2523;
+    --ink: #e2eae8;
+    --muted: #92a19e;
+    --line: #28332f;
+    --accent: #45bdb2;
+    --accent-soft: #163a37;
+    --add: #5fcf86;
+    --add-soft: #173322;
+    --rm: #f08a80;
+    --rm-soft: #3a1a17;
+    --up: #8fb0e3;
+    --up-soft: #1b2a40;
+    --warn: #e8b05a;
+    --warn-soft: #3a2a10;
+    --same: #222c2a;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e1413;
+  --surface: #151d1c;
+  --sunk: #1b2523;
+  --ink: #e2eae8;
+  --muted: #92a19e;
+  --line: #28332f;
+  --accent: #45bdb2;
+  --accent-soft: #163a37;
+  --add: #5fcf86;
+  --add-soft: #173322;
+  --rm: #f08a80;
+  --rm-soft: #3a1a17;
+  --up: #8fb0e3;
+  --up-soft: #1b2a40;
+  --warn: #e8b05a;
+  --warn-soft: #3a2a10;
+  --same: #222c2a;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--body);
+}
+
+.wrap {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  max-width: 1480px;
+  margin: 0 auto;
+}
+
+h1,
+h2 {
+  font-family: var(--display);
+}
+
+code,
+pre {
+  font-family: var(--mono);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.notice {
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: var(--sunk);
+}
+
+.notice[data-tone="warn"] {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
