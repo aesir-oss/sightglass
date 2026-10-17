@@ -28,6 +28,8 @@ workspace, the Rust crates in `backend/crates/`, the React frontend in `frontend
 - After changing an API route or model, run `pixi run gen-api-types` and commit `frontend/src/api/`. CI's
   `check-api-types` fails when the committed schema or types are stale.
 - Frontend tasks run with `cwd = "frontend"` through pnpm, with Node from pixi.
+- In production FastAPI serves `frontend/dist` (or `SIGHTGLASS_FRONTEND_DIR`), with `index.html` for every non-API
+  path. `pixi run dev` runs the API, a worker and Vite, which proxies `/api` to port 8000.
 
 ## Layout
 

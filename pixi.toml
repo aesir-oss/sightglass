@@ -29,6 +29,7 @@ attrs = ">=26.1.0,<27"
 croniter = ">=6.2.4,<7"
 python-dateutil = ">=2.9.0.post0,<3"
 psycopg-pool = ">=3.3.3,<4"
+uvicorn = ">=0.54.0,<0.55"
 
 [pypi-dependencies]
 sightglass = { path = "./backend", editable = true }
@@ -100,6 +101,8 @@ fuzz-tar-gz = { cmd = "bash run.sh unpack_tar_gz {{ seconds }}", cwd = "backend/
 fuzz = { depends-on = ["fuzz-zip", "fuzz-tar", "fuzz-tar-gz"] }
 fuzz-seeds = { cmd = "bash run.sh seeds", cwd = "backend/fuzz" }
 install-web = { cmd = "pnpm install --frozen-lockfile", cwd = "frontend" }
+# The API, a worker and the Vite dev server together; Ctrl-C stops all three.
+dev = { cmd = "python -m sightglass.devserver", cwd = "backend", depends-on = ["develop", "install-web"] }
 dev-web = { cmd = "pnpm run dev", cwd = "frontend", depends-on = ["install-web"] }
 fmt-web = { cmd = "pnpm run fmt", cwd = "frontend", depends-on = ["install-web"] }
 fmt-web-check = { cmd = "pnpm run fmt:check", cwd = "frontend", depends-on = ["install-web"] }
