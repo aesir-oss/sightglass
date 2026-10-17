@@ -194,3 +194,145 @@ svg.timeline {
   background: var(--sunk);
   color: var(--muted);
 }
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.seg button {
+  border: 0;
+  background: transparent;
+  padding: 3px 10px;
+  font: 500 12.5px var(--body);
+  color: inherit;
+  cursor: pointer;
+}
+
+.seg button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.mapwrap {
+  padding: 0 14px 10px;
+}
+
+svg.map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.tile rect {
+  stroke: var(--surface);
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.tile.added rect {
+  fill: var(--add-soft);
+}
+
+.tile.removed rect {
+  fill: var(--rm-soft);
+}
+
+.tile.changed rect {
+  fill: var(--up-soft);
+}
+
+.tile.same rect {
+  fill: var(--same);
+}
+
+.tile.flag rect {
+  stroke: var(--rm);
+  stroke-width: 3;
+}
+
+.tile.sel rect,
+.tile:focus-visible rect {
+  stroke: var(--accent);
+  stroke-width: 3.5;
+}
+
+.tile:focus-visible {
+  outline: none;
+}
+
+.tile text {
+  font: 500 11.5px var(--mono);
+  fill: var(--ink);
+  pointer-events: none;
+}
+
+.flist {
+  list-style: none;
+  margin: 0 14px 14px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.flist li {
+  border-top: 1px solid var(--line);
+}
+
+.flist li:first-child {
+  border-top: 0;
+}
+
+.flist button {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 12.5px/1.4 var(--mono);
+  text-align: left;
+  cursor: pointer;
+  align-items: center;
+}
+
+.flist button:hover {
+  background: var(--sunk);
+}
+
+.flist button[aria-current="true"] {
+  background: var(--accent-soft);
+}
+
+.flist .s {
+  font-weight: 600;
+  text-align: center;
+}
+
+.flist .p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flist .d {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.flist .fl {
+  grid-column: 2 / -1;
+  font: 12.5px/1.35 var(--body);
+  color: var(--rm);
+}
+
+.more {
+  margin: 0 14px 14px;
+}
