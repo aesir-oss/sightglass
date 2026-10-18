@@ -38,6 +38,11 @@ def app(monkeypatch: pytest.MonkeyPatch) -> Iterator[tuple[procrastinate.App, In
         yield app, connector, calls
 
 
+def _analysis_jobs(connector: InMemoryConnector) -> list[dict[str, Any]]:
+    """The queue's analysis jobs, leaving out the periodic stalled-job recovery."""
+    return [j for j in connector.jobs.values() if j["task_name"] == jobs.TASK]
+
+
 class _NullSession:
     def __init__(self, engine: object) -> None:
         pass
@@ -71,7 +76,7 @@ def test_worker_runs_the_pipeline(app: tuple[procrastinate.App, InMemoryConnecto
     jobs.enqueue_analysis(application, "pypi", "orbit-client", "2.4.1", "2.5.0")
     application.run_worker(wait=False)
     assert calls == [{"package": "orbit-client", "from": "2.4.1", "to": "2.5.0", "final_attempt": False, "wheel": None}]
-    assert [j["status"] for j in connector.jobs.values()] == ["succeeded"]
+    assert [j["status"] for j in _analysis_jobs(connector)] == ["succeeded"]
 
 
 def test_transient_errors_are_retried(app: tuple[procrastinate.App, InMemoryConnector, list[Any]]) -> None:
@@ -80,7 +85,7 @@ def test_transient_errors_are_retried(app: tuple[procrastinate.App, InMemoryConn
     application.outcome["raise"] = TransientError("pypi.org returned 503")  # type: ignore[attr-defined]
     jobs.enqueue_analysis(application, "pypi", "orbit-client", "2.4.1", "2.5.0")
     application.run_worker(wait=False)
-    [job] = connector.jobs.values()
+    [job] = _analysis_jobs(connector)
     assert (job["status"], job["attempts"]) == ("todo", 1)
     assert job["scheduled_at"] is not None
 
@@ -92,7 +97,7 @@ def test_impossible_pairs_fail_without_retry(app: tuple[procrastinate.App, InMem
     jobs.enqueue_analysis(application, "pypi", "orbit-client", "2.4.1", "9.9.9")
     jobs.enqueue_analysis(application, "npm", "orbit-client", "2.4.1", "2.5.0")
     application.run_worker(wait=False)
-    assert sorted(j["status"] for j in connector.jobs.values()) == ["failed", "failed"]
+    assert sorted(j["status"] for j in _analysis_jobs(connector)) == ["failed", "failed"]
     assert len(calls) == 1
 
 
@@ -100,26 +105,39 @@ def test_last_attempt_is_flagged(app: tuple[procrastinate.App, InMemoryConnector
     """On the last attempt the pipeline is told so, and accepts an unreachable source."""
     application, connector, calls = app
     jobs.enqueue_analysis(application, "pypi", "orbit-client", "2.4.1", "2.5.0")
-    [job] = connector.jobs.values()
+    [job] = _analysis_jobs(connector)
     job["attempts"] = jobs.MAX_ATTEMPTS
     application.run_worker(wait=False)
     assert calls[0]["final_attempt"] is True
 
 
 def test_worker_entry_point(monkeypatch: pytest.MonkeyPatch) -> None:
-    """``python -m sightglass.worker`` configures logging and runs a worker on the configured database."""
+    """``python -m sightglass.worker`` configures logging, recovers stalled jobs and runs a worker."""
     from sightglass.worker import __main__ as entry
 
     ran: list[str] = []
 
     class FakeApp:
+        def open_async(self) -> Any:
+            class Ctx:
+                async def __aenter__(self) -> None: ...
+
+                async def __aexit__(self, *exc: object) -> None: ...
+
+            return Ctx()
+
         def run_worker(self) -> None:
             ran.append("worker")
 
+    async def recover(app: object) -> list[int]:
+        ran.append("recover")
+        return []
+
     monkeypatch.setattr(entry, "make_app", FakeApp)
+    monkeypatch.setattr(entry, "retry_stalled_jobs", recover)
     monkeypatch.setattr(entry, "configure_logging", lambda: ran.append("logging"))
     entry.main()
-    assert ran == ["logging", "worker"]
+    assert ran == ["logging", "recover", "worker"]
 
 
 def test_a_chosen_wheel_is_its_own_job(app: tuple[procrastinate.App, InMemoryConnector, list[Any]]) -> None:
