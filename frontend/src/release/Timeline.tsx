@@ -2,11 +2,15 @@ import { useEffect, useRef, useState, type MouseEvent } from "react";
 import type { ReleaseSummary } from "../api/types";
 import { Mark } from "../charts/Mark";
 import { Tooltip } from "../charts/Tooltip";
-import { timelineLayout, timelineScale } from "../charts/layout";
+import { timelineLayout, timelineWidth, yearTicks } from "../charts/layout";
 import { useRovingFocus } from "../charts/useRovingFocus";
 import "./release.css";
 
-const W = 1000;
+// The width a short history fills; a longer one is drawn wider and scrolls.
+const BASE_WIDTH = 1000;
+// Room for a version label above and below the axis, alternating, between neighbouring releases.
+const MIN_GAP = 30;
+const PADDING = 30;
 const H = 120;
 const AXIS = 50;
 
@@ -38,7 +42,8 @@ function describe(r: ReleaseSummary): string {
 
 /** Section 2: every release on a time axis, showing how it was published and whether it is attested. */
 export function Timeline({ pkg, releases, from, to, onCompare }: TimelineProps) {
-  const points = timelineLayout(releases, W, { padding: 30, minGap: 14 });
+  const points = timelineLayout(releases, BASE_WIDTH, { padding: PADDING, minGap: MIN_GAP });
+  const W = timelineWidth(points, BASE_WIDTH, PADDING);
   const focus = useRovingFocus(
     points.length,
     Math.max(
@@ -50,17 +55,16 @@ export function Timeline({ pkg, releases, from, to, onCompare }: TimelineProps) 
   const scroller = useRef<HTMLDivElement>(null);
   const x = (version: string) => points.find((p) => p.release.version === version)?.x;
   const [fromX, toX] = [x(from), x(to)];
-  const scale = timelineScale(releases, W, 30);
-  const years = [...new Set(points.map((p) => new Date(p.release.published_at ?? 0).getUTCFullYear()))];
-  // A tick at the start of each year after the first.
-  const ticks = scale ? years.slice(1).map((year) => ({ year, x: scale(new Date(Date.UTC(year, 0, 1))) })) : [];
+  const ticks = yearTicks(points);
+  // A wide chart is one pixel per unit inside the scrolling area (after its 10px padding); a narrow one is scaled.
+  const tipLeft = (x: number) => (W > BASE_WIDTH ? `${String(x + 10)}px` : `${String((x / W) * 100)}%`);
 
-  // On narrow screens the chart scrolls sideways: start with the newer release of the pair in view.
+  // A long history, or a narrow screen, scrolls sideways: start with the newer release of the pair in view.
   useEffect(() => {
     const el = scroller.current;
     if (!el || toX === undefined || el.scrollWidth <= el.clientWidth) return;
     el.scrollLeft = (toX / W) * el.scrollWidth - el.clientWidth / 2;
-  }, [toX]);
+  }, [toX, W]);
 
   function activate(version: string, shift: boolean) {
     if (shift) {
@@ -84,11 +88,13 @@ export function Timeline({ pkg, releases, from, to, onCompare }: TimelineProps) 
         <svg
           className="timeline"
           viewBox={`0 0 ${String(W)} ${String(H)}`}
+          // Drawn at one unit per pixel once it outgrows the panel, so spacing and labels keep their size.
+          style={W > BASE_WIDTH ? { width: `${String(Math.round(W))}px` } : undefined}
           role="group"
           aria-label={`Timeline of ${pkg} releases`}
           onKeyDown={focus.onKeyDown}
         >
-          <line className="tl-axis" x1={30} x2={W - 30} y1={AXIS} y2={AXIS} />
+          <line className="tl-axis" x1={PADDING} x2={W - PADDING} y1={AXIS} y2={AXIS} />
           {fromX !== undefined && toX !== undefined && (
             <rect
               className="tl-band"
@@ -169,7 +175,7 @@ export function Timeline({ pkg, releases, from, to, onCompare }: TimelineProps) 
             );
           })}
         </svg>
-        <Tooltip at={tip ? { x: `${String((tip.x / W) * 100)}%`, y: 18 } : null}>{tip?.label}</Tooltip>
+        <Tooltip at={tip ? { x: tipLeft(tip.x), y: 18 } : null}>{tip?.label}</Tooltip>
       </div>
       <div className="legend">
         <span>

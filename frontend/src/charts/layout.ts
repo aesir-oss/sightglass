@@ -30,8 +30,9 @@ export function timelineScale(
 }
 
 /**
- * Place releases along a time axis of `width` pixels, keeping at least `minGap` pixels between neighbours so dense
- * release runs stay clickable. Releases without a publish time are left out.
+ * Place releases along a time axis of `width` pixels, keeping at least `minGap` pixels between neighbours so every
+ * release stays clickable and labelled. A long or dense history runs past `width` rather than being squeezed;
+ * `timelineWidth` gives the width it needs. Releases without a publish time are left out.
  */
 export function timelineLayout<T extends TimelineInput>(
   releases: readonly T[],
@@ -50,15 +51,30 @@ export function timelineLayout<T extends TimelineInput>(
     const x = previous ? Math.max(scale(time), previous.x + minGap) : scale(time);
     points.push({ release, x });
   }
-  // Spacing can push the last points past the edge; squeeze them back proportionally.
-  const start = points[0]?.x ?? padding;
-  const end = points[points.length - 1]?.x ?? padding;
-  const limit = width - padding;
-  if (end > limit && end > start) {
-    const factor = (limit - start) / (end - start);
-    for (const p of points) p.x = start + (p.x - start) * factor;
-  }
   return points;
+}
+
+/** The width a laid-out timeline needs: `width`, or more when its points run past it. */
+export function timelineWidth(points: readonly { x: number }[], width: number, padding = 12): number {
+  const last = points[points.length - 1];
+  return last ? Math.max(width, last.x + padding) : width;
+}
+
+/**
+ * A tick for each new year, halfway between the year's first release and the one before it, so ticks stay between the
+ * right releases however far spacing has pushed them from the time scale.
+ */
+export function yearTicks<T extends TimelineInput>(points: readonly TimelinePoint<T>[]): { year: number; x: number }[] {
+  const ticks: { year: number; x: number }[] = [];
+  let previous: TimelinePoint<T> | undefined;
+  for (const point of points) {
+    const year = new Date(point.release.published_at ?? 0).getUTCFullYear();
+    if (previous && new Date(previous.release.published_at ?? 0).getUTCFullYear() !== year) {
+      ticks.push({ year, x: (previous.x + point.x) / 2 });
+    }
+    previous = point;
+  }
+  return ticks;
 }
 
 export interface TreemapFile {

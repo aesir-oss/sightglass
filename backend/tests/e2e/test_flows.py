@@ -124,3 +124,25 @@ def test_theme_choice_persists_and_applies_before_render(page: Page) -> None:
     expect(page.locator("html")).not_to_have_attribute("data-theme", re.compile(r".+"))
     page.reload()
     expect(page.get_by_role("radio", name="Auto")).to_be_checked()
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("viewport", VIEWPORT_NAMES)
+def test_long_history_scrolls_and_opens_at_the_pair(page: Page, viewport: str) -> None:
+    """A long release history keeps its spacing, scrolls sideways, and opens with the compared pair in view."""
+    page.set_viewport_size(VIEWPORTS[viewport])
+    page.goto("/pypi/longhaul/1.0.148...1.0.149")
+    timeline = page.get_by_role("group", name="Timeline of longhaul releases")
+    expect(timeline).to_be_visible()
+    marks = timeline.get_by_role("button")
+    expect(marks).to_have_count(150)
+    sizes = page.evaluate(
+        """() => { const el = document.querySelector(".tl");
+                   return [el.scrollWidth, el.clientWidth, el.scrollLeft]; }"""
+    )
+    assert sizes[0] > 4000 and sizes[0] > sizes[1] and sizes[2] > 0
+    first, second = marks.nth(0).bounding_box(), marks.nth(1).bounding_box()
+    assert first is not None and second is not None and second["x"] - first["x"] >= 25
+    newest = marks.last.bounding_box()
+    width = VIEWPORTS[viewport]["width"]
+    assert newest is not None and 0 <= newest["x"] <= width

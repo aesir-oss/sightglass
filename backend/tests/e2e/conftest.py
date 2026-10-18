@@ -15,6 +15,7 @@ import time
 import zipfile
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -119,6 +120,28 @@ def _refs() -> bytes:
     return pkt("# service=git-upload-pack\n") + b"0000" + pkt(f"{COMMIT} refs/tags/v2.5.0\n") + b"0000"
 
 
+# An invented package with a long history, for the timeline: one wheel per release, about every two weeks.
+LONGHAUL_RELEASES = 150
+
+
+def _longhaul_json() -> bytes:
+    releases = {}
+    for i in range(LONGHAUL_RELEASES):
+        name = f"longhaul-1.0.{i}-py3-none-any.whl"
+        published = datetime(2020, 1, 1, tzinfo=UTC) + timedelta(days=14 * i)
+        releases[f"1.0.{i}"] = [
+            {
+                "filename": name,
+                "url": f"{FILES_URL}/{name}",
+                "digests": {"sha256": "0" * 64},
+                "size": 1,
+                "upload_time_iso_8601": published.isoformat().replace("+00:00", "Z"),
+                "packagetype": "bdist_wheel",
+            }
+        ]
+    return json.dumps({"info": {"name": "longhaul", "project_urls": {}}, "releases": releases}).encode()
+
+
 def _mock_index(router: respx.Router) -> None:
     router.get("https://pypi.org/pypi/orbit-client/json").respond(200, content=_project_json())
     router.get("https://pypi.org/simple/orbit-client/").respond(
@@ -126,6 +149,8 @@ def _mock_index(router: respx.Router) -> None:
     )
     router.get(url__startswith="https://pypi.org/integrity/").respond(404)
     router.get("https://pypi.org/pypi/tidepool/json").respond(404)
+    router.get("https://pypi.org/pypi/longhaul/json").respond(200, content=_longhaul_json())
+    router.get("https://pypi.org/simple/longhaul/").respond(200, content=json.dumps({"files": []}).encode())
     for name, data in ARTIFACTS.items():
         served = bytes(len(data)) if name == CORRUPT else data
         router.get(f"{FILES_URL}/{name}").respond(200, content=served)
