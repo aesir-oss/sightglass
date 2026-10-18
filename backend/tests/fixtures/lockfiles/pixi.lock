@@ -1,0 +1,73 @@
+version: 6
+environments:
+  default:
+    channels:
+    - url: https://conda.anaconda.org/conda-forge/
+    indexes:
+    - https://pypi.org/simple
+    packages:
+      linux-64:
+      - conda: https://conda.anaconda.org/conda-forge/noarch/orbit-client-2.5.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/kestrel-core-1.4.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/tidepool-0.9.1-h1234567_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.14.0-h0000000_0_cp314.conda
+      - pypi: https://files.pythonhosted.org/packages/aa/bb/heron_sdk-3.1.0-py3-none-any.whl
+      osx-arm64:
+      - conda: https://conda.anaconda.org/conda-forge/noarch/orbit-client-2.5.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/kestrel-core-1.4.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/python-3.14.0-h1111111_0_cp314.conda
+      - pypi: https://files.pythonhosted.org/packages/aa/bb/heron_sdk-3.1.0-py3-none-any.whl
+packages:
+- conda: https://conda.anaconda.org/conda-forge/noarch/kestrel-core-1.4.0-pyhd8ed1ab_0.conda
+  sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0
+  md5: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  depends:
+  - python >=3.10
+  license: MIT
+  purls:
+  - pkg:pypi/kestrel-core
+  size: 1000
+  timestamp: 1790000000000
+- conda: https://conda.anaconda.org/conda-forge/noarch/orbit-client-2.5.0-pyhd8ed1ab_0.conda
+  sha256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0
+  md5: cccccccccccccccccccccccccccccccc
+  depends:
+  - kestrel-core >=1.2
+  - python >=3.10
+  - __unix
+  - tidepool 0.9.*
+  license: MIT
+  purls:
+  - pkg:pypi/orbit-client
+  size: 2000
+  timestamp: 1790000000000
+- conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.14.0-h0000000_0_cp314.conda
+  sha256: ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0
+  md5: dddddddddddddddddddddddddddddddd
+  depends: []
+  license: Python-2.0
+  size: 3000
+  timestamp: 1790000000000
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/python-3.14.0-h1111111_0_cp314.conda
+  sha256: ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd0
+  md5: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  depends: []
+  license: Python-2.0
+  size: 3000
+  timestamp: 1790000000000
+- conda: https://conda.anaconda.org/conda-forge/linux-64/tidepool-0.9.1-h1234567_0.conda
+  sha256: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0
+  md5: ffffffffffffffffffffffffffffffff
+  depends: []
+  license: BSD-3-Clause
+  size: 4000
+  timestamp: 1790000000000
+- pypi: https://files.pythonhosted.org/packages/aa/bb/heron_sdk-3.1.0-py3-none-any.whl
+  name: heron-sdk
+  version: 3.1.0
+  sha256: fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0
+  requires_dist:
+  - orbit-client>=2.4
+  - kestrel-core ; extra == 'fast'
+  - pyobjc ; sys_platform == 'darwin'
+  requires_python: '>=3.10'
