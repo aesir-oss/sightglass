@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { levelColor, statusColor } from "./colors";
-import { timelineLayout, treemapLayout, type TreemapFile, type TreemapRect } from "./layout";
+import { timelineLayout, timelineWidth, treemapLayout, yearTicks, type TreemapFile, type TreemapRect } from "./layout";
 
 function at<T>(items: readonly T[], i: number): T {
   const item = items[i];
@@ -19,14 +19,43 @@ test("timeline places releases by time, oldest first, inside the padding", () =>
   expect(points.map((p) => Math.round(p.x))).toEqual([12, 156, 300]);
 });
 
-test("dense releases keep a minimum gap and still fit the width", () => {
+test("dense releases keep a minimum gap, and the timeline grows to fit them", () => {
   const points = timelineLayout([release("1", 1), release("2", 1), release("3", 1), release("4", 30)], 100, {
     minGap: 30,
   });
   const xs = points.map((p) => p.x);
-  expect(at(xs, 0)).toBe(12);
-  expect(at(xs, xs.length - 1)).toBeCloseTo(88);
-  for (let i = 1; i < xs.length; i++) expect(at(xs, i) - at(xs, i - 1)).toBeGreaterThan(0);
+  expect(xs).toEqual([12, 42, 72, 102]);
+  expect(timelineWidth(points, 100)).toBe(114);
+  expect(timelineWidth(timelineLayout([release("1", 1), release("2", 30)], 100), 100)).toBe(100);
+  expect(timelineWidth([], 100)).toBe(100);
+});
+
+test("a long history keeps its spacing instead of being squeezed", () => {
+  // 445 releases over 16 years, like django's.
+  const many = Array.from({ length: 445 }, (_, i) => ({
+    version: String(i),
+    published_at: new Date(Date.UTC(2010, 0, 1 + i * 13)).toISOString(),
+  }));
+  const points = timelineLayout(many, 1000, { padding: 30, minGap: 30 });
+  for (let i = 1; i < points.length; i++) expect(at(points, i).x - at(points, i - 1).x).toBeGreaterThanOrEqual(30);
+  expect(timelineWidth(points, 1000, 30)).toBeGreaterThan(13000);
+});
+
+test("year ticks sit between the last release of a year and the first of the next", () => {
+  const points = timelineLayout(
+    [
+      { version: "1", published_at: "2024-12-01T00:00:00Z" },
+      { version: "2", published_at: "2025-01-02T00:00:00Z" },
+      { version: "3", published_at: "2025-06-01T00:00:00Z" },
+      { version: "4", published_at: "2026-02-01T00:00:00Z" },
+    ],
+    400,
+    { minGap: 50 },
+  );
+  const ticks = yearTicks(points);
+  expect(ticks.map((t) => t.year)).toEqual([2025, 2026]);
+  expect(at(ticks, 0).x).toBe((at(points, 0).x + at(points, 1).x) / 2);
+  expect(at(ticks, 1).x).toBe((at(points, 2).x + at(points, 3).x) / 2);
 });
 
 test("undated releases are skipped; one release or none still lays out", () => {
