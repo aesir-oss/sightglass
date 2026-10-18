@@ -34,6 +34,8 @@ from sightglass.ecosystems.github import GITHUB_HOSTS, GitHubClient
 from sightglass.ecosystems.http import Fetcher, default_client
 from sightglass.ecosystems.provenance import IntegrityClient
 from sightglass.ecosystems.pypi import PYPI_HOSTS, PypiClient
+from sightglass.lockfiles.diff import Change
+from sightglass.lockfiles.store import record_review
 from sightglass.storage.blobs import LocalBlobStore
 from sightglass.worker.pipeline import Services, analyze_release_pair
 
@@ -242,6 +244,30 @@ def live(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Live]:
 
     with Session(engine) as session:
         analyze_release_pair(session, services, "orbit-client", "2.4.1", "2.5.0")
+        # A review whose orbit-client change has the analysis above; the conda change isn't analyzed.
+        record_review(
+            session,
+            repository="kestrel-weather/orbit",
+            pull_number=7,
+            base_sha="a" * 40,
+            head_sha="b" * 40,
+            lockfile_path="pixi.lock",
+            changes=[
+                Change(
+                    "pypi",
+                    "orbit-client",
+                    "changed",
+                    "2.4.1",
+                    "2.5.0",
+                    ("default",),
+                    ("linux-64", "osx-arm64"),
+                    False,
+                    ("orbit-client",),
+                ),
+                Change("conda", "tidepool", "added", None, "0.9.1", ("default",), ("linux-64",), True, ("tidepool",)),
+            ],
+        )
+        session.commit()
     yield state
 
     server.should_exit = True

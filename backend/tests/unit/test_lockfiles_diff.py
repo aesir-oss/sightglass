@@ -58,15 +58,15 @@ def test_changes_are_merged_across_platforms_and_environments() -> None:
 
 
 def test_first_party_members_start_paths_and_are_not_changes() -> None:
-    """A workspace member's own dependencies are where paths start, and the member's version bump isn't listed."""
+    """Paths run from the project through its members, and a member's own version bump isn't listed."""
     member = pkg("orbit-platform", "2.0", "orbit-client", first_party=True)
     base = lock(("default", "linux-64", [member, pkg("orbit-client", "2.4.1")]))
     bumped = pkg("orbit-platform", "2.1", "orbit-client", first_party=True)
     head = lock(("default", "linux-64", [bumped, pkg("orbit-client", "2.5.0", "kestrel"), pkg("kestrel", "1.0")]))
     changes = diff_lockfiles(base, head, lambda env: ())
     assert [(c.name, c.path) for c in changes] == [
-        ("kestrel", ("orbit-client", "kestrel")),
-        ("orbit-client", ("orbit-client",)),
+        ("kestrel", ("orbit-platform", "orbit-client", "kestrel")),
+        ("orbit-client", ("orbit-platform", "orbit-client")),
     ]
 
 

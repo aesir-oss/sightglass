@@ -8,7 +8,13 @@ from playwright.sync_api import Page, expect
 
 VIEWPORTS = {"desktop": {"width": 1280, "height": 900}, "phone": {"width": 360, "height": 780}}
 PAIR = "/pypi/orbit-client/2.4.1...2.5.0"
-PAGES = {"start": "/", "pair": PAIR, "pair, a file selected": f"{PAIR}?file=orbit%2Ftelemetry.py"}
+REVIEW = "/reviews/kestrel-weather/orbit/7"
+PAGES = {
+    "start": "/",
+    "pair": PAIR,
+    "pair, a file selected": f"{PAIR}?file=orbit%2Ftelemetry.py",
+    "review": REVIEW,
+}
 
 
 def open_page(page: Page, path: str) -> None:
@@ -16,6 +22,8 @@ def open_page(page: Page, path: str) -> None:
     page.goto(path)
     if path.startswith(PAIR):
         expect(page.get_by_role("region", name="Signals")).to_be_visible()
+    elif path.startswith(REVIEW):
+        expect(page.get_by_role("listbox", name="Package changes")).to_be_visible()
     else:
         expect(page.get_by_role("heading", level=1)).to_be_visible()
 

@@ -50,6 +50,19 @@ class LocalPostgres:
             capture_output=True,
         )
 
+    def running_port(self) -> int | None:
+        """The port of a server already running on this data directory (another command started it), or None."""
+        pid_file = self.data_dir / "postmaster.pid"
+        try:
+            lines = pid_file.read_text().splitlines()
+        except OSError:
+            return None
+        status = subprocess.run(["pg_ctl", "-D", str(self.data_dir), "status"], capture_output=True, check=False)
+        # postmaster.pid's fourth line is the port.
+        if status.returncode != 0 or len(lines) < 4 or not lines[3].strip().isdigit():
+            return None
+        return int(lines[3])
+
     def stop(self, *, fast: bool = False) -> None:
         """Stop the cluster: ``immediate`` mode for throwaway data, ``fast`` (a clean shutdown) otherwise."""
         mode = "fast" if fast else "immediate"

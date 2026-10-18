@@ -37,3 +37,15 @@ def test_local_cluster_persists_between_runs(monkeypatch: pytest.MonkeyPatch, tm
         engine = create_engine(second)
         assert "analysis" in inspect(engine).get_table_names()
         engine.dispose()
+
+
+@pytest.mark.integration
+def test_a_running_local_cluster_is_shared(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """While one command has the local cluster running, another uses it and leaves it running."""
+    monkeypatch.delenv("SIGHTGLASS_DATABASE_URL", raising=False)
+    with analyze.database(tmp_path) as outer:
+        with analyze.database(tmp_path) as inner:
+            assert inner == outer
+        assert (tmp_path / "postgres" / "postmaster.pid").exists()
+    assert not (tmp_path / "postgres" / "postmaster.pid").exists()
+    assert LocalPostgres(tmp_path / "postgres").running_port() is None
