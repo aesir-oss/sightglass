@@ -34,7 +34,8 @@ export function describeChange(change: ReviewChange): string {
           ? "the analysis failed"
           : "not analyzed";
   const platforms = change.only_some_platforms ? `, only on ${change.platforms.join(", ")}` : "";
-  return `${change.package}, ${versions(change)}, ${found}${platforms}`;
+  const downgrade = change.downgrade ? ", a downgrade" : "";
+  return `${change.package}, ${versions(change)}${downgrade}, ${found}${platforms}`;
 }
 
 interface QueueProps {
@@ -100,7 +101,10 @@ export function Queue({ changes, platforms, platform, onPlatform, selected, onSe
               <ListBoxItem id={changeKey(change)} textValue={describeChange(change)} className="qitem">
                 <span className={b.className}>{b.text}</span>
                 <span className="qname">{change.package}</span>
-                <span className="qver">{versions(change)}</span>
+                <span className="qver">
+                  {versions(change)}
+                  {change.downgrade && <span className="qdown">downgrade</span>}
+                </span>
                 {change.only_some_platforms && <span className="qplat">only on {change.platforms.join(", ")}</span>}
                 {change.path.length > 1 && <span className="qpath">via {change.path.slice(0, -1).join(" → ")}</span>}
               </ListBoxItem>

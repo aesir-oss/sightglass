@@ -66,6 +66,26 @@ test("a pending analysis says so, rendering file names as text", async () => {
   expect(document.querySelector("img")).toBeNull();
 });
 
+test("a downgrade says the comparison moves back", async () => {
+  fakeApi({
+    "/api/pypi/orbit-client/2.5.0...2.4.1": {
+      status: 202,
+      body: {
+        ...BASE,
+        from_version: "2.5.0",
+        to_version: "2.4.1",
+        downgrade: true,
+        status: "pending",
+        step: null,
+        steps: ["downloading"],
+      },
+    },
+  });
+  renderAt("/pypi/orbit-client/2.5.0...2.4.1");
+  const note = await screen.findByRole("note");
+  expect(note.textContent).toContain("2.4.1 is older than 2.5.0. This compares moving back");
+});
+
 test("a finished analysis is summarized, and the artifact choice is passed to the API", async () => {
   const { requests } = fakeApi({
     "/api/pypi/orbit-client/releases": {

@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 
 from sightglass.ecosystems.pypi import PypiFile, PypiProject, PypiRelease
-from sightglass.ecosystems.versions import latest, predecessor, stable
+from sightglass.ecosystems.versions import is_downgrade, latest, predecessor, stable
 
 
 def release(version: str, month: int | None, *, yanked: bool = False) -> PypiRelease:
@@ -71,3 +71,13 @@ def test_latest_is_the_highest_stable_version() -> None:
     assert latest(project()) is None
     assert stable("2.5.0") is not None and stable("2.5.0rc1") is None and stable("banana") is None
     assert getattr(predecessor(project(release("1.0", None), release("2.0", 1)), "2.0"), "version", None) == "1.0"
+
+
+def test_downgrades_by_ecosystem() -> None:
+    """A move to an older version is a downgrade, by PEP 440 for PyPI and conda's rules for conda."""
+    assert is_downgrade("pypi", "2.1.5", "2.0.55")
+    assert not is_downgrade("pypi", "2.0.55", "2.1.5")
+    assert not is_downgrade("pypi", "banana", "2.0")
+    assert is_downgrade("conda", "1.26.4", "1.26.4a1")
+    assert not is_downgrade("conda", "3.14.0", "3.14.1")
+    assert not is_downgrade("conda", "", "1.0")

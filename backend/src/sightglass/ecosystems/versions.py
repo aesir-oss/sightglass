@@ -5,6 +5,8 @@ newer releases (django's 5.2.17 came out after 6.0.8), and comparing by publish 
 """
 
 from packaging.version import InvalidVersion, Version
+from rattler import Version as CondaVersion
+from rattler.exceptions import InvalidVersionError as InvalidCondaVersion
 
 from sightglass.ecosystems.pypi import PypiProject, PypiRelease
 
@@ -66,3 +68,18 @@ def latest(project: PypiProject) -> PypiRelease | None:
     if chosen is not None:
         return chosen[1]
     return project.releases[-1] if project.releases else None
+
+
+def is_downgrade(ecosystem: str, from_version: str, to_version: str) -> bool:
+    """Whether moving from ``from_version`` to ``to_version`` goes to an older version.
+
+    PyPI versions compare by PEP 440 and conda ones by conda's rules (py-rattler); versions that don't parse aren't
+    called a downgrade.
+    """
+    if ecosystem == "conda":
+        try:
+            return bool(CondaVersion(to_version) < CondaVersion(from_version))
+        except ValueError, TypeError, InvalidCondaVersion:
+            return False
+    old, new = parse(from_version), parse(to_version)
+    return old is not None and new is not None and new < old

@@ -143,6 +143,7 @@ def test_review_api_orders_what_needs_a_look_first(db_session: Session, client: 
     order = [(c["package"], c["analysis"]["state"], c["analysis"]["level"]) for c in body["changes"]]
     assert order == [("kestrel", "done", "high"), ("gale", "pending", None), ("probe", "not_analyzed", None)]
     assert body["changes"][0]["analysis"]["counts"] == {"high": 1, "check": 1, "note": 1}
+    assert [c["downgrade"] for c in body["changes"]] == [False, False, False]
     # From the workspace's root project through its members.
     assert body["changes"][1]["path"] == ["orbit-platform", "orbit-cli", "orbit-core", "gale"]
 
@@ -199,3 +200,11 @@ def test_review_command_reads_two_refs(
     assert review_command.main(["orbit", "7", "main", "bump"]) == 2
     bad = ["kestrel-weather/orbit", "7", "main", "bump", "--checkout", str(repo), "--lockfile", "poetry.lock"]
     assert review_command.main(bad) == 1
+
+
+@pytest.mark.integration
+def test_review_api_labels_downgrades(db_session: Session, client: TestClient) -> None:
+    """A change to an older version is marked as a downgrade."""
+    run_review(db_session, [], head=BASE_LOCK.replace(b'version = "1.4.0"', b'version = "1.3.0"'))
+    changes = {c["package"]: c for c in client.get("/api/reviews/kestrel-weather/orbit/7").json()["changes"]}
+    assert (changes["kestrel"]["kind"], changes["kestrel"]["downgrade"]) == ("changed", True)

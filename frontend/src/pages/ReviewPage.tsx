@@ -24,7 +24,7 @@ function Selected({ change }: { change: ReviewChange }) {
             ? `New dependency at ${change.to_version ?? ""}`
             : change.kind === "removed"
               ? `${change.from_version ?? ""} removed`
-              : `${change.from_version ?? ""} → ${change.to_version ?? ""}`}
+              : `${change.from_version ?? ""} → ${change.to_version ?? ""}${change.downgrade ? ", a downgrade to an older version" : ""}`}
         </dd>
         <dt>Why it's here</dt>
         <dd>

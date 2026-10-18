@@ -88,3 +88,14 @@
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+.qdown {
+  margin-left: 8px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font: 600 10.5px/1.4 var(--body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--warn-soft);
+  color: var(--warn);
+}

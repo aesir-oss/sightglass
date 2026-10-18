@@ -85,6 +85,12 @@ export function ReleaseDiffPage() {
               : "Sightglass couldn't load this comparison. Try again shortly."}
           </p>
         )}
+        {data?.downgrade && (
+          <p className="notice" data-tone="warn" role="note">
+            {data.to_version} is older than {data.from_version}. This compares moving back: the files and signals
+            describe what changes when {data.from_version} is replaced by {data.to_version}.
+          </p>
+        )}
         {data?.status === "pending" && <Progress pending={data} />}
         {data?.status === "failed" && (
           <Failed
