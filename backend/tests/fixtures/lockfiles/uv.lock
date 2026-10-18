@@ -1,0 +1,91 @@
+version = 1
+revision = 3
+requires-python = ">=3.12"
+
+[manifest]
+members = [
+    "orbit-cli",
+    "orbit-core",
+    "orbit-platform",
+]
+
+[[package]]
+name = "heron"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = ["python_full_version < '3.13'"]
+wheels = [{ url = "https://files.example/heron-1.9.0-py3-none-any.whl", hash = "sha256:aa" }]
+
+[[package]]
+name = "heron"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = ["python_full_version >= '3.13'"]
+wheels = [{ url = "https://files.example/heron-2.0.0-py3-none-any.whl", hash = "sha256:bb" }]
+
+[[package]]
+name = "kestrel"
+version = "1.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.example/kestrel-1.4.0.tar.gz", hash = "sha256:cc" }
+wheels = [
+    { url = "https://files.example/kestrel-1.4.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dd" },
+    { url = "https://files.example/kestrel-1.4.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:ee" },
+    { url = "https://files.example/kestrel-1.4.0-cp313-cp313-win_amd64.whl", hash = "sha256:ff" },
+]
+
+[package.optional-dependencies]
+fast = [{ name = "quickhash" }]
+unused = [{ name = "neverused" }]
+
+[[package]]
+name = "neverused"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.example/neverused-0.1.0.tar.gz", hash = "sha256:00" }
+
+[[package]]
+name = "orbit-cli"
+version = "0.4.0"
+source = { editable = "packages/cli" }
+dependencies = [
+    { name = "orbit-core" },
+    { name = "kestrel", extra = ["fast"] },
+]
+
+[[package]]
+name = "orbit-core"
+version = "0.4.0"
+source = { editable = "packages/core" }
+dependencies = [
+    { name = "heron", version = "1.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
+    { name = "heron", version = "2.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "tinted", marker = "sys_platform == 'win32'" },
+]
+
+[[package]]
+name = "orbit-platform"
+version = "2.1.0"
+source = { editable = "." }
+dependencies = [{ name = "orbit-cli" }]
+
+[package.dev-dependencies]
+dev = [{ name = "probe" }]
+
+[[package]]
+name = "probe"
+version = "8.0.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [{ url = "https://files.example/probe-8.0.0-py3-none-any.whl", hash = "sha256:11" }]
+
+[[package]]
+name = "quickhash"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [{ url = "https://files.example/quickhash-0.3.0-py3-none-any.whl", hash = "sha256:22" }]
+
+[[package]]
+name = "tinted"
+version = "0.4.6"
+source = { registry = "https://pypi.org/simple" }
+wheels = [{ url = "https://files.example/tinted-0.4.6-py2.py3-none-any.whl", hash = "sha256:33" }]
