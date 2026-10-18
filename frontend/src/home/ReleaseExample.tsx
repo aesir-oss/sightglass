@@ -77,84 +77,78 @@ function Timeline() {
   );
 }
 
-/** The hero's example: a release diff for an invented package, seen through a sight glass in a pipe. */
+/** The hero's example: a release diff for an invented package. */
 export function ReleaseExample() {
   return (
-    <figure className="pipe-band" aria-labelledby="example-caption">
+    <figure className="example" aria-labelledby="example-caption">
       <div className="wrap">
-        <div className="flange">
-          <span className="bolt a" />
-          <span className="bolt b" />
-          <span className="bolt c" />
-          <span className="bolt d" />
-          <div className="window">
-            <div className="win-bar">
-              <span className="win-url">
-                /pypi/<b>orbit-client</b>/2.4.1...2.5.0
-              </span>
-              <span className="example-tag">Invented example</span>
-            </div>
-            <div className="win-body">
-              <div className="win-col">
-                <div className="win-h">
-                  <span className="win-pkg">orbit-client</span>
-                  <span className="win-vs">2.4.1 → 2.5.0</span>
+        <div className="window">
+          <div className="win-bar">
+            <span className="win-url">
+              /pypi/<b>orbit-client</b>/2.4.1...2.5.0
+            </span>
+            <span className="example-tag">Invented example</span>
+          </div>
+          <div className="win-body">
+            <div className="win-col">
+              <div className="win-h">
+                <span className="win-pkg">orbit-client</span>
+                <span className="win-vs">2.4.1 → 2.5.0</span>
+              </div>
+              <div className="ex-block">
+                <span className="eyebrow">Release history</span>
+                <div className="ex-tl">
+                  <Timeline />
                 </div>
-                <div className="ex-block">
-                  <span className="eyebrow">Release history</span>
-                  <div className="ex-tl">
-                    <Timeline />
-                  </div>
-                  <div className="ex-key">
-                    <span>
-                      <i />
-                      Trusted publisher, attested
-                    </span>
-                    <span>
-                      <i className="o" />
-                      Neither
-                    </span>
-                  </div>
-                </div>
-                <div className="ex-block">
-                  <span className="eyebrow">Signals</span>
-                  <SignalList signals={SIGNALS} />
+                <div className="ex-key">
+                  <span>
+                    <i />
+                    Trusted publisher, attested
+                  </span>
+                  <span>
+                    <i className="o" />
+                    Neither
+                  </span>
                 </div>
               </div>
-              <div className="win-col">
-                <div className="ex-diff">
-                  <div className="ex-diff-h">
-                    <span>orbit_client/__init__.py</span>
-                    <span>vs. 2.4.1</span>
-                  </div>
-                  <pre tabIndex={0} aria-label="Diff of orbit_client/__init__.py">
-                    {DIFF.map((line, i) => (
-                      <span key={i} className={line.added ? "add" : undefined}>
-                        {line.text}
-                      </span>
-                    ))}
-                  </pre>
+              <div className="ex-block">
+                <span className="eyebrow">Signals</span>
+                <SignalList signals={SIGNALS} />
+              </div>
+            </div>
+            <div className="win-col">
+              <div className="ex-diff">
+                <div className="ex-diff-h">
+                  <span>orbit_client/__init__.py</span>
+                  <span>vs. 2.4.1</span>
                 </div>
-                <div className="ex-facts">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th scope="col">Fact</th>
-                        <th scope="col">2.4.1</th>
-                        <th scope="col">2.5.0</th>
+                <pre tabIndex={0} aria-label="Diff of orbit_client/__init__.py">
+                  {DIFF.map((line, i) => (
+                    <span key={i} className={line.added ? "add" : undefined}>
+                      {line.text}
+                    </span>
+                  ))}
+                </pre>
+              </div>
+              <div className="ex-facts">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Fact</th>
+                      <th scope="col">2.4.1</th>
+                      <th scope="col">2.5.0</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {FACTS.map((f) => (
+                      <tr key={f.fact}>
+                        <th scope="row">{f.fact}</th>
+                        <td>{f.before}</td>
+                        <td className={f.changed ? "changed" : undefined}>{f.after}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {FACTS.map((f) => (
-                        <tr key={f.fact}>
-                          <th scope="row">{f.fact}</th>
-                          <td>{f.before}</td>
-                          <td className={f.changed ? "changed" : undefined}>{f.after}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
