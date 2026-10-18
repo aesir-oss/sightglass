@@ -3,12 +3,17 @@
 One job per release pair. Requests for a pair that is already queued are deduplicated by a queueing lock, and a
 lock on the same key keeps two workers from analyzing one pair at once. Transient failures are retried with
 exponential backoff; on the last attempt an unreachable source repository is stored as "couldn't compare".
+
+A worker stopped mid-analysis (killed, or a dev server shut down) leaves its job in ``doing``, and the lock then holds
+every later request for that pair in ``todo`` for good. Workers recover such stalled jobs when they start and every
+minute after.
 """
 
 from functools import cache
 
 import procrastinate
-from procrastinate.exceptions import AlreadyEnqueued
+from procrastinate.exceptions import AlreadyEnqueued, UniqueViolation
+from procrastinate.jobs import Status
 from sqlalchemy import Engine, make_url
 from sqlalchemy.orm import Session
 
@@ -36,11 +41,41 @@ def conninfo(url: str | None = None) -> str:
     return make_url(url or database_url()).set(drivername="postgresql").render_as_string(hide_password=False)
 
 
+# A job is stalled when its worker hasn't sent a heartbeat for this long (workers send one every 10 seconds).
+STALLED_AFTER = 30.0
+
+
+async def retry_stalled_jobs(app: procrastinate.App) -> list[int]:
+    """Put jobs whose worker stopped back in the queue; returns their ids.
+
+    A stalled job whose pair is already waiting in the queue under another job is marked failed instead, which
+    releases the pair's lock so the waiting job runs.
+    """
+    recovered = []
+    for job in await app.job_manager.get_stalled_jobs(seconds_since_heartbeat=STALLED_AFTER):
+        assert job.id is not None
+        try:
+            await app.job_manager.retry_job(job)
+            log.warning("stalled_job_retried", job_id=job.id, lock=job.lock)
+        except UniqueViolation:
+            await app.job_manager.finish_job_by_id_async(job.id, status=Status.FAILED, delete_job=False)
+            log.warning("stalled_job_failed_for_waiting_one", job_id=job.id, lock=job.lock)
+        recovered.append(job.id)
+    return recovered
+
+
+async def _retry_stalled(context: procrastinate.JobContext, timestamp: int) -> None:
+    await retry_stalled_jobs(context.app)
+
+
 def make_app(url: str | None = None) -> procrastinate.App:
     """A procrastinate app on the database at ``url`` (default: ``SIGHTGLASS_DATABASE_URL``) with Sightglass's tasks."""
     # A blueprint binds to one app, so each app gets its own.
     tasks = procrastinate.Blueprint()
     tasks.task(name="analyze_pair", retry=RETRY, pass_context=True)(analyze_pair)
+    tasks.periodic(cron="* * * * *", periodic_id="retry_stalled")(
+        tasks.task(name="retry_stalled_jobs", queueing_lock="retry_stalled_jobs", pass_context=True)(_retry_stalled)
+    )
     app = procrastinate.App(connector=procrastinate.PsycopgConnector(conninfo=conninfo(url)))
     app.add_tasks_from(tasks, namespace="sightglass")
     return app
