@@ -18,6 +18,8 @@ def test_phase_one_tables_exist() -> None:
         "analysis",
         "signal",
         "ownership_snapshot",
+        "review",
+        "review_change",
     }
 
 

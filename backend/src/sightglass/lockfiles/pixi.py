@@ -72,12 +72,15 @@ def _package(locked: object) -> LockedPackage:
             _provides(locked.repo_data_record().to_json()),  # type: ignore[attr-defined]
         )
     name = canonicalize_name(str(locked.name))  # type: ignore[attr-defined]
+    location = str(locked.location)  # type: ignore[attr-defined]
     return LockedPackage(
         "pypi",
         name,
         str(locked.version),  # type: ignore[attr-defined]
-        str(locked.location),  # type: ignore[attr-defined]
+        location,
         _pypi_dependencies(list(locked.requires_dist), name),  # type: ignore[attr-defined]
+        # A path rather than a URL is the workspace's own package, such as an editable install of the project.
+        first_party="://" not in location,
     )
 
 
