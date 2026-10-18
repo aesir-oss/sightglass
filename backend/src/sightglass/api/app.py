@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from sightglass import __version__
-from sightglass.api import files, pairs, releases
+from sightglass.api import files, pairs, releases, reviews
 from sightglass.api.frontend import mount_frontend
 from sightglass.log import configure_logging
 
@@ -37,6 +37,7 @@ def create_app(*, serve_frontend: bool = True) -> FastAPI:
         return Health(status="ok", version=__version__)
 
     # Releases first: its fixed path segment would otherwise match the pair route's version.
+    app.include_router(reviews.router)
     app.include_router(releases.router)
     app.include_router(pairs.router)
     app.include_router(files.router)

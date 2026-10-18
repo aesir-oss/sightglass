@@ -146,3 +146,25 @@ def test_long_history_scrolls_and_opens_at_the_pair(page: Page, viewport: str) -
     newest = marks.last.bounding_box()
     width = VIEWPORTS[viewport]["width"]
     assert newest is not None and 0 <= newest["x"] <= width
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("viewport", VIEWPORT_NAMES)
+def test_review_queue_with_keyboard_and_platform_filter(page: Page, viewport: str) -> None:
+    """The review queue puts the analyzed change first; arrow keys move the selection and a platform filters it."""
+    page.set_viewport_size(VIEWPORTS[viewport])
+    page.goto("/reviews/kestrel-weather/orbit/7")
+    queue = page.get_by_role("listbox", name="Package changes")
+    options = queue.get_by_role("option")
+    expect(options).to_have_count(2)
+    expect(options.first).to_contain_text("orbit-client")
+    expect(options.first).to_have_attribute("aria-selected", "true")
+    detail = page.get_by_role("region", name="Package detail")
+    expect(detail.get_by_role("link")).to_have_attribute("href", "/pypi/orbit-client/2.4.1...2.5.0")
+    options.first.focus()
+    page.keyboard.press("ArrowDown")
+    expect(options.nth(1)).to_have_attribute("aria-selected", "true")
+    expect(page).to_have_url(re.compile(r"package=conda%3Atidepool"))
+    expect(detail).to_contain_text("not every platform the environment resolves")
+    page.get_by_role("button", name="osx-arm64").click()
+    expect(options).to_have_count(1)

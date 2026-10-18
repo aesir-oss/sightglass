@@ -21,6 +21,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/reviews/{owner}/{repo}/{number}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Review
+     * @description The latest review of a pull request's lockfile change, with each change's analysis.
+     */
+    get: operations["getReview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/{ecosystem}/{package}/releases": {
     parameters: {
       query?: never;
@@ -124,6 +144,23 @@ export interface components {
       new_filename: string;
       /** Old Filename */
       old_filename: string;
+    };
+    /**
+     * ChangeAnalysis
+     * @description Where a change's analysis is, and what it found.
+     */
+    ChangeAnalysis: {
+      /** Counts */
+      counts: {
+        [key: string]: number;
+      };
+      /** Level */
+      level: ("high" | "check" | "note" | "clean") | null;
+      /**
+       * State
+       * @enum {string}
+       */
+      state: "done" | "pending" | "failed" | "not_analyzed";
     };
     /**
      * DiffLine
@@ -429,6 +466,64 @@ export interface components {
       yanked: boolean;
     };
     /**
+     * Review
+     * @description The latest review of a pull request's lockfile, changes that need a look first.
+     */
+    Review: {
+      /** Base Sha */
+      base_sha: string;
+      /** Changes */
+      changes: components["schemas"]["ReviewChangeOut"][];
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Head Sha */
+      head_sha: string;
+      /** Lockfile Path */
+      lockfile_path: string;
+      /** Number */
+      number: number;
+      /** Platforms */
+      platforms: string[];
+      /** Repository */
+      repository: string;
+    };
+    /**
+     * ReviewChangeOut
+     * @description One package a lockfile change adds, removes or moves.
+     */
+    ReviewChangeOut: {
+      analysis: components["schemas"]["ChangeAnalysis"];
+      /** Compare From */
+      compare_from: string | null;
+      /**
+       * Ecosystem
+       * @enum {string}
+       */
+      ecosystem: "conda" | "pypi";
+      /** Environments */
+      environments: string[];
+      /** From Version */
+      from_version: string | null;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "added" | "removed" | "changed";
+      /** Only Some Platforms */
+      only_some_platforms: boolean;
+      /** Package */
+      package: string;
+      /** Path */
+      path: string[];
+      /** Platforms */
+      platforms: string[];
+      /** To Version */
+      to_version: string | null;
+    };
+    /**
      * SdistCheck
      * @description The wheel compared with the release's sdist.
      */
@@ -551,6 +646,49 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Health"];
+        };
+      };
+    };
+  };
+  getReview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Repository owner */
+        owner: string;
+        /** @description Repository name */
+        repo: string;
+        /** @description Pull request number */
+        number: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Review"];
+        };
+      };
+      /** @description No review of this pull request */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

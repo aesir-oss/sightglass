@@ -319,6 +319,8 @@ class ReviewChange(Base):
     kind: Mapped[str] = mapped_column(Text)
     from_version: Mapped[str | None] = mapped_column(Text)
     to_version: Mapped[str | None] = mapped_column(Text)
+    # The release the new version is analyzed against: from_version, or for an added package its predecessor.
+    compare_from: Mapped[str | None] = mapped_column(Text)
     environments: Mapped[list[Any]]
     platforms: Mapped[list[Any]]
     only_some_platforms: Mapped[bool]

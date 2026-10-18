@@ -17,3 +17,5 @@ export type FileDiff = components["schemas"]["FileDiff"];
 export type DiffHunk = components["schemas"]["Hunk"];
 export type DiffLine = components["schemas"]["DiffLine"];
 export type SdistCheck = components["schemas"]["SdistCheck"];
+export type Review = components["schemas"]["Review"];
+export type ReviewChange = components["schemas"]["ReviewChangeOut"];

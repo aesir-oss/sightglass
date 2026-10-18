@@ -38,6 +38,52 @@
         "title": "ArtifactRef",
         "type": "object"
       },
+      "ChangeAnalysis": {
+        "description": "Where a change's analysis is, and what it found.",
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "high",
+                  "check",
+                  "note",
+                  "clean"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level"
+          },
+          "state": {
+            "enum": [
+              "done",
+              "pending",
+              "failed",
+              "not_analyzed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "level",
+          "counts"
+        ],
+        "title": "ChangeAnalysis",
+        "type": "object"
+      },
       "DiffLine": {
         "description": "One line of a hunk; ``marked`` when a signal's evidence points at it.",
         "properties": {
@@ -851,6 +897,164 @@
         "title": "ReleaseSummary",
         "type": "object"
       },
+      "Review": {
+        "description": "The latest review of a pull request's lockfile, changes that need a look first.",
+        "properties": {
+          "base_sha": {
+            "title": "Base Sha",
+            "type": "string"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewChangeOut"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "head_sha": {
+            "title": "Head Sha",
+            "type": "string"
+          },
+          "lockfile_path": {
+            "title": "Lockfile Path",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "platforms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Platforms",
+            "type": "array"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          }
+        },
+        "required": [
+          "repository",
+          "number",
+          "base_sha",
+          "head_sha",
+          "lockfile_path",
+          "created_at",
+          "platforms",
+          "changes"
+        ],
+        "title": "Review",
+        "type": "object"
+      },
+      "ReviewChangeOut": {
+        "description": "One package a lockfile change adds, removes or moves.",
+        "properties": {
+          "analysis": {
+            "$ref": "#/components/schemas/ChangeAnalysis"
+          },
+          "compare_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compare From"
+          },
+          "ecosystem": {
+            "enum": [
+              "conda",
+              "pypi"
+            ],
+            "title": "Ecosystem",
+            "type": "string"
+          },
+          "environments": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Environments",
+            "type": "array"
+          },
+          "from_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Version"
+          },
+          "kind": {
+            "enum": [
+              "added",
+              "removed",
+              "changed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "only_some_platforms": {
+            "title": "Only Some Platforms",
+            "type": "boolean"
+          },
+          "package": {
+            "title": "Package",
+            "type": "string"
+          },
+          "path": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Path",
+            "type": "array"
+          },
+          "platforms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Platforms",
+            "type": "array"
+          },
+          "to_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Version"
+          }
+        },
+        "required": [
+          "ecosystem",
+          "package",
+          "kind",
+          "from_version",
+          "to_version",
+          "compare_from",
+          "environments",
+          "platforms",
+          "only_some_platforms",
+          "path",
+          "analysis"
+        ],
+        "title": "ReviewChangeOut",
+        "type": "object"
+      },
       "SdistCheck": {
         "description": "The wheel compared with the release's sdist.",
         "properties": {
@@ -1152,6 +1356,74 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/reviews/{owner}/{repo}/{number}": {
+      "get": {
+        "description": "The latest review of a pull request's lockfile change, with each change's analysis.",
+        "operationId": "getReview",
+        "parameters": [
+          {
+            "description": "Repository owner",
+            "in": "path",
+            "name": "owner",
+            "required": true,
+            "schema": {
+              "description": "Repository owner",
+              "title": "Owner",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repository name",
+            "in": "path",
+            "name": "repo",
+            "required": true,
+            "schema": {
+              "description": "Repository name",
+              "title": "Repo",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Pull request number",
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "description": "Pull request number",
+              "minimum": 1,
+              "title": "Number",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Review"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "No review of this pull request"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Review"
       }
     },
     "/api/{ecosystem}/{package}/releases": {

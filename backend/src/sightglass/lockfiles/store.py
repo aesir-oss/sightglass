@@ -1,6 +1,6 @@
 """Storing a pull request's lockfile review: the review row and its changes."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
@@ -19,6 +19,7 @@ def record_review(
     head_sha: str,
     lockfile_path: str,
     changes: Iterable[Change],
+    compare_from: Mapping[tuple[str, str], str] | None = None,
 ) -> int:
     """Store a review and its changes; recording the same push and lockfile again replaces its changes.
 
@@ -30,6 +31,8 @@ def record_review(
         head_sha: The pull request's head commit.
         lockfile_path: The lockfile's path in the repository.
         changes: The diff of the two lockfiles.
+        compare_from: For packages analyzed against another release than ``from_version`` (an added package and
+            its predecessor), that release, by ecosystem and name.
 
     Returns:
         The review's id.
@@ -55,6 +58,7 @@ def record_review(
             kind=c.kind,
             from_version=c.from_version,
             to_version=c.to_version,
+            compare_from=(compare_from or {}).get((c.ecosystem, c.name), c.from_version),
             environments=list(c.environments),
             platforms=list(c.platforms),
             only_some_platforms=c.only_some_platforms,

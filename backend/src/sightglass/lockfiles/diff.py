@@ -31,7 +31,8 @@ class Change:
         environments: The environments with this change, sorted.
         platforms: The platforms with this change, sorted.
         only_some_platforms: Whether an environment with the change lacks it on one of its platforms.
-        path: Package names from a direct dependency of the project to this package, both included.
+        path: Package names from where the project starts (a declared direct dependency, or the project itself when
+            the lockfile includes it) to this package, both included.
     """
 
     ecosystem: Ecosystem
@@ -48,23 +49,13 @@ class Change:
 def _roots(resolution: Resolution, direct: Iterable[tuple[Ecosystem, str]]) -> list[LockedPackage]:
     """Where paths start: the declared direct dependencies present here, else packages nothing here depends on.
 
-    A uv workspace member is the project itself, so its own dependencies are where its paths start.
+    In a uv workspace the latter is the project at the root, so its paths run through the workspace members.
     """
     declared = [p for key in direct if (p := resolution.find(*key)) is not None]
     if declared:
         return declared
     depended_on = {id(target) for _, target, _ in resolution.edges()}
-    roots = [p for p in resolution.packages if id(p) not in depended_on]
-    members = [p for p in roots if p.first_party]
-    if members:
-        return [t for m in members for _, t, _ in _edges_from(resolution, m) if not t.first_party] or roots
-    return roots
-
-
-def _edges_from(
-    resolution: Resolution, package: LockedPackage
-) -> Iterable[tuple[LockedPackage, LockedPackage, object]]:
-    return ((a, b, d) for a, b, d in resolution.edges() if a is package)
+    return [p for p in resolution.packages if id(p) not in depended_on]
 
 
 def shortest_path(

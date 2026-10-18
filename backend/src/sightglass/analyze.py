@@ -37,12 +37,19 @@ LOCAL_DATABASE = "sightglass"
 
 @contextmanager
 def database(cache: Path) -> Iterator[str]:
-    """Yield a migrated database URL: the configured one, or a local cluster started for the duration."""
+    """Yield a migrated database URL: the configured one, or the local cluster (started for the duration if needed)."""
     if url := os.environ.get(DATABASE_URL_ENV):
         upgrade(url)
         yield url
         return
     server = LocalPostgres(cache / "postgres")
+    if (port := server.running_port()) is not None:
+        # `pixi run dev` (or another command) has it running: use it, and leave it running.
+        server.port = port
+        url = server.create_database(LOCAL_DATABASE, exist_ok=True)
+        upgrade(url)
+        yield url
+        return
     server.start(durable=True)
     try:
         url = server.create_database(LOCAL_DATABASE, exist_ok=True)
