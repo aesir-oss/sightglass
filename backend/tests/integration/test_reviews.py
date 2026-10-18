@@ -208,3 +208,44 @@ def test_review_api_labels_downgrades(db_session: Session, client: TestClient) -
     run_review(db_session, [], head=BASE_LOCK.replace(b'version = "1.4.0"', b'version = "1.3.0"'))
     changes = {c["package"]: c for c in client.get("/api/reviews/kestrel-weather/orbit/7").json()["changes"]}
     assert (changes["kestrel"]["kind"], changes["kestrel"]["downgrade"]) == ("changed", True)
+
+
+@pytest.mark.integration
+def test_review_list_shows_each_pull_requests_latest_review(db_session: Session, client: TestClient) -> None:
+    """One row per pull request, from its latest push, newest first, with changes counted by kind."""
+    assert client.get("/api/reviews").json() == {"reviews": []}
+    run_review(db_session, [])
+    review_lockfile(
+        db_session,
+        pypi=FakePypi(),  # type: ignore[arg-type]
+        enqueue=lambda *args: None,
+        repository="kestrel-weather/orbit",
+        pull_number=7,
+        base_sha=BASE_SHA,
+        head_sha="c" * 40,
+        lockfile_path="uv.lock",
+        base=Snapshot(BASE_LOCK),
+        head=Snapshot(BASE_LOCK),
+    )
+    review_lockfile(
+        db_session,
+        pypi=FakePypi(),  # type: ignore[arg-type]
+        enqueue=lambda *args: None,
+        repository="kestrel-weather/radar",
+        pull_number=2,
+        base_sha=BASE_SHA,
+        head_sha=HEAD_SHA,
+        lockfile_path="uv.lock",
+        base=Snapshot(BASE_LOCK),
+        head=Snapshot(HEAD_LOCK),
+    )
+    db_session.flush()
+    response = client.get("/api/reviews")
+    assert response.headers["cache-control"] == "no-store"
+    reviews = response.json()["reviews"]
+    assert [(r["repository"], r["number"], r["head_sha"][0]) for r in reviews] == [
+        ("kestrel-weather/radar", 2, "b"),
+        ("kestrel-weather/orbit", 7, "c"),
+    ]
+    assert reviews[0]["counts"] == {"added": 1, "changed": 1, "removed": 1}
+    assert reviews[1]["counts"] == {}

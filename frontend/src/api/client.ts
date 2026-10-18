@@ -1,7 +1,7 @@
 // A fetch client typed from the generated OpenAPI schema, and the calls the pages make.
 import createClient from "openapi-fetch";
 import type { paths } from "./schema";
-import type { FileDiff, PairAnalysis, PairPending, ReleaseHistory, Review } from "./types";
+import type { FileDiff, PairAnalysis, PairPending, ReleaseHistory, Review, ReviewList } from "./types";
 
 export const api = createClient<paths>({
   // Same origin as the page; the dev server proxies /api to FastAPI.
@@ -38,6 +38,12 @@ export async function fetchReleaseHistory(ecosystem: string, pkg: string): Promi
   const { data, error, response } = await api.GET("/api/{ecosystem}/{package}/releases", {
     params: { path: { ecosystem, package: pkg } },
   });
+  if (!data) throw detail(error, response.status);
+  return data;
+}
+
+export async function fetchReviews(): Promise<ReviewList> {
+  const { data, error, response } = await api.GET("/api/reviews");
   if (!data) throw detail(error, response.status);
   return data;
 }

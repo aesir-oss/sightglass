@@ -34,6 +34,7 @@ test("every section is a labeled region, and the nav links to the main ones", ()
   for (const id of ["why", "how", "results"]) {
     expect(nav.querySelector(`a[href="#${id}"]`)).not.toBeNull();
   }
+  expect(within(nav).getByRole("link", { name: "Reviews" }).getAttribute("href")).toBe("/reviews");
 });
 
 test("audiences mark what isn't available yet, and the numbers link to their research", () => {

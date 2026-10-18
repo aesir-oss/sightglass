@@ -77,7 +77,7 @@ export function ReviewPage() {
         <div className="wrap">
           <div className="crumbrow">
             <nav className="crumbs" aria-label="Breadcrumb">
-              <Link to="/">Sightglass</Link> / <span>Reviews</span> / <span>{`${owner}/${repo}`}</span>
+              <Link to="/">Sightglass</Link> / <Link to="/reviews">Reviews</Link> / <span>{`${owner}/${repo}`}</span>
             </nav>
             <ThemeSwitch />
           </div>

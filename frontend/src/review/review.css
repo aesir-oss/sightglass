@@ -99,3 +99,37 @@
   background: var(--warn-soft);
   color: var(--warn);
 }
+
+.review-list {
+  list-style: none;
+  margin: 0;
+  display: grid;
+  gap: 0;
+}
+
+.review-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  padding: 10px 0;
+}
+
+.review-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.review-list a {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.review-list li > .review-meta:first-of-type {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.review-list time {
+  grid-column: 2;
+  grid-row: 1;
+  white-space: nowrap;
+}

@@ -76,6 +76,8 @@ test("the queue lists changes with what was found, and the first is selected", a
   expect(options.map((o) => o.getAttribute("aria-label") ?? o.textContent)).toHaveLength(3);
   expect(options[0]?.getAttribute("aria-selected")).toBe("true");
   expect(screen.getByRole("heading", { level: 1 }).textContent).toContain("kestrel-weather/orbit #7");
+  const crumbs = screen.getByRole("navigation", { name: "Breadcrumb" });
+  expect(within(crumbs).getByRole("link", { name: "Reviews" }).getAttribute("href")).toBe("/reviews");
   const detail = screen.getByRole("region", { name: "Package detail" });
   expect(detail.textContent).toContain("orbit-client → kestrel");
   expect(within(detail).getByRole("link").getAttribute("href")).toBe("/pypi/kestrel/1.4.0...1.5.0");
