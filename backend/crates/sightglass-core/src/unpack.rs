@@ -257,7 +257,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 ///
 /// Returns an [`Error`] for unreadable, unsupported or refused archives.
 pub fn index(archive: &Path, limits: &Limits) -> Result<Vec<Entry>> {
-    walk(archive, None, limits)
+    walk(archive, None, None, limits)
 }
 
 /// Extract the archive at `archive` into `dest`, which must not exist yet, and return its index.
@@ -269,8 +269,30 @@ pub fn index(archive: &Path, limits: &Limits) -> Result<Vec<Entry>> {
 ///
 /// Returns an [`Error`] for unreadable, unsupported or refused archives, or if `dest` already exists.
 pub fn extract(archive: &Path, dest: &Path, limits: &Limits) -> Result<Vec<Entry>> {
+    extract_only(archive, dest, limits, None)
+}
+
+/// Like [`extract`], but write only the files whose paths are in `only`; every entry is still checked, hashed and
+/// indexed. With `None`, everything is written.
+///
+/// Comparing a large source tree needs every file's hash but the content of only a few, and writing tens of
+/// thousands of files is most of the cost of extracting them.
+///
+/// # Errors
+///
+/// Returns an [`Error`] for unreadable, unsupported or refused archives, or if `dest` already exists.
+#[expect(
+    clippy::implicit_hasher,
+    reason = "callers pass the standard HashSet; a hasher parameter would thread through the walker for nothing"
+)]
+pub fn extract_only(
+    archive: &Path,
+    dest: &Path,
+    limits: &Limits,
+    only: Option<&HashSet<String>>,
+) -> Result<Vec<Entry>> {
     fs::create_dir(dest)?;
-    let result = walk(archive, Some(dest), limits);
+    let result = walk(archive, Some(dest), only, limits);
     if result.is_err() {
         // Best effort: the original error is what the caller needs, not a cleanup failure.
         let _ = fs::remove_dir_all(dest);
@@ -292,13 +314,18 @@ pub fn index_reader<R: Read + Seek>(
     format: Option<Format>,
     limits: &Limits,
 ) -> Result<Vec<Entry>> {
-    walk_reader(reader, len, format, None, limits)
+    walk_reader(reader, len, format, None, None, limits)
 }
 
-fn walk(archive: &Path, dest: Option<&Path>, limits: &Limits) -> Result<Vec<Entry>> {
+fn walk(
+    archive: &Path,
+    dest: Option<&Path>,
+    only: Option<&HashSet<String>>,
+    limits: &Limits,
+) -> Result<Vec<Entry>> {
     let file = File::open(archive)?;
     let len = file.metadata()?.len();
-    walk_reader(BufReader::new(file), len, None, dest, limits)
+    walk_reader(BufReader::new(file), len, None, dest, only, limits)
 }
 
 fn walk_reader<R: Read + Seek>(
@@ -306,6 +333,7 @@ fn walk_reader<R: Read + Seek>(
     len: u64,
     format: Option<Format>,
     dest: Option<&Path>,
+    only: Option<&HashSet<String>>,
     limits: &Limits,
 ) -> Result<Vec<Entry>> {
     let format = if let Some(f) = format {
@@ -317,7 +345,7 @@ fn walk_reader<R: Read + Seek>(
         detect(&head)
             .ok_or_else(|| Error::Unsupported("not a zip, tar or gzip archive".to_owned()))?
     };
-    let mut state = State::new(limits, len, dest);
+    let mut state = State::new(limits, len, dest, only);
     match format {
         Format::Zip => walk_zip(reader, &mut state)?,
         Format::TarGz => walk_tar(GzDecoder::new(reader), &mut state)?,
@@ -472,6 +500,7 @@ struct State<'a> {
     limits: &'a Limits,
     compressed_len: u64,
     dest: Option<&'a Path>,
+    only: Option<&'a HashSet<String>>,
     total: u64,
     files: u64,
     seen: HashSet<String>,
@@ -481,11 +510,17 @@ struct State<'a> {
 }
 
 impl<'a> State<'a> {
-    fn new(limits: &'a Limits, compressed_len: u64, dest: Option<&'a Path>) -> Self {
+    fn new(
+        limits: &'a Limits,
+        compressed_len: u64,
+        dest: Option<&'a Path>,
+        only: Option<&'a HashSet<String>>,
+    ) -> Self {
         Self {
             limits,
             compressed_len,
             dest,
+            only,
             total: 0,
             files: 0,
             seen: HashSet::new(),
@@ -535,7 +570,8 @@ impl<'a> State<'a> {
     }
 
     fn add_dir(&mut self, path: &str) -> Result<()> {
-        if let Some(dest) = self.dest {
+        // With a filter, only the chosen files' parent directories are created, as the files are written.
+        if let (Some(dest), None) = (self.dest, self.only) {
             fs::create_dir_all(Self::output_path(dest, path))
                 .map_err(|e| self.write_error(path, e))?;
         }
@@ -567,7 +603,8 @@ impl<'a> State<'a> {
 
     fn add_file(&mut self, path: String, reader: &mut dyn Read) -> Result<()> {
         self.claim(&path)?;
-        let mut out = match self.dest {
+        let wanted = self.only.is_none_or(|only| only.contains(&path));
+        let mut out = match self.dest.filter(|_| wanted) {
             Some(dest) => {
                 let target = Self::output_path(dest, &path);
                 if let Some(parent) = target.parent() {

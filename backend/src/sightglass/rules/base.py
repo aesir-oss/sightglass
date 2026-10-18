@@ -7,7 +7,7 @@ Message wording follows docs/rules.md: observations, never verdicts.
 
 import hashlib
 import re
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Container, Iterable, Iterator
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Literal
@@ -116,7 +116,7 @@ class PairAnalysis:
     # None when there's no wheel to tell, and a list of directory names decides instead.
     installed: frozenset[str] | None = None
     # Ids of the pattern rules whose calls the old release's package code already makes; None when unknown.
-    old_capabilities: frozenset[str] | None = None
+    old_capabilities: Container[str] | None = None
 
 
 Check = Callable[[PairAnalysis], Iterable[Signal]]

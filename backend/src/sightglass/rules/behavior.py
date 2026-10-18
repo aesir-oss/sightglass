@@ -56,7 +56,7 @@ def import_time_code(analysis: PairAnalysis) -> list[Signal]:
             continue
         text = analysis.new_text.get(pair.path)
         added = pyast.added_lines(analysis, pair)
-        if text is None or not added or (tree := pyast.parse(text, pair.path)) is None:
+        if text is None or not added or (tree := pyast.parsed(text, pair.path)) is None:
             continue
         names = pyast.aliases(tree)
         found: list[tuple[range, list[str]]] = []

@@ -11,8 +11,11 @@ a reason, and the other pairs still run.
 
 import os
 import re
+import shutil
 import tempfile
-from collections.abc import Iterator
+import time
+from collections.abc import Callable, Container, Iterable, Iterator
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -120,6 +123,8 @@ class PairResult:
     cached: bool
     error: str | None = None
     signals: tuple[dict[str, Any], ...] = ()
+    # Seconds spent in each pipeline step, in order; empty for a cached result.
+    timings: tuple[tuple[str, float], ...] = ()
 
 
 @dataclass
@@ -161,10 +166,69 @@ def _unpack(archive: Path, dest: Path, limits: _core.Limits | None, *, strip: bo
     return _Unpacked(dest, prefix, entries, files, {normalize_path(f.path): f.path for f in files})
 
 
+class _SourceTree(_Unpacked):
+    """A source archive indexed in full, with files written to disk only when they're read.
+
+    A source tree is compared with a package by hash, and only the files that differ are read, for their line diffs.
+    A large repository has tens of thousands of files, and writing them all is most of the cost of extracting it.
+    """
+
+    def __init__(self, archive: Path, root: Path, limits: _core.Limits | None, top: str = "") -> None:
+        # The indexing pass also writes .gitmodules, which every comparison reads first; `top` is the archive's
+        # top-level directory when the caller knows it, as for GitHub's `<repo>-<commit>/`.
+        root.mkdir(parents=True)
+        entries = _core.extract_archive(archive, root / "index", limits, only={".gitmodules", f"{top}.gitmodules"})
+        tops = {e.path.split("/", 1)[0] for e in entries}
+        prefix = tops.pop() + "/" if len(tops) == 1 and all("/" in e.path for e in entries) else ""
+        files = [IndexedFile.from_entry(e, prefix) for e in entries]
+        super().__init__(root / "index", prefix, entries, files, {f.path: f.path for f in files})
+        self._archive, self._limits = archive, limits
+        self._written = {".gitmodules"}
+        self._parts = 0
+
+    def extract(self, paths: Iterable[str]) -> None:
+        """Write these paths (relative to the archive's top directory) to disk, if they aren't already."""
+        missing = {p for p in paths if p in self.by_pair_path and p not in self._written}
+        if not missing:
+            return
+        self._parts += 1
+        part = self.root.parent / f"{self.root.name}-part{self._parts}"
+        _core.extract_archive(self._archive, part, self._limits, only={self.prefix + p for p in missing})
+        for path in missing:
+            source, target = part / (self.prefix + path), self.root / (self.prefix + path)
+            if source.is_file():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(source, target)
+        shutil.rmtree(part, ignore_errors=True)
+        self._written |= missing
+
+    def read(self, path: str) -> bytes | None:
+        """A file's content, written out first if needed."""
+        self.extract([path])
+        return super().read(path)
+
+
 def _decode(data: bytes | None) -> str | None:
     if data is None or len(data) > MAX_TEXT:
         return None
     return data.decode("utf-8", "replace")
+
+
+class _LazyCapabilities(Container[str]):
+    """The old release's capabilities, computed the first time a rule asks.
+
+    Scanning a large package takes seconds, and only a release that adds a network, subprocess, exec or decoding call
+    needs the answer.
+    """
+
+    def __init__(self, compute: Callable[[], frozenset[str]]) -> None:
+        self._compute = compute
+        self._value: frozenset[str] | None = None
+
+    def __contains__(self, rule_id: object) -> bool:
+        if self._value is None:
+            self._value = self._compute()
+        return rule_id in self._value
 
 
 class _Run:
@@ -188,34 +252,55 @@ class _Run:
         self.release_ids = {r.version: record_release(session, self.package_id, r) for r in (old, new)}
         self._unpacked: dict[str, _Unpacked] = {}
         self._provenance: dict[str, Provenance | None] = {}
-        self._sources: dict[str, _Unpacked] = {}
+        self._sources: dict[str, _SourceTree] = {}
         self._source_failures: dict[str, _core.ArchiveError] = {}
-        self._capabilities: dict[str, frozenset[str]] = {}
+        self._capabilities: dict[str, _LazyCapabilities] = {}
 
     def artifact_id(self, release: PypiRelease, file: PypiFile) -> int:
         return record_artifact(self.session, self.release_ids[release.version], file)
 
+    def downloaded(self, file: PypiFile) -> Path:
+        """The artifact in the download cache, fetched and verified first if it isn't there."""
+        cache = self.services.cache_dir / "artifacts" / file.sha256
+        path = cache / file.filename
+        if not path.is_file():
+            cache.mkdir(parents=True, exist_ok=True)
+            path = self.services.pypi.download(file, cache)
+        return path
+
+    def prefetch(self, files: Iterable[PypiFile]) -> None:
+        """Download the artifacts a run will need side by side; errors are left for the step that reads the file."""
+        wanted = list({f.sha256: f for f in files}.values())
+        with ThreadPoolExecutor(max_workers=PREFETCH_WORKERS) as pool:
+            for file, outcome in zip(wanted, pool.map(self._try_download, wanted), strict=True):
+                if outcome is not None:
+                    log.info("prefetch_failed", filename=file.filename, error=outcome)
+
+    def _try_download(self, file: PypiFile) -> str | None:
+        try:
+            self.downloaded(file)
+        except (HttpError, OSError) as exc:
+            return f"{type(exc).__name__}: {exc}"
+        return None
+
     def unpacked(self, file: PypiFile) -> _Unpacked:
         """Download (or reuse) and extract an artifact, once per run."""
         if file.sha256 not in self._unpacked:
-            cache = self.services.cache_dir / "artifacts" / file.sha256
-            path = cache / file.filename
-            if not path.is_file():
-                cache.mkdir(parents=True, exist_ok=True)
-                path = self.services.pypi.download(file, cache)
+            path = self.downloaded(file)
             dest = self.work / file.sha256
             self._unpacked[file.sha256] = _unpack(path, dest, self.services.limits, strip=file.kind == "sdist")
         return self._unpacked[file.sha256]
 
-    def unpacked_source(self, snapshot: SourceSnapshot) -> _Unpacked:
-        """Extract a source archive, once per run; an archive that couldn't be extracted raises the same error again."""
+    def unpacked_source(self, snapshot: SourceSnapshot) -> _SourceTree:
+        """Index a source archive, once per run; an archive that couldn't be read raises the same error again."""
         if (failed := self._source_failures.get(snapshot.commit)) is not None:
             raise failed
         if snapshot.commit not in self._sources:
             assert snapshot.archive is not None
             dest = self.work / f"source-{snapshot.commit}"
             try:
-                self._sources[snapshot.commit] = _unpack(snapshot.archive, dest, self.services.limits, strip=True)
+                top = f"{snapshot.repository.name}-{snapshot.commit}/"
+                self._sources[snapshot.commit] = _SourceTree(snapshot.archive, dest, self.services.limits, top)
             except _core.ArchiveError as exc:
                 self._source_failures[snapshot.commit] = exc
                 raise
@@ -290,10 +375,10 @@ class _Run:
                 raise TransientError(result.detail)
             yield result
 
-    def capabilities(self, file: PypiFile, kind: str) -> frozenset[str]:
-        """What the artifact's code already does, once per run."""
+    def capabilities(self, file: PypiFile, kind: str) -> _LazyCapabilities:
+        """What the artifact's code already does, worked out the first time a rule asks, once per run."""
         if file.sha256 not in self._capabilities:
-            self._capabilities[file.sha256] = _capabilities(self.unpacked(file), kind)
+            self._capabilities[file.sha256] = _LazyCapabilities(lambda: _capabilities(self.unpacked(file), kind))
         return self._capabilities[file.sha256]
 
 
@@ -323,9 +408,20 @@ def _source_check(
     run: _Run, snapshot_id: int, snapshot: SourceSnapshot, package: _Unpacked
 ) -> tuple[SourceComparison, dict[str, _core.FileDiff], str]:
     source = run.unpacked_source(snapshot)
-    record_files(run.session, run.services.blobs, source.root, source.entries, source_snapshot_id=snapshot_id)
     gitmodules = _decode(source.read(".gitmodules"))
     comparison = check_source(package.files, source.files, submodule_paths(gitmodules) if gitmodules else ())
+    # One more pass over the archive writes every differing file the diffs below read.
+    source.extract(c.source_path for c in comparison.files if c.status == "differs" and c.source_path is not None)
+    # Only the source files a package file was matched to are stored: they're the ones the page can show, and a
+    # large repository has thousands more.
+    used = {source.prefix + c.source_path for c in comparison.files if c.source_path is not None}
+    record_files(
+        run.session,
+        run.services.blobs,
+        source.root,
+        [e for e in source.entries if e.path in used],
+        source_snapshot_id=snapshot_id,
+    )
     diffs = {}
     checks = []
     for check in comparison.files:
@@ -348,6 +444,10 @@ def _source_check(
     else:
         label = f"commit {snapshot.commit[:12]}"
     return comparison, diffs, label
+
+
+# Artifacts downloaded at once before a run; they're mostly large files from one CDN.
+PREFETCH_WORKERS = 4
 
 
 # A source tree holding fewer of the package's files than this is taken to be the wrong repository, such as one that
@@ -391,9 +491,13 @@ def _find_source(
 
 
 def _mismatched(comparison: SourceComparison | CouldNotCompare | None) -> bool:
-    """Whether any text file is missing from or differs from the source, without an explanation from the build."""
+    """Whether a code file is missing from or differs from the source, without an explanation from the build.
+
+    Only those can be high, so only they make the previous release's own source worth fetching.
+    """
     return isinstance(comparison, SourceComparison) and any(
-        c.status != "matches" and c.text and c.explained is None for c in comparison.files
+        c.status != "matches" and c.text and c.explained is None and scope.code_file(normalize_path(c.path))
+        for c in comparison.files
     )
 
 
@@ -439,16 +543,42 @@ def _signals(session: Session, analysis_id: int) -> tuple[dict[str, Any], ...]:
     return tuple({"rule_id": r.rule_id, "level": r.level, "message": r.message, "evidence": r.evidence} for r in rows)
 
 
-def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
+def _analyze(run: _Run, pair: ArtifactPair, prefetch_seconds: float = 0.0) -> PairResult:
     session = run.session
     old_id, new_id = run.artifact_id(run.old, pair.old), run.artifact_id(run.new, pair.new)
     names = {"kind": pair.kind, "old_filename": pair.old.filename, "new_filename": pair.new.filename}
+
+    # The run's parallel downloads, counted with the first pair analyzed, which waited for them.
+    timings: list[tuple[str, float]] = []
+    started = time.monotonic() - prefetch_seconds
 
     def result(
         analysis_id: int, status: Literal["done", "failed"], cached: bool, error: str | None = None
     ) -> PairResult:
         signals = _signals(session, analysis_id) if status == "done" else ()
-        return PairResult(analysis_id, pair.kind, pair.old.filename, pair.new.filename, status, cached, error, signals)
+        if timings:
+            # Close the last step and log the breakdown, so slow steps show up in production logs.
+            name, began = timings[-1]
+            timings[-1] = (name, time.monotonic() - began)
+            if prefetch_seconds:
+                timings.insert(0, ("prefetch", prefetch_seconds))
+            log.info(
+                "pair_timing",
+                total_seconds=round(time.monotonic() - started, 3),
+                steps={n: round(t, 3) for n, t in timings},
+                **names,
+            )
+        return PairResult(
+            analysis_id,
+            pair.kind,
+            pair.old.filename,
+            pair.new.filename,
+            status,
+            cached,
+            error,
+            signals,
+            tuple(timings),
+        )
 
     version = run.rules.version
     session.commit()
@@ -456,6 +586,12 @@ def _analyze(run: _Run, pair: ArtifactPair) -> PairResult:
         return result(existing.id, "done", cached=True)
 
     def step(name: str) -> None:
+        now = time.monotonic()
+        if timings:
+            previous, began = timings[-1]
+            timings[-1] = (previous, now - began)
+        # Until the next step closes it, the second value is when this step began.
+        timings.append((name, now))
         mark_step(session, old_id, new_id, version, name)
 
     try:
@@ -594,4 +730,16 @@ def analyze_release_pair(
     with tempfile.TemporaryDirectory(prefix="sg-analysis-") as tmp:
         run = _Run(session, services, project, old, new, Path(tmp), rules, now or datetime.now(UTC), final_attempt)
         session.commit()
-        return [_analyze(run, pair) for pair in pairs]
+        # Every artifact the pairs read: both sides, each release's sdist (a wheel is compared with it) and the
+        # default wheel (an sdist's installed files come from it).
+        needed = [f for p in pairs for f in (p.old, p.new)]
+        needed += [f for f in (preferred_sdist(old), preferred_sdist(new)) if f is not None]
+        if selection.wheel is not None:
+            needed.append(selection.wheel.new)
+        began = time.monotonic()
+        run.prefetch(needed)
+        prefetch_seconds = time.monotonic() - began
+        # The wheel first: it's what the page shows by default, so it's ready while the sdist is still analyzed.
+        by_kind = sorted(pairs, key=lambda p: p.kind != "wheel")
+        done = {id(p): _analyze(run, p, prefetch_seconds if i == 0 else 0.0) for i, p in enumerate(by_kind)}
+        return [done[id(p)] for p in pairs]

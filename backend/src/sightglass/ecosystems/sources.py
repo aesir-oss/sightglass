@@ -159,7 +159,7 @@ def match_tag(
 
 @dataclass(frozen=True)
 class SourceSnapshot:
-    """An indexed archive of the commit a release was built from."""
+    """An archive of the commit a release was built from, indexed unless it was kept for the caller to extract."""
 
     repository: Repository
     commit: str
@@ -215,7 +215,8 @@ def fetch_source(
         attested_commit: The commit a provenance attestation names, used when no tag matches.
         attested_ref: The attestation's source ref, recorded with the snapshot.
         preferred_pattern: The tag pattern that matched the previous release.
-        work_dir: Where to keep the archive; a temporary directory when None.
+        work_dir: Where to keep the archive for the caller to extract, unindexed; when None, a temporary directory
+            and the snapshot carries the archive's index.
         limits: Unpacker limits for the archive.
 
     Returns:
@@ -253,7 +254,9 @@ def fetch_source(
         dest = work_dir or Path(tmp)
         try:
             archive = github.download_archive(repository, commit, dest)
-            entries = _core.index_archive(archive.path, limits)
+            # A kept archive is extracted by the caller, which checks every entry as it writes it; indexing it here
+            # too would read a large repository twice.
+            entries = [] if work_dir else _core.index_archive(archive.path, limits)
         except HttpError as exc:
             return CouldNotCompare("repository_unreachable", str(exc), repository)
         except _core.UnsafeArchiveError as exc:

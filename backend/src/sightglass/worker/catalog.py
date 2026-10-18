@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 from sightglass import _core
 from sightglass.db import models
 from sightglass.ecosystems.pypi import PypiFile, PypiProject, PypiRelease
-from sightglass.storage.blobs import BlobStore
-from sightglass.storage.catalog import record_blob
+from sightglass.storage.blobs import BlobStore, StoredBlob, blob_key
+from sightglass.storage.catalog import record_blobs
 
 
 def _upsert(session: Session, table: type[models.Base], keys: list[str], values: dict[str, object]) -> int:
@@ -75,6 +75,18 @@ def record_artifact(session: Session, release_id: int, file: PypiFile) -> int:
     )
 
 
+def _store(blobs: BlobStore, root: Path, entry: _core.ArchiveEntry) -> StoredBlob:
+    """Put a file's content in the blob store, unless it's there already: the archive index has its hash."""
+    assert entry.sha256 is not None
+    if blobs.exists(entry.sha256):
+        return StoredBlob(entry.sha256, entry.size, blob_key(entry.sha256))
+    path = root / entry.path
+    if not path.is_file():
+        # Not written out: a source file matched to a package file by hash, whose content is the package file's.
+        return StoredBlob(entry.sha256, entry.size, None)
+    return blobs.put_hashed(path, entry.sha256, entry.size)
+
+
 def record_files(
     session: Session,
     blobs: BlobStore,
@@ -84,7 +96,7 @@ def record_files(
     artifact_id: int | None = None,
     source_snapshot_id: int | None = None,
 ) -> int:
-    """Store each extracted file's content in the blob store and record a ``file`` row, once per owner.
+    """Store each extracted file's content in the blob store and record a ``file`` row, once per owner and path.
 
     Args:
         session: The session to write through; the caller commits.
@@ -95,19 +107,20 @@ def record_files(
         source_snapshot_id: the source snapshot they belong to.
 
     Returns:
-        The number of files recorded; 0 when the owner's files were recorded before.
+        The number of files recorded; paths the owner already has are skipped, so a later call can add more.
     """
     owner = models.File.artifact_id if artifact_id is not None else models.File.source_snapshot_id
     owner_id = artifact_id if artifact_id is not None else source_snapshot_id
-    if session.scalar(select(models.File.id).where(owner == owner_id).limit(1)) is not None:
+    existing = set(session.scalars(select(models.File.path).where(owner == owner_id)))
+    files = [e for e in entries if e.kind == "file" and e.sha256 is not None and e.path not in existing]
+    if not files:
         return 0
-    files = [e for e in entries if e.kind == "file" and e.sha256 is not None]
     # Blob rows are content-addressed and never change, so they're committed in a short transaction of their own, in
     # sha256 order. A worker then never holds a blob row lock while it waits for another one, so workers recording
     # overlapping files can't deadlock (the caller's transaction records several archives before it commits).
     with Session(bind=session.get_bind(), join_transaction_mode="create_savepoint") as blob_session:
-        for entry in sorted(files, key=lambda e: (e.sha256 or "", e.path)):
-            record_blob(blob_session, blobs.put_file(root / entry.path))
+        ordered = sorted(files, key=lambda e: (e.sha256 or "", e.path))
+        record_blobs(blob_session, [_store(blobs, root, entry) for entry in ordered])
         blob_session.commit()
     for entry in files:
         session.add(

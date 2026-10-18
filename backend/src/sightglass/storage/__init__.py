@@ -8,7 +8,7 @@ from sightglass.storage.blobs import (
     StoredBlob,
     blob_key,
 )
-from sightglass.storage.catalog import record_blob
+from sightglass.storage.catalog import record_blob, record_blobs
 
 __all__ = [
     "BlobCorruptError",
@@ -18,4 +18,5 @@ __all__ = [
     "StoredBlob",
     "blob_key",
     "record_blob",
+    "record_blobs",
 ]

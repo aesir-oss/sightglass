@@ -25,6 +25,7 @@ create_exception!(
 
 #[pymodule]
 mod _core {
+    use std::collections::HashSet;
     use std::fs::File;
     use std::path::PathBuf;
     use std::time::Duration;
@@ -197,15 +198,16 @@ mod _core {
         clippy::needless_pass_by_value,
         reason = "PyO3 extracts arguments by value"
     )]
-    #[pyo3(signature = (path, dest, limits=None))]
+    #[pyo3(signature = (path, dest, limits=None, only=None))]
     fn extract_archive(
         py: Python<'_>,
         path: PathBuf,
         dest: PathBuf,
         limits: Option<PyRef<'_, Limits>>,
+        only: Option<HashSet<String>>,
     ) -> PyResult<Vec<ArchiveEntry>> {
         let limits = core_limits(limits.as_deref());
-        to_python(py.detach(move || unpack::extract(&path, &dest, &limits)))
+        to_python(py.detach(move || unpack::extract_only(&path, &dest, &limits, only.as_ref())))
     }
 
     /// Limits that bound the work a line diff can cause.

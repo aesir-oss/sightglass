@@ -83,7 +83,11 @@ ARTIFACTS = {
     "orbit_client-2.5.0-py3-none-any.whl": wheel("2.5.0", NEW_FILES, ("httpx>=0.27", "requests>=2.32")),
     "orbit_client-2.5.0.tar.gz": sdist("2.5.0", {"src/orbit/__init__.py": INIT_NEW}),
 }
-TAG_ARCHIVE = tarball(f"orbit-client-{COMMIT}/", {"src/orbit/__init__.py": INIT_NEW, "pyproject.toml": PYPROJECT})
+# docs/index.md matches no package file, so it isn't stored.
+TAG_ARCHIVE = tarball(
+    f"orbit-client-{COMMIT}/",
+    {"src/orbit/__init__.py": INIT_NEW, "pyproject.toml": PYPROJECT, "docs/index.md": b"# Orbit\n"},
+)
 
 
 def project_json(artifacts: dict[str, bytes] = ARTIFACTS) -> bytes:
@@ -165,6 +169,19 @@ def test_full_pipeline(db_session: Session, services: Services, provenance_paylo
     results = analyze_release_pair(db_session, services, "Orbit_Client", "2.4.1", "2.5.0", now=NOW)
 
     assert [(r.kind, r.status, r.cached) for r in results] == [("sdist", "done", False), ("wheel", "done", False)]
+    # The wheel ran first, so its timings include the run's parallel downloads.
+    assert [step for step, _ in results[1].timings] == [
+        "prefetch",
+        "downloading",
+        "provenance",
+        "diffing",
+        "source",
+        "rules",
+    ]
+    assert results[0].timings[0][0] == "downloading"
+    # The wheel is analyzed first, though results keep the sdist-then-wheel order.
+    assert results[1].analysis_id < results[0].analysis_id
+    assert all(seconds >= 0 for _, seconds in results[1].timings)
     wheel_result = results[1]
     assert {
         "provenance.attestation_dropped",
@@ -373,14 +390,29 @@ def test_tag_with_an_unbumped_version_is_a_note(
 
 @pytest.mark.integration
 @respx.mock
-def test_source_that_cannot_be_written_out_is_couldnt_compare(
+def test_source_files_are_written_only_when_read(
     db_session: Session, services: Services, provenance_payload: Callable[..., bytes]
 ) -> None:
-    """A source tree with a path too long for the file system leaves the release analyzed, without a comparison."""
+    """A source file that no comparison reads is never written, so a path too long for the disk doesn't matter."""
     mock_world(provenance_payload)
     long_name = "src/orbit/" + "n" * 300 + ".py"
     respx.get(f"https://codeload.github.com/kestrel-weather/orbit-client/tar.gz/{COMMIT}").respond(
         200, content=tarball(f"orbit-client-{COMMIT}/", {"src/orbit/__init__.py": INIT_NEW, long_name: b"x = 1\n"})
+    )
+    results = analyze_release_pair(db_session, services, "orbit-client", "2.4.1", "2.5.0", now=NOW)
+    reports = [db_session.get(models.Analysis, r.analysis_id).report for r in results]  # type: ignore[union-attr]
+    assert [r["source"]["state"] for r in reports if r is not None] == ["compared", "compared"]
+
+
+@pytest.mark.integration
+@respx.mock
+def test_refused_source_archive_is_couldnt_compare(
+    db_session: Session, services: Services, provenance_payload: Callable[..., bytes]
+) -> None:
+    """A source archive the unpacker refuses leaves the release analyzed, without a source comparison."""
+    mock_world(provenance_payload)
+    respx.get(f"https://codeload.github.com/kestrel-weather/orbit-client/tar.gz/{COMMIT}").respond(
+        200, content=tarball("", {"../../evil.py": b"x = 1\n"})
     )
     results = analyze_release_pair(db_session, services, "orbit-client", "2.4.1", "2.5.0", now=NOW)
 
@@ -388,6 +420,4 @@ def test_source_that_cannot_be_written_out_is_couldnt_compare(
     for result in results:
         report = db_session.get(models.Analysis, result.analysis_id).report  # type: ignore[union-attr]
         assert report is not None
-        assert report["source"]["state"] == "could_not_compare"
-        assert report["source"]["reason"] == "archive_unreadable"
-        assert "too long" in report["source"]["detail"]
+        assert (report["source"]["state"], report["source"]["reason"]) == ("could_not_compare", "archive_refused")

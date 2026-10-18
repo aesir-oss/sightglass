@@ -175,6 +175,7 @@ def test_download_verifies_and_renames(client: PypiClient, tmp_path: Path) -> No
     assert path == tmp_path / "orbit_client-2.5.0-py3-none-any.whl"
     assert path.read_bytes() == WHEEL
     assert [p.name for p in tmp_path.iterdir()] == [path.name]
+    assert client.fetcher.received_bytes == len(WHEEL)
 
 
 @pytest.mark.integration

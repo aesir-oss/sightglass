@@ -1,0 +1,356 @@
+{
+ "sampled_on": "2026-10-17",
+ "min_age_days": 30,
+ "pairs": [
+  {
+   "package": "packaging",
+   "rank": 1,
+   "from_version": "26.2",
+   "to_version": "26.3",
+   "published": "2026-08-04"
+  },
+  {
+   "package": "charset-normalizer",
+   "rank": 2,
+   "from_version": "3.5.0",
+   "to_version": "3.5.1",
+   "published": "2026-08-15"
+  },
+  {
+   "package": "cryptography",
+   "rank": 3,
+   "from_version": "50.0.0",
+   "to_version": "50.0.1",
+   "published": "2026-08-25"
+  },
+  {
+   "package": "requests",
+   "rank": 4,
+   "from_version": "2.34.1",
+   "to_version": "2.34.2",
+   "published": "2026-05-14"
+  },
+  {
+   "package": "pygments",
+   "rank": 5,
+   "from_version": "2.20.0",
+   "to_version": "2.21.0",
+   "published": "2026-08-17"
+  },
+  {
+   "package": "pluggy",
+   "rank": 6,
+   "from_version": "1.5.0",
+   "to_version": "1.6.0",
+   "published": "2025-05-15"
+  },
+  {
+   "package": "python-dateutil",
+   "rank": 7,
+   "from_version": "2.9.0",
+   "to_version": "2.9.0.post0",
+   "published": "2024-03-01"
+  },
+  {
+   "package": "six",
+   "rank": 8,
+   "from_version": "1.16.0",
+   "to_version": "1.17.0",
+   "published": "2024-12-04"
+  },
+  {
+   "package": "pycparser",
+   "rank": 9,
+   "from_version": "2.23",
+   "to_version": "3.0",
+   "published": "2026-01-21"
+  },
+  {
+   "package": "pydantic",
+   "rank": 10,
+   "from_version": "2.13.4",
+   "to_version": "2.13.5",
+   "published": "2026-08-28"
+  },
+  {
+   "package": "click",
+   "rank": 11,
+   "from_version": "8.4.2",
+   "to_version": "8.5.0",
+   "published": "2026-08-26"
+  },
+  {
+   "package": "pydantic-core",
+   "rank": 12,
+   "from_version": "2.48.0",
+   "to_version": "2.49.0",
+   "published": "2026-09-09"
+  },
+  {
+   "package": "pyyaml",
+   "rank": 13,
+   "from_version": "6.0.2",
+   "to_version": "6.0.3",
+   "published": "2025-09-25"
+  },
+  {
+   "package": "pytest",
+   "rank": 14,
+   "from_version": "9.1.0",
+   "to_version": "9.1.1",
+   "published": "2026-06-19"
+  },
+  {
+   "package": "setuptools",
+   "rank": 15,
+   "from_version": "83.0.0",
+   "to_version": "84.0.0",
+   "published": "2026-08-08"
+  },
+  {
+   "package": "protobuf",
+   "rank": 16,
+   "from_version": "7.36.0",
+   "to_version": "7.36.1",
+   "published": "2026-08-31"
+  },
+  {
+   "package": "python-dotenv",
+   "rank": 17,
+   "from_version": "1.2.2",
+   "to_version": "1.2.3",
+   "published": "2026-08-16"
+  },
+  {
+   "package": "platformdirs",
+   "rank": 18,
+   "from_version": "4.11.8",
+   "to_version": "4.11.9",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "pyjwt",
+   "rank": 19,
+   "from_version": "2.13.0",
+   "to_version": "2.14.0",
+   "published": "2026-09-11"
+  },
+  {
+   "package": "aiobotocore",
+   "rank": 20,
+   "from_version": "3.9.0",
+   "to_version": "3.9.1",
+   "published": "2026-09-07"
+  },
+  {
+   "package": "pandas",
+   "rank": 21,
+   "from_version": "3.0.3",
+   "to_version": "3.0.5",
+   "published": "2026-07-22"
+  },
+  {
+   "package": "pathspec",
+   "rank": 22,
+   "from_version": "1.1.0",
+   "to_version": "1.1.1",
+   "published": "2026-04-27"
+  },
+  {
+   "package": "s3transfer",
+   "rank": 23,
+   "from_version": "0.19.1",
+   "to_version": "0.19.2",
+   "published": "2026-07-22"
+  },
+  {
+   "package": "filelock",
+   "rank": 24,
+   "from_version": "3.32.6",
+   "to_version": "3.32.7",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "pillow",
+   "rank": 25,
+   "from_version": "12.2.0",
+   "to_version": "12.3.0",
+   "published": "2026-07-01"
+  },
+  {
+   "package": "aiohttp",
+   "rank": 26,
+   "from_version": "3.14.2",
+   "to_version": "3.14.3",
+   "published": "2026-07-23"
+  },
+  {
+   "package": "idna",
+   "rank": 27,
+   "from_version": "3.18",
+   "to_version": "3.19",
+   "published": "2026-08-18"
+  },
+  {
+   "package": "propcache",
+   "rank": 28,
+   "from_version": "0.5.3",
+   "to_version": "0.5.4",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "pip",
+   "rank": 29,
+   "from_version": "26.2",
+   "to_version": "26.2.1",
+   "published": "2026-08-04"
+  },
+  {
+   "package": "fastapi",
+   "rank": 30,
+   "from_version": "0.141.0",
+   "to_version": "0.141.1",
+   "published": "2026-07-29"
+  },
+  {
+   "package": "pyasn1",
+   "rank": 31,
+   "from_version": "0.6.3",
+   "to_version": "0.6.4",
+   "published": "2026-07-09"
+  },
+  {
+   "package": "aiosignal",
+   "rank": 32,
+   "from_version": "1.3.2",
+   "to_version": "1.4.0",
+   "published": "2025-07-03"
+  },
+  {
+   "package": "rpds-py",
+   "rank": 33,
+   "from_version": "2026.5.1",
+   "to_version": "2026.6.3",
+   "published": "2026-06-30"
+  },
+  {
+   "package": "aiohappyeyeballs",
+   "rank": 34,
+   "from_version": "2.6.2",
+   "to_version": "2.7.1",
+   "published": "2026-07-01"
+  },
+  {
+   "package": "pytz",
+   "rank": 35,
+   "from_version": "2026.3",
+   "to_version": "2026.3.post1",
+   "published": "2026-07-25"
+  },
+  {
+   "package": "boto3",
+   "rank": 36,
+   "from_version": "1.43.95",
+   "to_version": "1.43.96",
+   "published": "2026-09-16"
+  },
+  {
+   "package": "rich",
+   "rank": 37,
+   "from_version": "14.3.4",
+   "to_version": "15.0.0",
+   "published": "2026-04-12"
+  },
+  {
+   "package": "referencing",
+   "rank": 38,
+   "from_version": "0.36.2",
+   "to_version": "0.37.0",
+   "published": "2025-10-13"
+  },
+  {
+   "package": "pydantic-settings",
+   "rank": 39,
+   "from_version": "2.14.2",
+   "to_version": "2.15.0",
+   "published": "2026-08-07"
+  },
+  {
+   "package": "python-multipart",
+   "rank": 40,
+   "from_version": "0.0.31",
+   "to_version": "0.0.32",
+   "published": "2026-06-04"
+  },
+  {
+   "package": "pyarrow",
+   "rank": 41,
+   "from_version": "25.0.0",
+   "to_version": "25.0.1",
+   "published": "2026-08-10"
+  },
+  {
+   "package": "pyasn1-modules",
+   "rank": 42,
+   "from_version": "0.4.1",
+   "to_version": "0.4.2",
+   "published": "2025-03-28"
+  },
+  {
+   "package": "pyparsing",
+   "rank": 43,
+   "from_version": "3.3.1",
+   "to_version": "3.3.2",
+   "published": "2026-01-21"
+  },
+  {
+   "package": "coverage",
+   "rank": 44,
+   "from_version": "7.16.0",
+   "to_version": "7.16.1",
+   "published": "2026-09-13"
+  },
+  {
+   "package": "psutil",
+   "rank": 45,
+   "from_version": "7.2.1",
+   "to_version": "7.2.2",
+   "published": "2026-01-28"
+  },
+  {
+   "package": "et-xmlfile",
+   "rank": 46,
+   "from_version": "1.1.0",
+   "to_version": "2.0.0",
+   "published": "2024-10-25"
+  },
+  {
+   "package": "distro",
+   "rank": 47,
+   "from_version": "1.8.0",
+   "to_version": "1.9.0",
+   "published": "2023-12-24"
+  },
+  {
+   "package": "regex",
+   "rank": 48,
+   "from_version": "2026.9.3",
+   "to_version": "2026.9.10",
+   "published": "2026-09-09"
+  },
+  {
+   "package": "colorama",
+   "rank": 49,
+   "from_version": "0.4.5",
+   "to_version": "0.4.6",
+   "published": "2022-10-25"
+  },
+  {
+   "package": "ruff",
+   "rank": 50,
+   "from_version": "0.16.7",
+   "to_version": "0.16.8",
+   "published": "2026-09-16"
+  }
+ ]
+}

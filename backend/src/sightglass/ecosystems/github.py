@@ -7,6 +7,8 @@ import hashlib
 import os
 import re
 import tempfile
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -99,12 +101,28 @@ def parse_ref_advertisement(body: bytes) -> dict[str, str]:
     return {name: peeled.get(name, sha) for name, sha in tags.items()}
 
 
+# An analysis looks a repository's tags up for each release and artifact kind; the ref advertisement of a large
+# repository is megabytes (every pull request is a ref), so it's listed once and reused briefly.
+TAGS_TTL = 60.0
+
+
 class GitHubClient:
     """Lists tags and downloads commit archives from GitHub."""
 
-    def __init__(self, fetcher: Fetcher) -> None:
-        """Use ``fetcher``, whose allowed hosts must include github.com and codeload.github.com."""
+    def __init__(
+        self, fetcher: Fetcher, *, tags_ttl: float = TAGS_TTL, clock: Callable[[], float] = time.monotonic
+    ) -> None:
+        """Use ``fetcher``, whose allowed hosts must include github.com and codeload.github.com.
+
+        Args:
+            fetcher: The HTTP fetcher.
+            tags_ttl: Seconds a repository's tags are reused before they're listed again.
+            clock: Time source, for tests.
+        """
         self.fetcher = fetcher
+        self._tags_ttl = tags_ttl
+        self._clock = clock
+        self._tags: dict[str, tuple[float, dict[str, str]]] = {}
 
     def tags(self, repo: Repository) -> dict[str, str]:
         """Return every tag of ``repo`` with the commit it points at.
@@ -114,9 +132,14 @@ class GitHubClient:
             RefsFormatError: If the response isn't a ref advertisement.
             HttpError: For other request failures.
         """
+        key = repo.slug.lower()
+        if (cached := self._tags.get(key)) is not None and self._clock() - cached[0] < self._tags_ttl:
+            return cached[1]
         url = f"https://github.com/{repo.slug}.git/info/refs?service=git-upload-pack"
         body = self.fetcher.get_bytes(url, MAX_REFS_SIZE, accept="application/x-git-upload-pack-advertisement")
-        return parse_ref_advertisement(body)
+        tags = parse_ref_advertisement(body)
+        self._tags[key] = (self._clock(), tags)
+        return tags
 
     def download_archive(
         self, repo: Repository, commit: str, dest_dir: Path, max_size: int = DEFAULT_MAX_ARCHIVE_SIZE

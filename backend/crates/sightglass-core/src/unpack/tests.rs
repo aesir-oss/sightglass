@@ -602,3 +602,19 @@ fn a_path_too_long_for_the_file_system_is_named() {
     );
     assert!(!err.is_refusal());
 }
+
+#[test]
+fn extract_only_writes_the_chosen_files_and_indexes_all() {
+    let dir = TempDir::new();
+    let archive = dir.write(
+        "src.zip",
+        &zip_of(&[("pkg/a.py", b"a"), ("pkg/b.py", b"b"), ("docs/c.md", b"c")]),
+    );
+    let dest = dir.0.join("out");
+    let only: HashSet<String> = ["pkg/b.py".to_owned()].into();
+    let entries = extract_only(&archive, &dest, &Limits::default(), Some(&only)).unwrap();
+    assert_eq!(entries.len(), 3);
+    assert!(entries.iter().all(|e| e.sha256.is_some()));
+    assert_eq!(fs::read(dest.join("pkg/b.py")).unwrap(), b"b");
+    assert!(!dest.join("pkg/a.py").exists() && !dest.join("docs").exists());
+}

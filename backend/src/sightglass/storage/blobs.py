@@ -73,6 +73,10 @@ class BlobStore(Protocol):
         """Store the content of a file on disk."""
         ...
 
+    def put_hashed(self, path: Path, sha256: str, size: int) -> StoredBlob:
+        """Store a file whose hash and size the caller already computed from these bytes, such as an extracted file."""
+        ...
+
     def read(self, sha256: str) -> bytes:
         """Return stored content after checking it still matches its hash."""
         ...
@@ -151,6 +155,29 @@ class LocalBlobStore:
             if size > self.max_size:
                 return StoredBlob(sha256, size, None)
             if not self.exists(sha256):
+                self._commit(fh, tmp_path, sha256)
+        return StoredBlob(sha256, size, blob_key(sha256))
+
+    def put_hashed(self, path: Path, sha256: str, size: int) -> StoredBlob:
+        """Store a file whose hash and size the caller computed from these same bytes, without hashing it again.
+
+        The archive index already hashed every extracted file. The copy is still written to a temporary file and
+        renamed into place, so a blob is never seen half written.
+
+        Args:
+            path: A file the caller owns and won't change.
+            sha256: Its content's hash.
+            size: Its size in bytes.
+
+        Returns:
+            The hash, size and storage key (None if it exceeds ``max_size``).
+        """
+        if size > self.max_size:
+            return StoredBlob(sha256, size, None)
+        if not self.exists(sha256):
+            with self._temp_file() as (fh, tmp_path):
+                with path.open("rb") as src:
+                    shutil.copyfileobj(src, fh)
                 self._commit(fh, tmp_path, sha256)
         return StoredBlob(sha256, size, blob_key(sha256))
 
