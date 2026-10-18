@@ -186,3 +186,23 @@ def test_other_pure_wheels_rank_after_py3_but_before_platforms() -> None:
     assert [p.new.filename for p in select_artifacts(old, new).wheels] == [
         f"tidepool-1.1-{t}.whl" for t in (tags[2], tags[1], tags[0])
     ]
+
+
+def test_each_new_wheel_gets_one_pair_with_its_closest_old_wheel() -> None:
+    """A downgrade across Python versions pairs each new wheel once, with the same build flavor and nearest CPython."""
+    old = release(
+        "2.1",
+        "tidepool-2.1-cp315-cp315-win_amd64.whl",
+        "tidepool-2.1-cp315-cp315t-win_amd64.whl",
+        "tidepool-2.1-cp313-cp313-win_amd64.whl",
+    )
+    new = release("2.0", "tidepool-2.0-cp310-cp310-win_amd64.whl", "tidepool-2.0-cp39-cp39-win_amd64.whl")
+    wheels = select_artifacts(old, new).wheels
+    assert len({p.new.filename for p in wheels}) == len(wheels) == 2
+    assert {p.new.filename: p.old.filename for p in wheels} == {
+        "tidepool-2.0-cp310-cp310-win_amd64.whl": "tidepool-2.1-cp313-cp313-win_amd64.whl",
+        "tidepool-2.0-cp39-cp39-win_amd64.whl": "tidepool-2.1-cp313-cp313-win_amd64.whl",
+    }
+    threaded = release("2.0", "tidepool-2.0-cp314-cp314t-win_amd64.whl")
+    [pair] = select_artifacts(old, threaded).wheels
+    assert pair.old.filename == "tidepool-2.1-cp315-cp315t-win_amd64.whl"
