@@ -70,13 +70,15 @@ test("a finished analysis is summarized, and the artifact choice is passed to th
   const { requests } = fakeApi({
     "/api/pypi/orbit-client/releases": {
       body: {
-        releases: ["2.4.1", "2.5.0", "2.6.0"].map((version, i) => ({
+        releases: ["2.4.1", "2.5.0", "2.6.0"].map((version, i, all) => ({
           version,
           published_at: `2026-0${String(i + 1)}-01T00:00:00Z`,
           yanked: false,
           attestation: "none",
           publisher: null,
+          previous: all[i - 1] ?? null,
         })),
+        latest: "2.6.0",
       },
     },
     [`${PAIR}?kind=sdist`]: {

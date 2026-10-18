@@ -18,6 +18,7 @@ from sightglass.db import models
 from sightglass.ecosystems.http import HttpError, NotFoundError, UnavailableError
 from sightglass.ecosystems.provenance import record_provenance
 from sightglass.ecosystems.pypi import PypiProject
+from sightglass.ecosystems.versions import latest, predecessor
 from sightglass.log import get_logger
 from sightglass.worker.catalog import record_artifact, record_package, record_release
 
@@ -48,6 +49,8 @@ class ReleaseSummary(BaseModel):
     yanked: bool
     attestation: AttestationState
     publisher: Publisher | None
+    # The release this one is compared with by default: the version before it, not the one published before it.
+    previous: str | None
 
 
 class ReleaseHistory(BaseModel):
@@ -57,6 +60,8 @@ class ReleaseHistory(BaseModel):
     package: str
     display_name: str
     releases: list[ReleaseSummary]
+    # The highest stable version, which the package page opens; None for a project with no releases.
+    latest: str | None
 
 
 def _record(session: Session, index: Index, project: PypiProject) -> dict[str, list[int]]:
@@ -156,10 +161,16 @@ def release_history(session: Session, index: Index, package: str) -> ReleaseHist
                 yanked=release.yanked,
                 attestation=_state([a.provenance_status for a in artifacts]),
                 publisher=publisher,
+                previous=before.version if (before := predecessor(project, release.version)) else None,
             )
         )
+    newest = latest(project)
     return ReleaseHistory(
-        ecosystem="pypi", package=project.normalized_name, display_name=project.name, releases=releases
+        ecosystem="pypi",
+        package=project.normalized_name,
+        display_name=project.name,
+        releases=releases,
+        latest=newest.version if newest else None,
     )
 
 

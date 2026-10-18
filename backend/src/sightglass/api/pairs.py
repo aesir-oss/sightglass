@@ -19,6 +19,7 @@ from sightglass.db import models
 from sightglass.ecosystems.artifacts import ArtifactPair, select_artifacts
 from sightglass.ecosystems.http import HttpError, NotFoundError
 from sightglass.ecosystems.pypi import PypiProject, PypiRelease
+from sightglass.ecosystems.versions import predecessor
 from sightglass.log import get_logger
 from sightglass.rules.ruleset import RULES
 from sightglass.rules.store import requeue_failed
@@ -159,10 +160,10 @@ def _resolve(project: PypiProject, versions: str) -> tuple[PypiRelease, PypiRele
         old_v, _, new_v = versions.partition("...")
     else:
         new_v = versions
-        order = [r.version for r in project.releases]
-        if new_v in order and order.index(new_v) == 0:
+        before = predecessor(project, new_v) if new_v in by_version else None
+        if new_v in by_version and before is None:
             raise HTTPException(404, f"{new_v} is the first release of {project.name}; there is nothing before it")
-        old_v = order[order.index(new_v) - 1] if new_v in order else ""
+        old_v = before.version if before else ""
     for v in (old_v, new_v):
         if v not in by_version:
             raise HTTPException(404, f"{project.name} has no release {v or versions!r}")

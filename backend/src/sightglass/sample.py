@@ -18,13 +18,13 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from packaging.version import InvalidVersion, Version
 from sqlalchemy.orm import Session
 
 from sightglass.analyze import database
 from sightglass.db.engine import make_engine
 from sightglass.ecosystems.http import HttpError
 from sightglass.ecosystems.pypi import PypiClient, PypiProject
+from sightglass.ecosystems.versions import stable
 from sightglass.log import configure_logging, get_logger
 from sightglass.rules import top_packages
 from sightglass.rules.base import LEVELS
@@ -61,14 +61,6 @@ class SamplePair:
     published: str
 
 
-def _stable(version: str) -> Version | None:
-    try:
-        v = Version(version)
-    except InvalidVersion:
-        return None
-    return None if v.is_prerelease or v.is_devrelease else v
-
-
 def routine_pair(project: PypiProject, rank: int, cutoff: datetime) -> SamplePair | None:
     """The project's newest stable, unyanked release published before ``cutoff``, and the highest stable one below it.
 
@@ -83,7 +75,7 @@ def routine_pair(project: PypiProject, rank: int, cutoff: datetime) -> SamplePai
     candidates = [
         (v, r)
         for r in project.releases
-        if (v := _stable(r.version)) is not None and not r.yanked and r.published_at and r.published_at <= cutoff
+        if (v := stable(r.version)) is not None and not r.yanked and r.published_at and r.published_at <= cutoff
     ]
     if len(candidates) < 2:
         return None
