@@ -103,8 +103,8 @@
 .review-list {
   list-style: none;
   margin: 0;
+  padding: 4px 16px;
   display: grid;
-  gap: 0;
 }
 
 .review-list li {
@@ -123,13 +123,61 @@
   overflow-wrap: anywhere;
 }
 
-.review-list li > .review-meta:first-of-type {
+.review-list .review-what {
   grid-column: 1;
   grid-row: 2;
 }
 
-.review-list time {
+.review-list .review-when {
   grid-column: 2;
   grid-row: 1;
   white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .review-list li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .review-list .review-when {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+
+.url-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  align-items: end;
+  padding: 16px;
+}
+
+.url-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.url-form .field {
+  font: 15px var(--mono);
+  color: var(--ink);
+}
+
+.url-form .btn {
+  padding: 7px 16px;
+}
+
+.url-form-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--warn);
+  font-size: 13.5px;
+}
+
+@media (max-width: 620px) {
+  .url-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

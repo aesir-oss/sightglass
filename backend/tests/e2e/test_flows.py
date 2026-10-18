@@ -185,3 +185,14 @@ def test_reviews_are_reached_from_the_start_page(page: Page) -> None:
     expect(page.get_by_role("listbox", name="Package changes")).to_be_visible()
     page.get_by_role("navigation", name="Breadcrumb").get_by_role("link", name="Reviews").click()
     expect(page).to_have_url(re.compile(r"/reviews$"))
+
+
+@pytest.mark.e2e
+def test_a_url_that_isnt_a_pull_request_says_so(page: Page) -> None:
+    """The review form shows the API's reason next to the field, without leaving the page."""
+    page.goto("/reviews")
+    form = page.get_by_role("form", name="Review a pull request")
+    form.get_by_role("textbox").fill("https://example.com/not-a-pull-request")
+    form.get_by_role("button", name="Review").click()
+    expect(form.get_by_role("alert")).to_contain_text("not a GitHub pull request URL")
+    expect(page).to_have_url(re.compile(r"/reviews$"))

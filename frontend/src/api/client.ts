@@ -1,7 +1,7 @@
 // A fetch client typed from the generated OpenAPI schema, and the calls the pages make.
 import createClient from "openapi-fetch";
 import type { paths } from "./schema";
-import type { FileDiff, PairAnalysis, PairPending, ReleaseHistory, Review, ReviewList } from "./types";
+import type { FileDiff, PairAnalysis, PairPending, ReleaseHistory, Review, ReviewCreated, ReviewList } from "./types";
 
 export const api = createClient<paths>({
   // Same origin as the page; the dev server proxies /api to FastAPI.
@@ -44,6 +44,13 @@ export async function fetchReleaseHistory(ecosystem: string, pkg: string): Promi
 
 export async function fetchReviews(): Promise<ReviewList> {
   const { data, error, response } = await api.GET("/api/reviews");
+  if (!data) throw detail(error, response.status);
+  return data;
+}
+
+/** Review a public pull request's lockfile change from its URL. */
+export async function createReview(url: string): Promise<ReviewCreated> {
+  const { data, error, response } = await api.POST("/api/reviews", { body: { url } });
   if (!data) throw detail(error, response.status);
   return data;
 }

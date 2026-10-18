@@ -1,6 +1,7 @@
 import { useState, type ReactNode, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { ReleaseExample, SignalList, type ExampleSignal } from "../home/ReleaseExample";
+import { ReviewForm } from "../review/ReviewForm";
 import { ThemeSwitch } from "../ThemeSwitch";
 import "../home/home.css";
 
@@ -245,6 +246,11 @@ export function HomePage() {
           <p className="hint-text">
             Leave the releases empty to see the newest release compared with the one before it. Sightglass reads files
             and metadata only and never runs package code.
+          </p>
+          <ReviewForm />
+          <p className="hint-text">
+            Or paste a pull request that changes a <code>pixi.lock</code> or <code>uv.lock</code> to see what each
+            package update brings in.
           </p>
         </div>
 

@@ -1070,6 +1070,30 @@
         "title": "ReviewChangeOut",
         "type": "object"
       },
+      "ReviewCreated": {
+        "description": "Where a new review is: its page is ``/reviews/{repository}/{number}``.",
+        "properties": {
+          "lockfile_path": {
+            "title": "Lockfile Path",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          }
+        },
+        "required": [
+          "repository",
+          "number",
+          "lockfile_path"
+        ],
+        "title": "ReviewCreated",
+        "type": "object"
+      },
       "ReviewList": {
         "description": "The most recently reviewed pull requests, newest first.",
         "properties": {
@@ -1085,6 +1109,24 @@
           "reviews"
         ],
         "title": "ReviewList",
+        "type": "object"
+      },
+      "ReviewRequest": {
+        "description": "A public pull request to review, by its URL.",
+        "properties": {
+          "url": {
+            "examples": [
+              "https://github.com/owner/name/pull/12"
+            ],
+            "maxLength": 500,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "ReviewRequest",
         "type": "object"
       },
       "ReviewSummary": {
@@ -1450,6 +1492,45 @@
           }
         },
         "summary": "List Reviews"
+      },
+      "post": {
+        "description": "Review a public pull request's lockfile change from its URL, and queue the analyses it needs.",
+        "operationId": "createReview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "No public pull request at that URL"
+          },
+          "422": {
+            "description": "Not a pull request URL, or no lockfile that can be reviewed"
+          },
+          "502": {
+            "description": "GitHub couldn't be reached"
+          },
+          "503": {
+            "description": "GitHub's rate limit is used up"
+          }
+        },
+        "summary": "Create Review"
       }
     },
     "/api/reviews/{owner}/{repo}/{number}": {

@@ -13,13 +13,14 @@ from sqlalchemy.orm import Session
 
 from sightglass import review as review_command
 from sightglass.api.app import create_app
-from sightglass.api.deps import get_session
+from sightglass.api.deps import Index, get_enqueue, get_index, get_pulls, get_session
 from sightglass.db import models
 from sightglass.db.local import LocalPostgres
 from sightglass.db.migrate import upgrade
-from sightglass.ecosystems.http import NotFoundError
+from sightglass.ecosystems.http import NotFoundError, RateLimitedError, ResponseTooLargeError, UnavailableError
 from sightglass.ecosystems.pypi import PypiFile, PypiProject, PypiRelease
 from sightglass.lockfiles.pixi import LockfileError
+from sightglass.lockfiles.pulls import PullRequestChange, PullRequestError, PullRequestNotFoundError, PullRequestRef
 from sightglass.lockfiles.review import Snapshot, manifest_names, parse_lockfile, review_lockfile
 from sightglass.rules.ruleset import RULES
 
@@ -249,3 +250,76 @@ def test_review_list_shows_each_pull_requests_latest_review(db_session: Session,
     ]
     assert reviews[0]["counts"] == {"added": 1, "changed": 1, "removed": 1}
     assert reviews[1]["counts"] == {}
+
+
+class FakePulls:
+    """A pull request reader that returns the fixture's change, or raises what it was given."""
+
+    def __init__(self, error: Exception | None = None) -> None:
+        """Raise ``error`` instead of reading, when given."""
+        self.error = error
+
+    def lockfile_change(self, ref: PullRequestRef) -> PullRequestChange:
+        """The uv.lock change of kestrel-weather/orbit#7."""
+        if self.error:
+            raise self.error
+        return PullRequestChange(
+            "kestrel-weather/orbit", ref.number, BASE_SHA, HEAD_SHA, "uv.lock", Snapshot(BASE_LOCK), Snapshot(HEAD_LOCK)
+        )
+
+
+def url_client(db_session: Session, pulls: FakePulls, queued: list[tuple[Any, ...]]) -> TestClient:
+    """The API with GitHub, PyPI and the queue replaced."""
+    app = create_app(serve_frontend=False)
+    app.dependency_overrides[get_session] = lambda: db_session
+    app.dependency_overrides[get_pulls] = lambda: pulls
+    app.dependency_overrides[get_index] = lambda: Index(FakePypi(), None)  # type: ignore[arg-type]
+    app.dependency_overrides[get_enqueue] = lambda: lambda *args: queued.append(args)
+    return TestClient(app)
+
+
+@pytest.mark.integration
+def test_a_pull_request_url_records_its_review(db_session: Session) -> None:
+    """Posting a URL records the review, queues its analyses and says where its page is."""
+    queued: list[tuple[Any, ...]] = []
+    client = url_client(db_session, FakePulls(), queued)
+    response = client.post("/api/reviews", json={"url": "https://github.com/kestrel-weather/orbit/pull/7/files"})
+    assert response.status_code == 201
+    assert response.json() == {"repository": "kestrel-weather/orbit", "number": 7, "lockfile_path": "uv.lock"}
+    assert ("pypi", "gale", "0.9.0", "1.0.0", None) in queued
+    changes = client.get("/api/reviews/kestrel-weather/orbit/7").json()["changes"]
+    assert {c["package"] for c in changes} >= {"gale", "kestrel"}
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("url", "error", "status", "detail"),
+    [
+        ("https://example.com/x", None, 422, "not a GitHub pull request URL"),
+        (None, PullRequestNotFoundError("no public pull request a/b#7"), 404, "no public pull request"),
+        (None, PullRequestError("a/b#7 doesn't change a pixi.lock or uv.lock"), 422, "doesn't change"),
+        (None, ResponseTooLargeError("big"), 422, "too large"),
+        (None, RateLimitedError("limited"), 503, "SIGHTGLASS_GITHUB_TOKEN"),
+        (None, UnavailableError("down"), 502, "couldn't be reached"),
+    ],
+)
+def test_a_pull_request_url_that_cant_be_reviewed(
+    db_session: Session, url: str | None, error: Exception | None, status: int, detail: str
+) -> None:
+    """Each failure has its own status and a message the person can act on; nothing is recorded."""
+    client = url_client(db_session, FakePulls(error), [])
+    response = client.post("/api/reviews", json={"url": url or "https://github.com/a/b/pull/7"})
+    assert response.status_code == status
+    assert detail in response.json()["detail"]
+    assert client.get("/api/reviews").json() == {"reviews": []}
+
+
+@pytest.mark.integration
+def test_an_unreadable_lockfile_is_refused(db_session: Session) -> None:
+    """A lockfile that doesn't parse is a 422 with the parser's reason."""
+    pulls = FakePulls()
+    pulls.lockfile_change = lambda ref: PullRequestChange(  # type: ignore[method-assign]
+        "a/b", 7, BASE_SHA, HEAD_SHA, "uv.lock", Snapshot(b"not toml ["), Snapshot(b"not toml [")
+    )
+    response = url_client(db_session, pulls, []).post("/api/reviews", json={"url": "https://github.com/a/b/pull/7"})
+    assert response.status_code == 422

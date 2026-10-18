@@ -4,17 +4,29 @@ from datetime import datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.orm import Session, aliased
 
-from sightglass.api.deps import get_session
+from sightglass.api.deps import Enqueue, Index, get_enqueue, get_index, get_pulls, get_session
 from sightglass.db import models
+from sightglass.ecosystems.http import HttpError, RateLimitedError, ResponseTooLargeError
 from sightglass.ecosystems.versions import is_downgrade
+from sightglass.lockfiles.pixi import LockfileError
+from sightglass.lockfiles.pulls import (
+    TOKEN_ENV,
+    PullRequestClient,
+    PullRequestError,
+    PullRequestNotFoundError,
+    parse_pull_url,
+)
+from sightglass.lockfiles.review import review_lockfile
+from sightglass.log import get_logger
 from sightglass.rules.base import LEVELS
 from sightglass.rules.ruleset import RULES
 
+log = get_logger(__name__)
 router = APIRouter()
 
 AnalysisState = Literal["done", "pending", "failed", "not_analyzed"]
@@ -81,6 +93,20 @@ class ReviewList(BaseModel):
     """The most recently reviewed pull requests, newest first."""
 
     reviews: list[ReviewSummary]
+
+
+class ReviewRequest(BaseModel):
+    """A public pull request to review, by its URL."""
+
+    url: str = Field(max_length=500, examples=["https://github.com/owner/name/pull/12"])
+
+
+class ReviewCreated(BaseModel):
+    """Where a new review is: its page is ``/reviews/{repository}/{number}``."""
+
+    repository: str
+    number: int
+    lockfile_path: str
 
 
 # The most pull requests the list shows.
@@ -222,3 +248,53 @@ def get_review(
         platforms=sorted({p for c in changes for p in c.platforms}),
         changes=changes,
     )
+
+
+@router.post(
+    "/api/reviews",
+    operation_id="createReview",
+    status_code=201,
+    responses={
+        404: {"description": "No public pull request at that URL"},
+        422: {"description": "Not a pull request URL, or no lockfile that can be reviewed"},
+        502: {"description": "GitHub couldn't be reached"},
+        503: {"description": "GitHub's rate limit is used up"},
+    },
+)
+def create_review(
+    request: ReviewRequest,
+    session: Annotated[Session, Depends(get_session)],
+    index: Annotated[Index, Depends(get_index)],
+    enqueue: Annotated[Enqueue, Depends(get_enqueue)],
+    pulls: Annotated[PullRequestClient, Depends(get_pulls)],
+) -> ReviewCreated:
+    """Review a public pull request's lockfile change from its URL, and queue the analyses it needs."""
+    try:
+        change = pulls.lockfile_change(parse_pull_url(request.url))
+        review_lockfile(
+            session,
+            pypi=index.pypi,
+            enqueue=lambda eco, pkg, old, new: enqueue(eco, pkg, old, new, None),
+            repository=change.repository,
+            pull_number=change.number,
+            base_sha=change.base_sha,
+            head_sha=change.head_sha,
+            lockfile_path=change.lockfile_path,
+            base=change.base,
+            head=change.head,
+        )
+    except PullRequestNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except (PullRequestError, LockfileError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    except ResponseTooLargeError as exc:
+        raise HTTPException(422, "the lockfile is too large to review") from exc
+    except RateLimitedError as exc:
+        log.warning("review_github_rate_limited", error=str(exc))
+        raise HTTPException(503, f"GitHub's rate limit is used up; try again later, or set {TOKEN_ENV}") from exc
+    except HttpError as exc:
+        log.warning("review_github_failed", error=str(exc))
+        raise HTTPException(502, "GitHub couldn't be reached; try again shortly") from exc
+    session.commit()
+    log.info("review_from_url", repository=change.repository, pull_number=change.number, lockfile=change.lockfile_path)
+    return ReviewCreated(repository=change.repository, number=change.number, lockfile_path=change.lockfile_path)

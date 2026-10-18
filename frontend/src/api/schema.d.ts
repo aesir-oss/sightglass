@@ -34,7 +34,11 @@ export interface paths {
      */
     get: operations["listReviews"];
     put?: never;
-    post?: never;
+    /**
+     * Create Review
+     * @description Review a public pull request's lockfile change from its URL, and queue the analyses it needs.
+     */
+    post: operations["createReview"];
     delete?: never;
     options?: never;
     head?: never;
@@ -556,12 +560,35 @@ export interface components {
       to_version: string | null;
     };
     /**
+     * ReviewCreated
+     * @description Where a new review is: its page is ``/reviews/{repository}/{number}``.
+     */
+    ReviewCreated: {
+      /** Lockfile Path */
+      lockfile_path: string;
+      /** Number */
+      number: number;
+      /** Repository */
+      repository: string;
+    };
+    /**
      * ReviewList
      * @description The most recently reviewed pull requests, newest first.
      */
     ReviewList: {
       /** Reviews */
       reviews: components["schemas"]["ReviewSummary"][];
+    };
+    /**
+     * ReviewRequest
+     * @description A public pull request to review, by its URL.
+     */
+    ReviewRequest: {
+      /**
+       * Url
+       * @example https://github.com/owner/name/pull/12
+       */
+      url: string;
     };
     /**
      * ReviewSummary
@@ -730,6 +757,58 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["ReviewList"];
         };
+      };
+    };
+  };
+  createReview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ReviewRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReviewCreated"];
+        };
+      };
+      /** @description No public pull request at that URL */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not a pull request URL, or no lockfile that can be reviewed */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description GitHub couldn't be reached */
+      502: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description GitHub's rate limit is used up */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

@@ -21,3 +21,4 @@ export type Review = components["schemas"]["Review"];
 export type ReviewChange = components["schemas"]["ReviewChangeOut"];
 export type ReviewList = components["schemas"]["ReviewList"];
 export type ReviewSummary = components["schemas"]["ReviewSummary"];
+export type ReviewCreated = components["schemas"]["ReviewCreated"];

@@ -12,6 +12,7 @@ from sightglass.db.engine import make_engine
 from sightglass.ecosystems.http import Fetcher, MemoryCache, default_client
 from sightglass.ecosystems.provenance import IntegrityClient
 from sightglass.ecosystems.pypi import PYPI_HOSTS, PypiClient
+from sightglass.lockfiles.pulls import PullRequestClient, default_fetcher
 from sightglass.storage.blobs import BlobStore, LocalBlobStore
 from sightglass.worker.jobs import enqueue_analysis, make_app
 from sightglass.worker.pipeline import default_cache_dir
@@ -65,6 +66,16 @@ def get_enqueue() -> Enqueue:
         return enqueue_analysis(_queue(), ecosystem, package, from_version, to_version, wheel)
 
     return enqueue
+
+
+@cache
+def _pulls() -> PullRequestClient:
+    return PullRequestClient(default_fetcher())
+
+
+def get_pulls() -> PullRequestClient:
+    """The process's GitHub pull request reader."""
+    return _pulls()
 
 
 @cache
