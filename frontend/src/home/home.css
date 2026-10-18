@@ -1,4 +1,4 @@
-/* The start page. A pipe runs across the page with a sight glass in it showing an example release diff. */
+/* The start page: hero, an example release diff, then the sections. */
 
 .eyebrow {
   font: 600 12px/1 var(--mono);
@@ -124,61 +124,14 @@
   margin: 0;
 }
 
-/* The pipe and its window */
-.pipe-band {
-  position: relative;
+/* The example release diff */
+.example {
   margin: 40px 0 0;
 }
 
-.pipe-band::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 40%;
-  height: 120px;
-  transform: translateY(-50%);
-  background: linear-gradient(180deg, var(--surface) 0%, var(--sunk) 35%, var(--sunk) 60%, var(--line) 100%);
-  border-block: 1px solid var(--line);
-}
-
-.flange {
-  position: relative;
+.window {
   max-width: 1040px;
   margin: 0 auto;
-  padding: 14px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, var(--sunk), var(--line));
-  border: 1px solid var(--line);
-}
-
-.bolt {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--muted);
-  opacity: 0.5;
-}
-
-.bolt.a {
-  top: 3px;
-  left: 3px;
-}
-.bolt.b {
-  top: 3px;
-  right: 3px;
-}
-.bolt.c {
-  bottom: 3px;
-  left: 3px;
-}
-.bolt.d {
-  bottom: 3px;
-  right: 3px;
-}
-
-.window {
   border-radius: 12px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -777,15 +730,6 @@
   .who-row {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
-  }
-
-  .pipe-band::before {
-    display: none;
-  }
-
-  .flange {
-    padding: 8px;
-    border-radius: 16px;
   }
 }
 
