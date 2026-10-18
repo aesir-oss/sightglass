@@ -48,7 +48,6 @@ export function Timeline({ pkg, releases, from, to, onCompare }: TimelineProps) 
   );
   const [tip, setTip] = useState<{ x: number; label: string } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
-  const order = releases.map((r) => r.version);
   const x = (version: string) => points.find((p) => p.release.version === version)?.x;
   const [fromX, toX] = [x(from), x(to)];
   const scale = timelineScale(releases, W, 30);
@@ -68,7 +67,8 @@ export function Timeline({ pkg, releases, from, to, onCompare }: TimelineProps) 
       onCompare(version, to);
       return;
     }
-    const before = order[order.indexOf(version) - 1];
+    // The version before it, which for a backport isn't the release published before it.
+    const before = releases.find((r) => r.version === version)?.previous;
     if (before) onCompare(before, version);
   }
 

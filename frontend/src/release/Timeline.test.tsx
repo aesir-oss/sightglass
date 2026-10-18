@@ -12,10 +12,31 @@ const publisher = {
   environment: null,
 };
 const releases: ReleaseSummary[] = [
-  { version: "2.4.0", published_at: "2025-11-01T00:00:00Z", yanked: false, attestation: "all", publisher },
-  { version: "2.4.1", published_at: "2026-02-01T00:00:00Z", yanked: false, attestation: "all", publisher },
-  { version: "2.5.0", published_at: "2026-09-30T00:00:00Z", yanked: true, attestation: "none", publisher: null },
-  { version: "2.6.0", published_at: null, yanked: false, attestation: "unknown", publisher: null },
+  {
+    version: "2.4.0",
+    published_at: "2025-11-01T00:00:00Z",
+    yanked: false,
+    attestation: "all",
+    publisher,
+    previous: null,
+  },
+  {
+    version: "2.4.1",
+    published_at: "2026-02-01T00:00:00Z",
+    yanked: false,
+    attestation: "all",
+    publisher,
+    previous: "2.4.0",
+  },
+  {
+    version: "2.5.0",
+    published_at: "2026-09-30T00:00:00Z",
+    yanked: true,
+    attestation: "none",
+    publisher: null,
+    previous: "2.4.1",
+  },
+  { version: "2.6.0", published_at: null, yanked: false, attestation: "unknown", publisher: null, previous: "2.5.0" },
 ];
 
 function renderTimeline(onCompare = vi.fn()) {
@@ -91,4 +112,23 @@ test("on a narrow screen the chart scrolls to the newer release of the pair", ()
   expect(tl?.scrollLeft).toBeGreaterThan(0);
   scrollWidth.mockRestore();
   clientWidth.mockRestore();
+});
+
+test("a backport is compared with the version before it, not the release published before it", () => {
+  const backport: ReleaseSummary = {
+    version: "2.4.2",
+    published_at: "2026-10-01T00:00:00Z",
+    yanked: false,
+    attestation: "all",
+    publisher,
+    previous: "2.4.1",
+  };
+  const onCompare = vi.fn();
+  render(
+    <Timeline pkg="orbit-client" releases={[...releases, backport]} from="2.4.1" to="2.5.0" onCompare={onCompare} />,
+  );
+  const mark = screen.getAllByRole("button").find((m) => m.getAttribute("aria-label")?.startsWith("2.4.2,"));
+  if (!mark) throw new Error("missing 2.4.2");
+  fireEvent.click(mark);
+  expect(onCompare).toHaveBeenCalledWith("2.4.1", "2.4.2");
 });

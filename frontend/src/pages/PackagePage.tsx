@@ -2,11 +2,11 @@ import { Navigate, useParams } from "react-router";
 import { ApiError } from "../api/client";
 import { useReleaseHistory } from "../api/queries";
 
-/** `/:ecosystem/:package`: go to the newest release, compared with the one before it. */
+/** `/:ecosystem/:package`: go to the highest stable release, compared with the version before it. */
 export function PackagePage() {
   const { ecosystem = "", package: pkg = "" } = useParams();
   const history = useReleaseHistory(ecosystem, pkg);
-  const latest = history.data?.releases.at(-1)?.version;
+  const latest = history.data?.latest;
   if (latest) return <Navigate replace to={`/${ecosystem}/${encodeURIComponent(pkg)}/${encodeURIComponent(latest)}`} />;
   return (
     <main className="wrap stack">

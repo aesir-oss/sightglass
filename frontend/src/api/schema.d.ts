@@ -401,6 +401,8 @@ export interface components {
        * @constant
        */
       ecosystem: "pypi";
+      /** Latest */
+      latest: string | null;
       /** Package */
       package: string;
       /** Releases */
@@ -416,6 +418,8 @@ export interface components {
        * @enum {string}
        */
       attestation: "all" | "some" | "none" | "unknown";
+      /** Previous */
+      previous: string | null;
       /** Published At */
       published_at: string | null;
       publisher: components["schemas"]["Publisher"] | null;

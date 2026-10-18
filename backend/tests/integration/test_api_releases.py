@@ -98,6 +98,8 @@ def test_release_history(client: TestClient, db_session: Session, provenance_pay
         ("2.4.1", "none", False),
         ("2.5.0", "some", False),
     ]
+    assert [r["previous"] for r in body["releases"]] == [None, "2.4.1"]
+    assert body["latest"] == "2.5.0"
     assert body["releases"][0]["publisher"] is None
     assert body["releases"][1]["publisher"] == {
         "kind": "GitHub",

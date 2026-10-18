@@ -17,9 +17,12 @@ function renderAt(path: string) {
   return router;
 }
 
-test("a package page goes to its newest release", async () => {
+test("a package page goes to its highest stable release, not the last one published", async () => {
   fakeApi({
-    "/api/pypi/orbit-client/releases": { body: { releases: [{ version: "2.4.1" }, { version: "2.5.0" }] } },
+    // 2.4.2 is a backport published after 2.5.0; the API names 2.5.0 as the latest.
+    "/api/pypi/orbit-client/releases": {
+      body: { releases: [{ version: "2.4.1" }, { version: "2.5.0" }, { version: "2.4.2" }], latest: "2.5.0" },
+    },
     "/api/pypi/orbit-client/2.5.0": { status: 404, body: { detail: "stop here" } },
   });
   const router = renderAt("/pypi/orbit-client");
@@ -32,7 +35,7 @@ test("unknown packages, outages and empty histories are explained", async () => 
   fakeApi({
     "/api/pypi/tidepool/releases": { status: 404, body: { detail: "tidepool isn't on PyPI" } },
     "/api/pypi/kestrel/releases": { status: 503, body: { detail: "down" } },
-    "/api/pypi/gale/releases": { body: { releases: [] } },
+    "/api/pypi/gale/releases": { body: { releases: [], latest: null } },
   });
   renderAt("/pypi/tidepool");
   expect((await screen.findByRole("alert")).textContent).toBe("tidepool isn't on PyPI");

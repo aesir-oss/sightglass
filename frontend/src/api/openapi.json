@@ -752,6 +752,17 @@
             "title": "Ecosystem",
             "type": "string"
           },
+          "latest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest"
+          },
           "package": {
             "title": "Package",
             "type": "string"
@@ -768,7 +779,8 @@
           "ecosystem",
           "package",
           "display_name",
-          "releases"
+          "releases",
+          "latest"
         ],
         "title": "ReleaseHistory",
         "type": "object"
@@ -785,6 +797,17 @@
             ],
             "title": "Attestation",
             "type": "string"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous"
           },
           "published_at": {
             "anyOf": [
@@ -822,7 +845,8 @@
           "published_at",
           "yanked",
           "attestation",
-          "publisher"
+          "publisher",
+          "previous"
         ],
         "title": "ReleaseSummary",
         "type": "object"
