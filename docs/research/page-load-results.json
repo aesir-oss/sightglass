@@ -1,0 +1,2721 @@
+{
+ "ruleset_version": "rs-8d9af4f6cb93d33b",
+ "pairs": [
+  {
+   "package": "packaging",
+   "rank": 1,
+   "from_version": "26.2",
+   "to_version": "26.3",
+   "published": "2026-08-04",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "packaging-26.3.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.import_time_code",
+       "level": "note",
+       "message": "New module-level code in src/packaging/licenses/__init__.py runs at import: line 51 calls `re.compile`"
+      }
+     ],
+     "timings": {
+      "downloading": 0.082,
+      "provenance": 0.086,
+      "diffing": 0.066,
+      "source": 0.105,
+      "rules": 0.493
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "packaging-26.3-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.import_time_code",
+       "level": "note",
+       "message": "New module-level code in packaging/licenses/__init__.py runs at import: line 51 calls `re.compile`"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.339,
+      "downloading": 0.059,
+      "provenance": 0.164,
+      "diffing": 0.06,
+      "source": 1.072,
+      "rules": 0.158
+     }
+    }
+   ],
+   "seconds": 2.888,
+   "cpu_seconds": 1.063,
+   "downloaded_bytes": 1273472
+  },
+  {
+   "package": "charset-normalizer",
+   "rank": 2,
+   "from_version": "3.5.0",
+   "to_version": "3.5.1",
+   "published": "2026-08-15",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "charset_normalizer-3.5.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.069,
+      "provenance": 0.071,
+      "diffing": 0.004,
+      "source": 0.094,
+      "rules": 0.013
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "charset_normalizer-3.5.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.271,
+      "downloading": 0.069,
+      "provenance": 0.098,
+      "diffing": 0.002,
+      "source": 0.749,
+      "rules": 0.012
+     }
+    }
+   ],
+   "seconds": 1.699,
+   "cpu_seconds": 0.287,
+   "downloaded_bytes": 1166776
+  },
+  {
+   "package": "cryptography",
+   "rank": 3,
+   "from_version": "50.0.0",
+   "to_version": "50.0.1",
+   "published": "2026-08-25",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "cryptography-50.0.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "CLAUDE.md differs from CLAUDE.md in tag 50.0.1 (not installed)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.403,
+      "provenance": 0.09,
+      "diffing": 0.003,
+      "source": 3.676,
+      "rules": 0.017
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "cryptography-50.0.1-cp311-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 4.585,
+      "downloading": 0.707,
+      "provenance": 0.094,
+      "diffing": 0.004,
+      "source": 31.007,
+      "rules": 0.009
+     }
+    }
+   ],
+   "seconds": 40.982,
+   "cpu_seconds": 9.24,
+   "downloaded_bytes": 71255333
+  },
+  {
+   "package": "requests",
+   "rank": 4,
+   "from_version": "2.34.1",
+   "to_version": "2.34.2",
+   "published": "2026-05-14",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "requests-2.34.2.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.061,
+      "provenance": 0.179,
+      "diffing": 0.006,
+      "source": 0.3,
+      "rules": 0.04
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "requests-2.34.2-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.197,
+      "downloading": 0.057,
+      "provenance": 0.224,
+      "diffing": 0.006,
+      "source": 2.254,
+      "rules": 0.035
+     }
+    }
+   ],
+   "seconds": 3.542,
+   "cpu_seconds": 0.556,
+   "downloaded_bytes": 4162250
+  },
+  {
+   "package": "pygments",
+   "rank": 5,
+   "from_version": "2.20.0",
+   "to_version": "2.21.0",
+   "published": "2026-08-17",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pygments-2.21.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 2.057,
+      "provenance": 0.281,
+      "diffing": 0.119,
+      "source": 0.481,
+      "rules": 0.092
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pygments-2.21.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 2.7,
+      "downloading": 0.462,
+      "provenance": 0.194,
+      "diffing": 0.09,
+      "source": 3.831,
+      "rules": 0.625
+     }
+    }
+   ],
+   "seconds": 11.417,
+   "cpu_seconds": 5.626,
+   "downloaded_bytes": 17786847
+  },
+  {
+   "package": "pluggy",
+   "rank": 6,
+   "from_version": "1.5.0",
+   "to_version": "1.6.0",
+   "published": "2025-05-15",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pluggy-1.6.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "src/pluggy/_version.py isn't in tag 1.6.0 (also not in the source of 1.5.0)"
+      },
+      {
+       "rule_id": "timing.long_gap",
+       "level": "note",
+       "message": "1.6.0 came 389 days after 1.5.0 (2024-04-20 to 2025-05-15)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.047,
+      "provenance": 0.202,
+      "diffing": 0.021,
+      "source": 0.185,
+      "rules": 0.072
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pluggy-1.6.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "1.6.0 adds a dependency on `coverage; extra == \"testing\"` for the `testing` extra"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "pluggy/_version.py isn't in tag 1.6.0 (also not in the source of 1.5.0)"
+      },
+      {
+       "rule_id": "timing.long_gap",
+       "level": "note",
+       "message": "1.6.0 came 389 days after 1.5.0 (2024-04-20 to 2025-05-15)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.111,
+      "downloading": 0.028,
+      "provenance": 0.224,
+      "diffing": 0.012,
+      "source": 1.124,
+      "rules": 0.045
+     }
+    }
+   ],
+   "seconds": 2.167,
+   "cpu_seconds": 0.414,
+   "downloaded_bytes": 371272
+  },
+  {
+   "package": "python-dateutil",
+   "rank": 7,
+   "from_version": "2.9.0",
+   "to_version": "2.9.0.post0",
+   "published": "2024-03-01",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "python-dateutil-2.9.0.post0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "src/dateutil/_version.py isn't in tag 2.9.0.post0 (also not in the source of 2.9.0)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.081,
+      "provenance": 0.144,
+      "diffing": 0.003,
+      "source": 0.245,
+      "rules": 0.014
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "dateutil/_version.py isn't in tag 2.9.0.post0 (also not in the source of 2.9.0)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.315,
+      "downloading": 0.062,
+      "provenance": 0.158,
+      "diffing": 0.004,
+      "source": 1.211,
+      "rules": 0.015
+     }
+    }
+   ],
+   "seconds": 2.39,
+   "cpu_seconds": 0.472,
+   "downloaded_bytes": 1598923
+  },
+  {
+   "package": "six",
+   "rank": 8,
+   "from_version": "1.16.0",
+   "to_version": "1.17.0",
+   "published": "2024-12-04",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "six-1.17.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "timing.long_gap",
+       "level": "note",
+       "message": "1.17.0 came 1309 days after 1.16.0 (2021-05-05 to 2024-12-04)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.019,
+      "provenance": 0.251,
+      "diffing": 0.013,
+      "source": 0.492,
+      "rules": 0.043
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "six-1.17.0-py2.py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "timing.long_gap",
+       "level": "note",
+       "message": "1.17.0 came 1309 days after 1.16.0 (2021-05-05 to 2024-12-04)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.109,
+      "downloading": 0.022,
+      "provenance": 0.136,
+      "diffing": 0.004,
+      "source": 0.724,
+      "rules": 0.037
+     }
+    }
+   ],
+   "seconds": 1.953,
+   "cpu_seconds": 0.532,
+   "downloaded_bytes": 146280
+  },
+  {
+   "package": "pycparser",
+   "rank": 9,
+   "from_version": "2.23",
+   "to_version": "3.0",
+   "published": "2026-01-21",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pycparser-3.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "hooks.setup_py",
+       "level": "check",
+       "message": "setup.py, which runs when the sdist is built or installed, changed (lines 1, 3)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.079,
+      "provenance": 0.134,
+      "diffing": 0.076,
+      "source": 0.244,
+      "rules": 0.102
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pycparser-3.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.211,
+      "downloading": 0.056,
+      "provenance": 0.279,
+      "diffing": 0.064,
+      "source": 0.531,
+      "rules": 0.104
+     }
+    }
+   ],
+   "seconds": 1.993,
+   "cpu_seconds": 0.645,
+   "downloaded_bytes": 473695
+  },
+  {
+   "package": "pydantic",
+   "rank": 10,
+   "from_version": "2.13.4",
+   "to_version": "2.13.5",
+   "published": "2026-08-28",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pydantic-2.13.5.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `pydantic-core` requirement changed from `pydantic-core==2.46.4` to `pydantic-core==2.46.5`"
+      }
+     ],
+     "timings": {
+      "downloading": 0.189,
+      "provenance": 0.106,
+      "diffing": 0.009,
+      "source": 0.121,
+      "rules": 0.025
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pydantic-2.13.5-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `pydantic-core` requirement changed from `pydantic-core==2.46.4` to `pydantic-core==2.46.5`"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.951,
+      "downloading": 0.162,
+      "provenance": 0.167,
+      "diffing": 0.007,
+      "source": 2.185,
+      "rules": 0.026
+     }
+    }
+   ],
+   "seconds": 4.188,
+   "cpu_seconds": 1.023,
+   "downloaded_bytes": 6048678
+  },
+  {
+   "package": "click",
+   "rank": 11,
+   "from_version": "8.4.2",
+   "to_version": "8.5.0",
+   "published": "2026-08-26",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "click-8.5.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "note",
+       "message": "Added process calls in tests/test_types.py: `subprocess.run` (lines 145-149)"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "8.5.0 no longer depends on `colorama` (colorama; platform_system == \"Windows\" in 8.4.2)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.083,
+      "provenance": 0.083,
+      "diffing": 0.04,
+      "source": 0.08,
+      "rules": 0.257
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "click-8.5.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "8.5.0 no longer depends on `colorama` (colorama; platform_system == \"Windows\" in 8.4.2)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.282,
+      "downloading": 0.06,
+      "provenance": 0.133,
+      "diffing": 0.028,
+      "source": 1.274,
+      "rules": 0.106
+     }
+    }
+   ],
+   "seconds": 2.538,
+   "cpu_seconds": 0.787,
+   "downloaded_bytes": 1688240
+  },
+  {
+   "package": "pydantic-core",
+   "rank": 12,
+   "from_version": "2.48.0",
+   "to_version": "2.49.0",
+   "published": "2026-09-09",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pydantic_core-2.49.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "note",
+       "message": "Added process calls in tests/validators/test_decimal.py: `subprocess.run` (line 584)"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `typing-extensions` requirement changed from `typing-extensions>=4.14.1` to `typing-extensions>=4.16.0`"
+      }
+     ],
+     "timings": {
+      "downloading": 0.187,
+      "provenance": 0.464,
+      "diffing": 0.035,
+      "source": 0.704,
+      "rules": 0.439
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pydantic_core-2.49.0-cp315-cp315-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `typing-extensions` requirement changed from `typing-extensions>=4.14.1` to `typing-extensions>=4.16.0`"
+      }
+     ],
+     "timings": {
+      "prefetch": 1.101,
+      "downloading": 0.249,
+      "provenance": 0.405,
+      "diffing": 0.024,
+      "source": 2.576,
+      "rules": 0.066
+     }
+    }
+   ],
+   "seconds": 6.961,
+   "cpu_seconds": 1.875,
+   "downloaded_bytes": 11155682
+  },
+  {
+   "package": "pyyaml",
+   "rank": 13,
+   "from_version": "6.0.2",
+   "to_version": "6.0.3",
+   "published": "2025-09-25",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pyyaml-6.0.3.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "hooks.setup_py",
+       "level": "check",
+       "message": "setup.py, which runs when the sdist is built or installed, changed (lines 3, 37)"
+      },
+      {
+       "rule_id": "timing.long_gap",
+       "level": "note",
+       "message": "6.0.3 came 415 days after 6.0.2 (2024-08-06 to 2025-09-25)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.301,
+      "provenance": 0.152,
+      "diffing": 0.006,
+      "source": 0.257,
+      "rules": 0.036
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "timing.long_gap",
+       "level": "note",
+       "message": "6.0.3 came 415 days after 6.0.2 (2024-08-06 to 2025-09-25)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.482,
+      "downloading": 0.149,
+      "provenance": 0.303,
+      "diffing": 0.005,
+      "source": 0.878,
+      "rules": 0.016
+     }
+    }
+   ],
+   "seconds": 2.785,
+   "cpu_seconds": 0.812,
+   "downloaded_bytes": 2086527
+  },
+  {
+   "package": "pytest",
+   "rank": 14,
+   "from_version": "9.1.0",
+   "to_version": "9.1.1",
+   "published": "2026-06-19",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pytest-9.1.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "src/_pytest/_version.py isn't in tag 9.1.1 (also not in the source of 9.1.0)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.396,
+      "provenance": 0.451,
+      "diffing": 0.057,
+      "source": 1.776,
+      "rules": 0.183
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pytest-9.1.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "_pytest/_version.py isn't in tag 9.1.1 (also not in the source of 9.1.0)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.974,
+      "downloading": 0.134,
+      "provenance": 0.366,
+      "diffing": 0.011,
+      "source": 2.649,
+      "rules": 0.104
+     }
+    }
+   ],
+   "seconds": 7.281,
+   "cpu_seconds": 1.728,
+   "downloaded_bytes": 7961178
+  },
+  {
+   "package": "setuptools",
+   "rank": 15,
+   "from_version": "83.0.0",
+   "to_version": "84.0.0",
+   "published": "2026-08-08",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "setuptools-84.0.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "check",
+       "message": "Added process calls in setuptools/_distutils/compilers/C/base.py: `subprocess.list2cmdline`, `subprocess.check_call` (lines 1176, 1177)"
+      },
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "check",
+       "message": "Added process calls in setuptools/_distutils/compilers/C/msvc.py: `subprocess.list2cmdline` (line 283)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.122,
+      "provenance": 0.392,
+      "diffing": 0.061,
+      "source": 0.666,
+      "rules": 0.806
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "setuptools-84.0.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "check",
+       "message": "Added process calls in setuptools/_distutils/compilers/C/base.py: `subprocess.list2cmdline`, `subprocess.check_call` (lines 1176, 1177)"
+      },
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "check",
+       "message": "Added process calls in setuptools/_distutils/compilers/C/msvc.py: `subprocess.list2cmdline` (line 283)"
+      },
+      {
+       "rule_id": "source.not_in_sdist",
+       "level": "note",
+       "message": "distutils-precedence.pth is in the wheel but not in the sdist (also not in the source of 83.0.0)"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "distutils-precedence.pth isn't in tag v84.0.0 (also not in the source of 83.0.0)"
+      }
+     ],
+     "timings": {
+      "prefetch": 1.028,
+      "downloading": 0.386,
+      "provenance": 0.549,
+      "diffing": 0.056,
+      "source": 2.689,
+      "rules": 0.915
+     }
+    }
+   ],
+   "seconds": 7.91,
+   "cpu_seconds": 3.223,
+   "downloaded_bytes": 7034080
+  },
+  {
+   "package": "protobuf",
+   "rank": 16,
+   "from_version": "7.36.0",
+   "to_version": "7.36.1",
+   "published": "2026-08-31",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "protobuf-7.36.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.183,
+      "provenance": 0.173,
+      "diffing": 0.018,
+      "source": 0.759,
+      "rules": 0.108
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "protobuf-7.36.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.396,
+      "downloading": 0.101,
+      "provenance": 0.127,
+      "diffing": 0.011,
+      "source": 0.284,
+      "rules": 0.13
+     }
+    }
+   ],
+   "seconds": 2.554,
+   "cpu_seconds": 0.767,
+   "downloaded_bytes": 1821213
+  },
+  {
+   "package": "python-dotenv",
+   "rank": 17,
+   "from_version": "1.2.2",
+   "to_version": "1.2.3",
+   "published": "2026-08-16",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "python_dotenv-1.2.3.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "4 package files differ from tag v1.2.3: docs/changelog.md, docs/contributing.md, docs/index.md, docs/license.md (not installed)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.035,
+      "provenance": 0.049,
+      "diffing": 0.01,
+      "source": 0.158,
+      "rules": 0.058
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "python_dotenv-1.2.3-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.284,
+      "downloading": 0.033,
+      "provenance": 0.163,
+      "diffing": 0.011,
+      "source": 0.682,
+      "rules": 0.038
+     }
+    }
+   ],
+   "seconds": 1.761,
+   "cpu_seconds": 0.344,
+   "downloaded_bytes": 292252
+  },
+  {
+   "package": "platformdirs",
+   "rank": 18,
+   "from_version": "4.11.8",
+   "to_version": "4.11.9",
+   "published": "2026-09-16",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "platformdirs-4.11.9.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "src/platformdirs/version.py isn't in tag 4.11.9 (also not in the source of 4.11.8)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.02,
+      "provenance": 0.128,
+      "diffing": 0.007,
+      "source": 0.19,
+      "rules": 0.553
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "platformdirs-4.11.9-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "platformdirs/version.py isn't in tag 4.11.9 (also not in the source of 4.11.8)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.092,
+      "downloading": 0.023,
+      "provenance": 0.17,
+      "diffing": 0.008,
+      "source": 0.89,
+      "rules": 0.05
+     }
+    }
+   ],
+   "seconds": 2.219,
+   "cpu_seconds": 0.809,
+   "downloaded_bytes": 395871
+  },
+  {
+   "package": "pyjwt",
+   "rank": 19,
+   "from_version": "2.13.0",
+   "to_version": "2.14.0",
+   "published": "2026-09-11",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pyjwt-2.14.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.network",
+       "level": "check",
+       "message": "Added network calls in jwt/jwks_client.py: `urllib.request.build_opener` (line 161)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.05,
+      "provenance": 0.048,
+      "diffing": 0.009,
+      "source": 0.072,
+      "rules": 0.086
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pyjwt-2.14.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.network",
+       "level": "check",
+       "message": "Added network calls in jwt/jwks_client.py: `urllib.request.build_opener` (line 161)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.142,
+      "downloading": 0.044,
+      "provenance": 0.112,
+      "diffing": 0.008,
+      "source": 0.709,
+      "rules": 0.058
+     }
+    }
+   ],
+   "seconds": 1.475,
+   "cpu_seconds": 0.388,
+   "downloaded_bytes": 543253
+  },
+  {
+   "package": "aiobotocore",
+   "rank": 20,
+   "from_version": "3.9.0",
+   "to_version": "3.9.1",
+   "published": "2026-09-07",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "aiobotocore-3.9.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `botocore` requirement changed from `botocore<1.43.57,>=1.43.3` to `botocore<1.43.76,>=1.43.66`"
+      }
+     ],
+     "timings": {
+      "downloading": 0.107,
+      "provenance": 0.136,
+      "diffing": 0.027,
+      "source": 0.281,
+      "rules": 0.08
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "aiobotocore-3.9.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `botocore` requirement changed from `botocore<1.43.57,>=1.43.3` to `botocore<1.43.76,>=1.43.66`"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.365,
+      "downloading": 0.064,
+      "provenance": 0.167,
+      "diffing": 0.006,
+      "source": 1.148,
+      "rules": 0.06
+     }
+    }
+   ],
+   "seconds": 2.582,
+   "cpu_seconds": 0.616,
+   "downloaded_bytes": 2093464
+  },
+  {
+   "package": "pandas",
+   "rank": 21,
+   "from_version": "3.0.3",
+   "to_version": "3.0.5",
+   "published": "2026-07-22",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pandas-3.0.5.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.import_time_code",
+       "level": "note",
+       "message": "New module-level code in pandas/compat/numpy/__init__.py runs at import: line 15 calls `pandas.util.version.Version`"
+      },
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "pandas/_version.py differs from pandas/_version.py in tag v3.0.5 (the same code apart from comments, formatting or the version)"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "_version_meson.py isn't in tag v3.0.5 (also not in the source of 3.0.3)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.382,
+      "provenance": 0.094,
+      "diffing": 0.043,
+      "source": 0.205,
+      "rules": 0.023
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pandas-3.0.5-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.import_time_code",
+       "level": "note",
+       "message": "New module-level code in pandas/compat/numpy/__init__.py runs at import: line 15 calls `pandas.util.version.Version`"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `pytest` requirement changed from `pytest>=8.3.4; extra == \"all\"; pytest>=8.3.4; extra == \"test\"` to `pytest<9.1,>=8.3.4; extra == \"test\"; pytest>=8.3.4; extra == \"all\"`"
+      },
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "pandas/_version.py differs from pandas/_version.py in tag v3.0.5 (the same code apart from comments, formatting or the version)"
+      },
+      {
+       "rule_id": "source.not_in_sdist",
+       "level": "note",
+       "message": "2 files are in the wheel but not in the sdist: pandas/_version_meson.py, pandas/pyproject.toml (also not in the source of 3.0.3)"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "2 package files aren't in tag v3.0.5: pandas/_version_meson.py, pandas/pyproject.toml (also not in the source of 3.0.3)"
+      }
+     ],
+     "timings": {
+      "prefetch": 8.298,
+      "downloading": 2.427,
+      "provenance": 0.097,
+      "diffing": 0.042,
+      "source": 7.356,
+      "rules": 1.515
+     }
+    }
+   ],
+   "seconds": 21.021,
+   "cpu_seconds": 8.541,
+   "downloaded_bytes": 43905256
+  },
+  {
+   "package": "pathspec",
+   "rank": 22,
+   "from_version": "1.1.0",
+   "to_version": "1.1.1",
+   "published": "2026-04-27",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pathspec-1.1.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.102,
+      "provenance": 0.068,
+      "diffing": 0.006,
+      "source": 0.084,
+      "rules": 0.015
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pathspec-1.1.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.223,
+      "downloading": 0.07,
+      "provenance": 0.141,
+      "diffing": 0.007,
+      "source": 0.693,
+      "rules": 0.036
+     }
+    }
+   ],
+   "seconds": 1.558,
+   "cpu_seconds": 0.348,
+   "downloaded_bytes": 604749
+  },
+  {
+   "package": "s3transfer",
+   "rank": 23,
+   "from_version": "0.19.1",
+   "to_version": "0.19.2",
+   "published": "2026-07-22",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "s3transfer-0.19.2.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.051,
+      "provenance": 0.127,
+      "diffing": 0.002,
+      "source": 0.235,
+      "rules": 0.013
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "s3transfer-0.19.2-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.175,
+      "downloading": 0.059,
+      "provenance": 0.128,
+      "diffing": 0.004,
+      "source": 0.91,
+      "rules": 0.033
+     }
+    }
+   ],
+   "seconds": 1.835,
+   "cpu_seconds": 0.312,
+   "downloaded_bytes": 761496
+  },
+  {
+   "package": "filelock",
+   "rank": 24,
+   "from_version": "3.32.6",
+   "to_version": "3.32.7",
+   "published": "2026-09-16",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "filelock-3.32.7.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "src/filelock/version.py isn't in tag 3.32.7 (also not in the source of 3.32.6)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.099,
+      "provenance": 0.071,
+      "diffing": 0.008,
+      "source": 0.132,
+      "rules": 0.114
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "filelock-3.32.7-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "filelock/version.py isn't in tag 3.32.7 (also not in the source of 3.32.6)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.17,
+      "downloading": 0.067,
+      "provenance": 0.094,
+      "diffing": 0.004,
+      "source": 1.192,
+      "rules": 0.063
+     }
+    }
+   ],
+   "seconds": 2.14,
+   "cpu_seconds": 0.611,
+   "downloaded_bytes": 1767384
+  },
+  {
+   "package": "pillow",
+   "rank": 25,
+   "from_version": "12.2.0",
+   "to_version": "12.3.0",
+   "published": "2026-07-01",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pillow-12.3.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "check",
+       "message": "Added process calls in src/PIL/ImageShow.py: `os.startfile` (line 165)"
+      },
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "12.3.0 adds a dependency on `setuptools; extra == \"tests\"` for the `tests` extra"
+      },
+      {
+       "rule_id": "hooks.setup_py",
+       "level": "check",
+       "message": "setup.py, which runs when the sdist is built or installed, changed (lines 60, 530-535)"
+      },
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "note",
+       "message": "Added process calls in Tests/test_file_eps.py: `subprocess.check_output` (line 291)"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "12.3.0 no longer depends on `check-manifest` (check-manifest; extra == \"tests\" in 12.2.0)"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "12.3.0 no longer depends on `pyroma` (pyroma>=5; extra == \"tests\" in 12.2.0)"
+      }
+     ],
+     "timings": {
+      "downloading": 2.131,
+      "provenance": 0.152,
+      "diffing": 0.067,
+      "source": 1.081,
+      "rules": 0.817
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pillow-12.3.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.subprocess",
+       "level": "check",
+       "message": "Added process calls in PIL/ImageShow.py: `os.startfile` (line 165)"
+      },
+      {
+       "rule_id": "binaries.no_source",
+       "level": "check",
+       "message": "17 new compiled files have no matching source in the sdist: pillow.libs/libavif-8a7f9d56.so.16.4.2, pillow.libs/libbrotlicommon-53534446.so.1.2.0, pillow.libs/libbrotlidec-7e5462ba.so.1.2.0, pillow.libs/libfreetype-9fc94c80.so.6.20.6, pillow.libs/libharfbuzz-172d1f63.so.0.61421.0, and 12 more"
+      },
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "12.3.0 adds a dependency on `setuptools; extra == \"tests\"` for the `tests` extra"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "12.3.0 no longer depends on `check-manifest` (check-manifest; extra == \"tests\" in 12.2.0)"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "12.3.0 no longer depends on `pyroma` (pyroma>=5; extra == \"tests\" in 12.2.0)"
+      }
+     ],
+     "timings": {
+      "prefetch": 24.131,
+      "downloading": 1.741,
+      "provenance": 0.101,
+      "diffing": 0.033,
+      "source": 21.963,
+      "rules": 0.539
+     }
+    }
+   ],
+   "seconds": 53.203,
+   "cpu_seconds": 11.717,
+   "downloaded_bytes": 156286829
+  },
+  {
+   "package": "aiohttp",
+   "rank": 26,
+   "from_version": "3.14.2",
+   "to_version": "3.14.3",
+   "published": "2026-07-23",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "aiohttp-3.14.3.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.network",
+       "level": "note",
+       "message": "Added network calls in tests/test_client_functional.py: `aiohttp.ClientSession` (line 3721)"
+      },
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "2 package files differ from tag v3.14.3: aiohttp/_websocket/reader_c.py, requirements/pyproject.toml (also differed from the source of 3.14.2)"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "76 package files aren't in tag v3.14.3: aiohttp/_find_header.c, aiohttp/_headers.pxi, aiohttp/_http_parser.c, aiohttp/_http_writer.c, aiohttp/_websocket/mask.c, and 71 more (also not in the source of 3.14.2, or compiled from aiohttp/_http_parser.pyx by Cython, or compiled from aiohttp/_http_writer.pyx by Cython, or compiled from aiohttp/_websocket/mask.pyx by Cython, or in the git submodule vendor/llhttp, which GitHub's archives leave out)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.517,
+      "provenance": 0.932,
+      "diffing": 0.08,
+      "source": 0.793,
+      "rules": 0.247
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "aiohttp-3.14.3-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "aiohttp/_websocket/reader_c.py differs from aiohttp/_websocket/reader_c.py in tag v3.14.3 (also differed from the source of 3.14.2)"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "aiohttp/_headers.pxi isn't in tag v3.14.3 (also not in the source of 3.14.2)"
+      }
+     ],
+     "timings": {
+      "prefetch": 4.181,
+      "downloading": 0.322,
+      "provenance": 0.365,
+      "diffing": 0.007,
+      "source": 2.947,
+      "rules": 0.048
+     }
+    }
+   ],
+   "seconds": 11.042,
+   "cpu_seconds": 2.881,
+   "downloaded_bytes": 24323138
+  },
+  {
+   "package": "idna",
+   "rank": 27,
+   "from_version": "3.18",
+   "to_version": "3.19",
+   "published": "2026-08-18",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "idna-3.19.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "3.19 adds a dependency on `coverage>=7.10.0; extra == \"all\"` for the `all` extra"
+      },
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "3.19 adds a dependency on `hypothesis>=6.141.1; extra == \"all\"` for the `all` extra"
+      },
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "3.19 adds a dependency on `ty>=0.0.37; extra == \"all\"` for the `all` extra"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `ruff` requirement changed from `ruff>=0.6.2; extra == \"all\"` to `ruff>=0.16.0; extra == \"all\"`"
+      }
+     ],
+     "timings": {
+      "downloading": 0.054,
+      "provenance": 0.124,
+      "diffing": 0.046,
+      "source": 0.09,
+      "rules": 0.735
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "idna-3.19-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "3.19 adds a dependency on `coverage>=7.10.0; extra == \"all\"` for the `all` extra"
+      },
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "3.19 adds a dependency on `hypothesis>=6.141.1; extra == \"all\"` for the `all` extra"
+      },
+      {
+       "rule_id": "dependencies.added",
+       "level": "check",
+       "message": "3.19 adds a dependency on `ty>=0.0.37; extra == \"all\"` for the `all` extra"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `ruff` requirement changed from `ruff>=0.6.2; extra == \"all\"` to `ruff>=0.16.0; extra == \"all\"`"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.183,
+      "downloading": 0.054,
+      "provenance": 0.14,
+      "diffing": 0.027,
+      "source": 1.422,
+      "rules": 0.129
+     }
+    }
+   ],
+   "seconds": 3.105,
+   "cpu_seconds": 1.214,
+   "downloaded_bytes": 889894
+  },
+  {
+   "package": "propcache",
+   "rank": 28,
+   "from_version": "0.5.3",
+   "to_version": "0.5.4",
+   "published": "2026-09-16",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "propcache-0.5.4.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.05,
+      "provenance": 0.051,
+      "diffing": 0.004,
+      "source": 0.104,
+      "rules": 0.01
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "propcache-0.5.4-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.113,
+      "downloading": 0.023,
+      "provenance": 0.112,
+      "diffing": 0.005,
+      "source": 0.674,
+      "rules": 0.007
+     }
+    }
+   ],
+   "seconds": 1.338,
+   "cpu_seconds": 0.26,
+   "downloaded_bytes": 520401
+  },
+  {
+   "package": "pip",
+   "rank": 29,
+   "from_version": "26.2",
+   "to_version": "26.2.1",
+   "published": "2026-08-04",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pip-26.2.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.334,
+      "provenance": 0.739,
+      "diffing": 0.013,
+      "source": 0.265,
+      "rules": 0.028
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pip-26.2.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 1.749,
+      "downloading": 1.443,
+      "provenance": 0.169,
+      "diffing": 0.006,
+      "source": 4.534,
+      "rules": 0.03
+     }
+    }
+   ],
+   "seconds": 9.537,
+   "cpu_seconds": 2.911,
+   "downloaded_bytes": 17260984
+  },
+  {
+   "package": "fastapi",
+   "rank": 30,
+   "from_version": "0.141.0",
+   "to_version": "0.141.1",
+   "published": "2026-07-29",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "fastapi-0.141.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "pyproject.toml differs from pyproject.toml in tag 0.141.1 (not installed)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.909,
+      "provenance": 0.287,
+      "diffing": 0.015,
+      "source": 1.221,
+      "rules": 0.069
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "fastapi-0.141.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.306,
+      "downloading": 0.097,
+      "provenance": 0.15,
+      "diffing": 0.007,
+      "source": 5.892,
+      "rules": 0.088
+     }
+    }
+   ],
+   "seconds": 9.315,
+   "cpu_seconds": 3.598,
+   "downloaded_bytes": 19485352
+  },
+  {
+   "package": "pyasn1",
+   "rank": 31,
+   "from_version": "0.6.3",
+   "to_version": "0.6.4",
+   "published": "2026-07-09",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pyasn1-0.6.4.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.099,
+      "provenance": 0.159,
+      "diffing": 0.015,
+      "source": 0.257,
+      "rules": 0.163
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pyasn1-0.6.4-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.467,
+      "downloading": 0.071,
+      "provenance": 0.423,
+      "diffing": 0.006,
+      "source": 0.987,
+      "rules": 0.103
+     }
+    }
+   ],
+   "seconds": 3.118,
+   "cpu_seconds": 0.682,
+   "downloaded_bytes": 683103
+  },
+  {
+   "package": "aiosignal",
+   "rank": 32,
+   "from_version": "1.3.2",
+   "to_version": "1.4.0",
+   "published": "2025-07-03",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "aiosignal-1.4.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.038,
+      "provenance": 0.144,
+      "diffing": 0.009,
+      "source": 0.173,
+      "rules": 0.021
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "aiosignal-1.4.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "1.4.0 adds a dependency on `typing-extensions` only when python_version < \"3.13\""
+      }
+     ],
+     "timings": {
+      "prefetch": 0.098,
+      "downloading": 0.018,
+      "provenance": 0.177,
+      "diffing": 0.006,
+      "source": 0.955,
+      "rules": 0.017
+     }
+    }
+   ],
+   "seconds": 1.758,
+   "cpu_seconds": 0.242,
+   "downloaded_bytes": 171136
+  },
+  {
+   "package": "rpds-py",
+   "rank": 33,
+   "from_version": "2026.5.1",
+   "to_version": "2026.6.3",
+   "published": "2026-06-30",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "rpds_py-2026.6.3.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.023,
+      "provenance": 0.05,
+      "diffing": 0.003,
+      "source": 0.118,
+      "rules": 0.006
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "rpds_py-2026.6.3-cp315-cp315-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "rpds/__init__.py differs from tests/__init__.py in tag v2026.6.3 (also differed from the source of 2026.5.1)"
+      },
+      {
+       "rule_id": "source.not_in_sdist",
+       "level": "note",
+       "message": "2 files are in the wheel but not in the sdist: rpds/__init__.pyi, rpds/py.typed (also not in the source of 2026.5.1)"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "2 package files aren't in tag v2026.6.3: rpds/__init__.pyi, rpds/py.typed (also not in the source of 2026.5.1)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.252,
+      "downloading": 0.084,
+      "provenance": 0.092,
+      "diffing": 0.003,
+      "source": 0.848,
+      "rules": 0.005
+     }
+    }
+   ],
+   "seconds": 1.824,
+   "cpu_seconds": 0.419,
+   "downloaded_bytes": 1921500
+  },
+  {
+   "package": "aiohappyeyeballs",
+   "rank": 34,
+   "from_version": "2.6.2",
+   "to_version": "2.7.1",
+   "published": "2026-07-01",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "aiohappyeyeballs-2.7.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.02,
+      "provenance": 0.063,
+      "diffing": 0.004,
+      "source": 0.089,
+      "rules": 0.052
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "aiohappyeyeballs-2.7.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.1,
+      "downloading": 0.029,
+      "provenance": 0.143,
+      "diffing": 0.008,
+      "source": 0.657,
+      "rules": 0.014
+     }
+    }
+   ],
+   "seconds": 1.29,
+   "cpu_seconds": 0.248,
+   "downloaded_bytes": 261885
+  },
+  {
+   "package": "pytz",
+   "rank": 35,
+   "from_version": "2026.3",
+   "to_version": "2026.3.post1",
+   "published": "2026-07-25",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pytz-2026.3.post1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "pytz/__init__.py differs from src/pytz/__init__.py in commit 661bca921e29 (also differed from the source of 2026.3)"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "2 package files aren't in commit 661bca921e29: pytz/zoneinfo/leapseconds, pytz/zoneinfo/tzdata.zi (also not in the source of 2026.3)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.202,
+      "provenance": 0.059,
+      "diffing": 0.004,
+      "source": 0.127,
+      "rules": 0.025
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pytz-2026.3.post1-py2.py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "pytz/__init__.py differs from src/pytz/__init__.py in commit 661bca921e29 (also differed from the source of 2026.3)"
+      },
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "2 package files aren't in commit 661bca921e29: pytz/zoneinfo/leapseconds, pytz/zoneinfo/tzdata.zi (also not in the source of 2026.3)"
+      }
+     ],
+     "timings": {
+      "prefetch": 1.021,
+      "downloading": 0.387,
+      "provenance": 0.297,
+      "diffing": 0.01,
+      "source": 1.517,
+      "rules": 0.026
+     }
+    }
+   ],
+   "seconds": 3.946,
+   "cpu_seconds": 1.205,
+   "downloaded_bytes": 3231127
+  },
+  {
+   "package": "boto3",
+   "rank": 36,
+   "from_version": "1.43.95",
+   "to_version": "1.43.96",
+   "published": "2026-09-16",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "boto3-1.43.96.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.059,
+      "provenance": 0.186,
+      "diffing": 0.004,
+      "source": 0.272,
+      "rules": 0.016
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "boto3-1.43.96-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `botocore` requirement changed from `botocore<1.44.0,>=1.43.95; botocore[crt]<2.0a0,>=1.21.0; extra == \"crt\"` to `botocore<1.44.0,>=1.43.96; botocore[crt]<2.0a0,>=1.21.0; extra == \"crt\"`"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.222,
+      "downloading": 0.139,
+      "provenance": 0.158,
+      "diffing": 0.002,
+      "source": 1.583,
+      "rules": 0.015
+     }
+    }
+   ],
+   "seconds": 2.994,
+   "cpu_seconds": 0.696,
+   "downloaded_bytes": 2794809
+  },
+  {
+   "package": "rich",
+   "rank": 37,
+   "from_version": "14.3.4",
+   "to_version": "15.0.0",
+   "published": "2026-04-12",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "rich-15.0.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.061,
+      "provenance": 0.133,
+      "diffing": 0.004,
+      "source": 0.28,
+      "rules": 0.015
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "rich-15.0.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.354,
+      "downloading": 0.151,
+      "provenance": 0.13,
+      "diffing": 0.005,
+      "source": 5.576,
+      "rules": 0.065
+     }
+    }
+   ],
+   "seconds": 6.949,
+   "cpu_seconds": 1.358,
+   "downloaded_bytes": 16368943
+  },
+  {
+   "package": "referencing",
+   "rank": 38,
+   "from_version": "0.36.2",
+   "to_version": "0.37.0",
+   "published": "2025-10-13",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "referencing-0.37.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "309 package files aren't in tag v0.37.0: suite/.git, suite/.github/dependabot.yml, suite/.github/release.yml, suite/.github/workflows/ci.yml, suite/.markdownlint.jsonc, and 304 more (in the git submodule suite, which GitHub's archives leave out)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.166,
+      "provenance": 0.116,
+      "diffing": 0.007,
+      "source": 0.21,
+      "rules": 0.028
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "referencing-0.37.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.14,
+      "downloading": 0.036,
+      "provenance": 0.169,
+      "diffing": 0.006,
+      "source": 0.793,
+      "rules": 0.034
+     }
+    }
+   ],
+   "seconds": 1.869,
+   "cpu_seconds": 0.42,
+   "downloaded_bytes": 385930
+  },
+  {
+   "package": "pydantic-settings",
+   "rank": 39,
+   "from_version": "2.14.2",
+   "to_version": "2.15.0",
+   "published": "2026-08-07",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pydantic_settings-2.15.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "2.15.0 no longer depends on `types-boto3` (types-boto3[secretsmanager]; extra == \"aws-secrets-manager\" in 2.14.2)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.086,
+      "provenance": 0.059,
+      "diffing": 0.064,
+      "source": 0.088,
+      "rules": 0.363
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pydantic_settings-2.15.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "2.15.0 no longer depends on `types-boto3` (types-boto3[secretsmanager]; extra == \"aws-secrets-manager\" in 2.14.2)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.277,
+      "downloading": 0.072,
+      "provenance": 0.139,
+      "diffing": 0.024,
+      "source": 0.855,
+      "rules": 0.165
+     }
+    }
+   ],
+   "seconds": 2.32,
+   "cpu_seconds": 0.898,
+   "downloaded_bytes": 1015915
+  },
+  {
+   "package": "python-multipart",
+   "rank": 40,
+   "from_version": "0.0.31",
+   "to_version": "0.0.32",
+   "published": "2026-06-04",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "python_multipart-0.0.32.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.055,
+      "provenance": 0.052,
+      "diffing": 0.003,
+      "source": 0.08,
+      "rules": 0.029
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "python_multipart-0.0.32-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.104,
+      "downloading": 0.035,
+      "provenance": 0.15,
+      "diffing": 0.007,
+      "source": 0.69,
+      "rules": 0.028
+     }
+    }
+   ],
+   "seconds": 1.351,
+   "cpu_seconds": 0.285,
+   "downloaded_bytes": 381846
+  },
+  {
+   "package": "pyarrow",
+   "rank": 41,
+   "from_version": "25.0.0",
+   "to_version": "25.0.1",
+   "published": "2026-08-10",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pyarrow-25.0.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.132,
+      "provenance": 0.59,
+      "diffing": 0.022,
+      "source": 0.871,
+      "rules": 0.021
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pyarrow-25.0.1-cp314-cp314-manylinux_2_28_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_sdist",
+       "level": "note",
+       "message": "384 files are in the wheel but not in the sdist: pyarrow/include/arrow/acero/accumulation_queue.h, pyarrow/include/arrow/acero/aggregate_node.h, pyarrow/include/arrow/acero/asof_join_node.h, pyarrow/include/arrow/acero/backpressure_handler.h, pyarrow/include/arrow/acero/benchmark_util.h, and 379 more (also not in the source of 25.0.0)"
+      }
+     ],
+     "timings": {
+      "prefetch": 29.604,
+      "downloading": 8.484,
+      "provenance": 0.596,
+      "diffing": 0.024,
+      "source": 1.952,
+      "rules": 0.307
+     }
+    }
+   ],
+   "seconds": 42.951,
+   "cpu_seconds": 9.809,
+   "downloaded_bytes": 104591022
+  },
+  {
+   "package": "pyasn1-modules",
+   "rank": 42,
+   "from_version": "0.4.1",
+   "to_version": "0.4.2",
+   "published": "2025-03-28",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pyasn1_modules-0.4.2.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.158,
+      "provenance": 0.144,
+      "diffing": 0.002,
+      "source": 0.217,
+      "rules": 0.028
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pyasn1_modules-0.4.2-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `pyasn1` requirement changed from `pyasn1<0.7.0,>=0.4.6` to `pyasn1<0.7.0,>=0.6.1`"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.704,
+      "downloading": 0.155,
+      "provenance": 0.48,
+      "diffing": 0.003,
+      "source": 1.306,
+      "rules": 0.012
+     }
+    }
+   ],
+   "seconds": 3.56,
+   "cpu_seconds": 0.568,
+   "downloaded_bytes": 1328517
+  },
+  {
+   "package": "pyparsing",
+   "rank": 43,
+   "from_version": "3.3.1",
+   "to_version": "3.3.2",
+   "published": "2026-01-21",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "pyparsing-3.3.2.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.import_time_code",
+       "level": "note",
+       "message": "New module-level code in pyparsing/__init__.py runs at import: line 138 calls `version_info`"
+      }
+     ],
+     "timings": {
+      "downloading": 0.245,
+      "provenance": 0.139,
+      "diffing": 0.044,
+      "source": 0.914,
+      "rules": 0.245
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "pyparsing-3.3.2-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "behavior.import_time_code",
+       "level": "note",
+       "message": "New module-level code in pyparsing/__init__.py runs at import: line 138 calls `version_info`"
+      }
+     ],
+     "timings": {
+      "prefetch": 4.889,
+      "downloading": 0.063,
+      "provenance": 0.297,
+      "diffing": 0.02,
+      "source": 4.166,
+      "rules": 0.159
+     }
+    }
+   ],
+   "seconds": 11.434,
+   "cpu_seconds": 1.81,
+   "downloaded_bytes": 15587356
+  },
+  {
+   "package": "coverage",
+   "rank": 44,
+   "from_version": "7.16.0",
+   "to_version": "7.16.1",
+   "published": "2026-09-13",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "coverage-7.16.1.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "a1_coverage.pth isn't in tag 7.16.1 (also not in the source of 7.16.0)"
+      }
+     ],
+     "timings": {
+      "downloading": 1.36,
+      "provenance": 0.189,
+      "diffing": 0.025,
+      "source": 0.316,
+      "rules": 0.085
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "coverage-7.16.1-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.not_in_tag",
+       "level": "note",
+       "message": "a1_coverage.pth isn't in tag 7.16.1 (also not in the source of 7.16.0)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.768,
+      "downloading": 0.126,
+      "provenance": 0.236,
+      "diffing": 0.008,
+      "source": 2.512,
+      "rules": 0.057
+     }
+    }
+   ],
+   "seconds": 7.458,
+   "cpu_seconds": 2.316,
+   "downloaded_bytes": 5684766
+  },
+  {
+   "package": "psutil",
+   "rank": 45,
+   "from_version": "7.2.1",
+   "to_version": "7.2.2",
+   "published": "2026-01-28",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "psutil-7.2.2.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "7.2.2 adds a dependency on `colorama` only when os_name == \"nt\" and extra == \"dev\""
+      },
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "7.2.2 adds a dependency on `pyreadline3` only when os_name == \"nt\" and extra == \"dev\""
+      },
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "7.2.2 adds a dependency on `pywin32` only when (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"dev\"; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"test\""
+      },
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "7.2.2 adds a dependency on `wmi` only when (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"dev\"; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"test\""
+      },
+      {
+       "rule_id": "hooks.setup_py",
+       "level": "check",
+       "message": "setup.py, which runs when the sdist is built or installed, changed (lines 85-87, 113-114)"
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `wheel` requirement changed from `wheel; extra == \"dev\"` to `wheel; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"dev\"; wheel; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"test\"; wheel; extra == \"dev\"`"
+      },
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "2 package files differ from tag v7.2.2: HISTORY.rst, docs/index.rst (not installed)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.118,
+      "provenance": 0.388,
+      "diffing": 0.034,
+      "source": 0.739,
+      "rules": 0.114
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "high",
+       "message": "psutil/__init__.py differs from psutil/__init__.py in tag v7.2.2"
+      },
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "7.2.2 adds a dependency on `colorama` only when os_name == \"nt\" and extra == \"dev\""
+      },
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "7.2.2 adds a dependency on `pyreadline3` only when os_name == \"nt\" and extra == \"dev\""
+      },
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "7.2.2 adds a dependency on `pywin32` only when (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"dev\"; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"test\""
+      },
+      {
+       "rule_id": "dependencies.environment_specific",
+       "level": "check",
+       "message": "7.2.2 adds a dependency on `wmi` only when (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"dev\"; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"test\""
+      },
+      {
+       "rule_id": "dependencies.changed",
+       "level": "note",
+       "message": "The `wheel` requirement changed from `wheel; extra == \"dev\"` to `wheel; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"dev\"; wheel; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == \"test\"; wheel; extra == \"dev\"`"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.706,
+      "downloading": 0.065,
+      "provenance": 0.309,
+      "diffing": 0.009,
+      "source": 3.234,
+      "rules": 0.13
+     }
+    }
+   ],
+   "seconds": 6.274,
+   "cpu_seconds": 1.243,
+   "downloaded_bytes": 5631217
+  },
+  {
+   "package": "et-xmlfile",
+   "rank": 46,
+   "from_version": "1.1.0",
+   "to_version": "2.0.0",
+   "published": "2024-10-25",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "et_xmlfile-2.0.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "hooks.setup_py",
+       "level": "check",
+       "message": "setup.py, which runs when the sdist is built or installed, changed (lines 30, 40-45, 55-58)"
+      },
+      {
+       "rule_id": "timing.long_gap",
+       "level": "note",
+       "message": "2.0.0 came 1278 days after 1.1.0 (2021-04-26 to 2024-10-25)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.015,
+      "provenance": 0.227,
+      "diffing": 0.01,
+      "source": 0.469,
+      "rules": 0.017
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "et_xmlfile-2.0.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "timing.long_gap",
+       "level": "note",
+       "message": "2.0.0 came 1278 days after 1.1.0 (2021-04-26 to 2024-10-25)"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.144,
+      "downloading": 0.032,
+      "provenance": 0.125,
+      "diffing": 0.008,
+      "source": 0.009,
+      "rules": 0.024
+     }
+    }
+   ],
+   "seconds": 1.281,
+   "cpu_seconds": 0.196,
+   "downloaded_bytes": 45997
+  },
+  {
+   "package": "distro",
+   "rank": 47,
+   "from_version": "1.8.0",
+   "to_version": "1.9.0",
+   "published": "2023-12-24",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "distro-1.9.0.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "36 package files differ from tag v1.9.0: tests/resources/distros/altlinux10/etc/fedora-release, tests/resources/distros/altlinux10/etc/redhat-release, tests/resources/distros/altlinux10/etc/system-release, tests/resources/distros/arch/etc/os-release, tests/resources/distros/centos5/etc/redhat-release, and 31 more (not installed)"
+      }
+     ],
+     "timings": {
+      "downloading": 0.115,
+      "provenance": 0.23,
+      "diffing": 0.009,
+      "source": 0.529,
+      "rules": 0.069
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "distro-1.9.0-py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.287,
+      "downloading": 0.029,
+      "provenance": 0.32,
+      "diffing": 0.004,
+      "source": 1.324,
+      "rules": 0.031
+     }
+    }
+   ],
+   "seconds": 3.317,
+   "cpu_seconds": 0.511,
+   "downloaded_bytes": 242498
+  },
+  {
+   "package": "regex",
+   "rank": 48,
+   "from_version": "2026.9.3",
+   "to_version": "2026.9.10",
+   "published": "2026-09-09",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "regex-2026.9.10.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.093,
+      "provenance": 0.265,
+      "diffing": 0.025,
+      "source": 0.439,
+      "rules": 0.008
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "regex-2026.9.10-cp315-cp315-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 0.998,
+      "downloading": 0.165,
+      "provenance": 0.282,
+      "diffing": 0.003,
+      "source": 1.609,
+      "rules": 0.028
+     }
+    }
+   ],
+   "seconds": 4.724,
+   "cpu_seconds": 0.719,
+   "downloaded_bytes": 4122605
+  },
+  {
+   "package": "colorama",
+   "rank": 49,
+   "from_version": "0.4.5",
+   "to_version": "0.4.6",
+   "published": "2022-10-25",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "colorama-0.4.6.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "downloading": 0.023,
+      "provenance": 0.27,
+      "diffing": 0.014,
+      "source": 0.489,
+      "rules": 0.021
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "colorama-0.4.6-py2.py3-none-any.whl",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "build.backend_changed",
+       "level": "check",
+       "message": "0.4.6 was built by hatchling; 0.4.5 was built by setuptools"
+      }
+     ],
+     "timings": {
+      "prefetch": 0.181,
+      "downloading": 0.038,
+      "provenance": 0.31,
+      "diffing": 0.01,
+      "source": 1.096,
+      "rules": 0.036
+     }
+    }
+   ],
+   "seconds": 2.727,
+   "cpu_seconds": 0.329,
+   "downloaded_bytes": 254232
+  },
+  {
+   "package": "ruff",
+   "rank": 50,
+   "from_version": "0.16.7",
+   "to_version": "0.16.8",
+   "published": "2026-09-16",
+   "error": null,
+   "artifacts": [
+    {
+     "kind": "sdist",
+     "new_filename": "ruff-0.16.8.tar.gz",
+     "status": "done",
+     "error": null,
+     "signals": [
+      {
+       "rule_id": "source.differs_from_tag",
+       "level": "note",
+       "message": "34 package files differ from tag 0.16.8: README.md, crates/ruff_annotate_snippets/Cargo.toml, crates/ruff_cache/Cargo.toml, crates/ruff_db/Cargo.toml, crates/ruff_diagnostics/Cargo.toml, and 29 more (not installed)"
+      }
+     ],
+     "timings": {
+      "downloading": 3.258,
+      "provenance": 1.328,
+      "diffing": 0.253,
+      "source": 2.448,
+      "rules": 0.092
+     }
+    },
+    {
+     "kind": "wheel",
+     "new_filename": "ruff-0.16.8-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+     "status": "done",
+     "error": null,
+     "signals": [],
+     "timings": {
+      "prefetch": 22.885,
+      "downloading": 1.075,
+      "provenance": 0.164,
+      "diffing": 0.029,
+      "source": 24.572,
+      "rules": 0.011
+     }
+    }
+   ],
+   "seconds": 57.503,
+   "cpu_seconds": 10.137,
+   "downloaded_bytes": 46848895
+  }
+ ]
+}

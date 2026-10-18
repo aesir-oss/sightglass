@@ -14,7 +14,9 @@ from sightglass.storage import (
     LocalBlobStore,
     StoredBlob,
     blob_key,
+    catalog,
     record_blob,
+    record_blobs,
 )
 
 CONTENT = b"import os\nos.getenv('HOME')\n"
@@ -136,3 +138,25 @@ def test_record_blob_fills_missing_key_but_never_clears_one(db_session: Session)
     record_blob(db_session, StoredBlob(SHA, len(CONTENT), None))
 
     assert db_session.scalar(select(Blob.storage_key).where(Blob.sha256 == SHA)) == blob_key(SHA)
+
+
+@pytest.mark.integration
+def test_record_blobs_in_batches(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Many blobs are recorded a batch at a time; repeats are recorded once and a missing key is filled in."""
+    monkeypatch.setattr(catalog, "BATCH", 2)
+    shas = [f"{i:x}" * 64 for i in range(5)]
+    record_blobs(db_session, [StoredBlob(s, 1, None) for s in shas] + [StoredBlob(shas[0], 1, "kept/here")])
+    rows = {r.sha256: r.storage_key for r in db_session.scalars(select(Blob).where(Blob.sha256.in_(shas)))}
+    assert rows == {shas[0]: "kept/here", **{s: None for s in shas[1:]}}
+
+
+@pytest.mark.integration
+def test_put_hashed_stores_known_content(store: LocalBlobStore, tmp_path: Path) -> None:
+    """A file with a known hash is stored once without hashing it again; too-large content isn't stored."""
+    src = tmp_path / "extracted.py"
+    src.write_bytes(CONTENT)
+    stored = store.put_hashed(src, SHA, len(CONTENT))
+    assert stored == StoredBlob(SHA, len(CONTENT), blob_key(SHA))
+    assert store.read(SHA) == CONTENT
+    assert store.put_hashed(src, SHA, len(CONTENT)) == stored
+    assert store.put_hashed(src, "e" * 64, store.max_size + 1) == StoredBlob("e" * 64, store.max_size + 1, None)

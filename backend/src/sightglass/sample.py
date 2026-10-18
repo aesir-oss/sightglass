@@ -7,7 +7,9 @@ run`` analyzes every pair with the full pipeline and writes the signals by level
 
 import argparse
 import json
+import math
 import sys
+import time
 from collections import Counter
 from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
@@ -128,10 +130,59 @@ def analyze_pair(session: Session, services: Services, pair: SamplePair) -> dict
             "status": r.status,
             "error": r.error,
             "signals": [{k: s[k] for k in ("rule_id", "level", "message")} for s in r.signals],
+            "timings": {step: round(seconds, 3) for step, seconds in r.timings},
         }
         for r in results
     ]
     return {**asdict(pair), "error": None, "artifacts": artifacts}
+
+
+def percentile(values: Sequence[float], fraction: float) -> float:
+    """The value below which ``fraction`` of ``values`` fall, by the nearest-rank method."""
+    ordered = sorted(values)
+    return ordered[max(0, math.ceil(fraction * len(ordered)) - 1)]
+
+
+def _timing_section(records: Sequence[dict[str, Any]]) -> list[str]:
+    timed = [r for r in records if r.get("seconds") is not None and not r["error"]]
+    if not timed:
+        return []
+    seconds = [r["seconds"] for r in timed]
+    lines = [
+        "",
+        "## Time to analyze a release pair",
+        "",
+        "Wall time for both artifact pairs, as the worker runs them before a first page load, and how much of it is",
+        "downloading: CPU time is the work that doesn't depend on the network (measured when pairs run one at a time),",
+        "and the bytes are what a first load fetches from PyPI and GitHub.",
+        "",
+        f"- Pairs: {len(timed)}; wall p50 {percentile(seconds, 0.5):.1f} s, p95 {percentile(seconds, 0.95):.1f} s, "
+        f"max {max(seconds):.1f} s",
+    ]
+    if all(r.get("cpu_seconds") is not None for r in timed):
+        cpu = [r["cpu_seconds"] for r in timed]
+        lines.append(
+            f"- CPU: p50 {percentile(cpu, 0.5):.1f} s, p95 {percentile(cpu, 0.95):.1f} s, max {max(cpu):.1f} s"
+        )
+    if all(r.get("downloaded_bytes") is not None for r in timed):
+        mb = [r["downloaded_bytes"] / 1_000_000 for r in timed]
+        lines.append(
+            f"- Downloaded: p50 {percentile(mb, 0.5):.1f} MB, p95 {percentile(mb, 0.95):.1f} MB, max {max(mb):.1f} MB"
+        )
+    lines += ["", "| Slowest pairs | Seconds | CPU s | MB | Slowest step |", "|---|---|---|---|---|"]
+    for r in sorted(timed, key=lambda r: -r["seconds"])[:10]:
+        steps: dict[str, float] = {}
+        for a in r["artifacts"]:
+            for step, t in a.get("timings", {}).items():
+                steps[step] = steps.get(step, 0.0) + t
+        slowest = max(steps.items(), key=lambda i: i[1], default=("-", 0.0))
+        cpu_text = f"{r['cpu_seconds']:.1f}" if r.get("cpu_seconds") is not None else "-"
+        mb_text = f"{r['downloaded_bytes'] / 1_000_000:.1f}" if r.get("downloaded_bytes") is not None else "-"
+        lines.append(
+            f"| {r['package']} {r['from_version']} → {r['to_version']} | {r['seconds']:.1f} | {cpu_text} | "
+            f"{mb_text} | {slowest[0]} ({slowest[1]:.1f} s) |"
+        )
+    return lines
 
 
 def summarize(records: Sequence[dict[str, Any]], ruleset_version: str, name: str = DEFAULT_NAME) -> str:
@@ -165,6 +216,7 @@ def summarize(records: Sequence[dict[str, Any]], ruleset_version: str, name: str
             f"- {rec['package']} {rec['from_version']} → {rec['to_version']} ({a['kind']}): `{s['rule_id']}` {s['message']}"
             for rec, a, s in rows
         ] or ["None."]
+    lines += _timing_section(records)
     lines += ["", "## Pairs not fully analyzed", ""]
     lines += [
         f"- {rec['package']} {rec['from_version']} → {rec['to_version']}: "
@@ -179,12 +231,21 @@ def run(url: str, cache: Path, pairs: Sequence[SamplePair], jobs: int) -> list[d
     engine = make_engine(url)
 
     def one(pair: SamplePair) -> dict[str, Any]:
+        started, cpu = time.monotonic(), time.process_time()
+        services = Services.default(cache)
         try:
             with Session(engine) as session:
-                record = analyze_pair(session, Services.default(cache), pair)
+                record = analyze_pair(session, services, pair)
         except Exception as exc:  # A crash on one pair is a finding to report, not a reason to stop the run.
             log.exception("sample_pair_crashed", package=pair.package, to=pair.to_version)
             record = {**asdict(pair), "error": f"crashed: {type(exc).__name__}: {exc}", "artifacts": []}
+        # Both artifact pairs, as a worker runs them for a first page load. CPU time is the process's, so it only
+        # describes one pair when pairs run one at a time (--jobs 1).
+        record["seconds"] = round(time.monotonic() - started, 3)
+        record["cpu_seconds"] = round(time.process_time() - cpu, 3) if jobs == 1 else None
+        record["downloaded_bytes"] = sum(
+            f.received_bytes for f in (services.pypi.fetcher, services.integrity.fetcher, services.github.fetcher)
+        )
         for a in record["artifacts"]:
             for s in a["signals"]:
                 if s["level"] in ("high", "check"):

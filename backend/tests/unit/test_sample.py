@@ -3,6 +3,7 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -68,6 +69,12 @@ def test_select_keeps_count_and_skips_missing_packages() -> None:
     assert [p.rank for p in held_out] == [4, 5]
 
 
+_FETCHER = SimpleNamespace(received_bytes=1_500_000)
+FAKE_SERVICES = SimpleNamespace(
+    pypi=SimpleNamespace(fetcher=_FETCHER),
+    integrity=SimpleNamespace(fetcher=_FETCHER),
+    github=SimpleNamespace(fetcher=_FETCHER),
+)
 PAIR = sample.SamplePair("orbit-client", 1, "2.4.1", "2.5.0", "2026-09-01")
 SIGNAL = {"rule_id": "behavior.network", "level": "high", "message": "New network call", "evidence": {}}
 
@@ -153,7 +160,7 @@ def test_run_keeps_sample_order_and_disposes_the_engine(monkeypatch: pytest.Monk
     disposed: list[bool] = []
     engine = type("E", (), {"dispose": lambda self: disposed.append(True)})()
     monkeypatch.setattr(sample, "make_engine", lambda url: engine)
-    monkeypatch.setattr(Services, "default", classmethod(lambda cls, cache: None))
+    monkeypatch.setattr(Services, "default", classmethod(lambda cls, cache: FAKE_SERVICES))
     signal = {"rule_id": "names.lookalike", "level": "check", "message": "m"}
     monkeypatch.setattr(
         sample,
@@ -169,7 +176,7 @@ def test_run_records_a_crash_and_carries_on(monkeypatch: pytest.MonkeyPatch, tmp
     """An unexpected exception on one pair is recorded as that pair's error."""
     engine = type("E", (), {"dispose": lambda self: None})()
     monkeypatch.setattr(sample, "make_engine", lambda url: engine)
-    monkeypatch.setattr(Services, "default", classmethod(lambda cls, cache: None))
+    monkeypatch.setattr(Services, "default", classmethod(lambda cls, cache: FAKE_SERVICES))
 
     def boom(*a: Any) -> dict[str, Any]:
         raise UnicodeEncodeError("utf-8", "x", 0, 1, "surrogates not allowed")
@@ -177,3 +184,38 @@ def test_run_records_a_crash_and_carries_on(monkeypatch: pytest.MonkeyPatch, tmp
     monkeypatch.setattr(sample, "analyze_pair", boom)
     [record] = sample.run("postgresql://x", tmp_path, [PAIR], 1)
     assert record["error"].startswith("crashed: UnicodeEncodeError") and record["artifacts"] == []
+    assert record["downloaded_bytes"] == 4_500_000 and record["cpu_seconds"] is not None
+
+
+def test_percentile_nearest_rank() -> None:
+    """p50 and p95 by nearest rank; one value is every percentile."""
+    values = [float(v) for v in range(1, 21)]
+    assert (sample.percentile(values, 0.5), sample.percentile(values, 0.95)) == (10.0, 19.0)
+    assert sample.percentile([3.0], 0.95) == 3.0
+
+
+def test_report_includes_time_to_analyze() -> None:
+    """Timed pairs get p50, p95 and the slowest pairs with their slowest step; failed pairs aren't timed."""
+    timed = [
+        {
+            **PAIR.__dict__,
+            "package": f"p{i}",
+            "error": None,
+            "seconds": float(i),
+            "artifacts": [{"kind": "wheel", "status": "done", "error": None, "signals": [],
+                           "timings": {"downloading": i * 0.75, "rules": i * 0.25}}],
+        }
+        for i in range(1, 21)
+    ]  # fmt: skip
+    failed = {**PAIR.__dict__, "error": "gone", "seconds": 99.0, "artifacts": []}
+    report = sample.summarize([*timed, failed], "rs-1")
+    assert "- Pairs: 20; wall p50 10.0 s, p95 19.0 s, max 20.0 s" in report
+    assert "| p20 2.4.1 → 2.5.0 | 20.0 | - | - | downloading (15.0 s) |" in report
+    measured = [
+        {**r, "cpu_seconds": r["seconds"] / 2, "downloaded_bytes": int(r["seconds"] * 1_000_000)} for r in timed
+    ]
+    report = sample.summarize(measured, "rs-1")
+    assert "- CPU: p50 5.0 s, p95 9.5 s, max 10.0 s" in report
+    assert "- Downloaded: p50 10.0 MB, p95 19.0 MB, max 20.0 MB" in report
+    assert "| p20 2.4.1 → 2.5.0 | 20.0 | 10.0 | 20.0 | downloading (15.0 s) |" in report
+    assert "## Time to analyze" not in sample.summarize([failed], "rs-1")

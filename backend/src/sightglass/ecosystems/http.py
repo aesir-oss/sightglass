@@ -1,6 +1,7 @@
 """HTTP fetching shared by the index and source host clients: allowed hosts, conditional requests, retries."""
 
 import random
+import threading
 import time
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack, contextmanager
@@ -145,6 +146,13 @@ class Fetcher:
         self.backoff = backoff
         self.max_backoff = max_backoff
         self._sleep = sleep
+        self._received = 0
+        self._lock = threading.Lock()
+
+    @property
+    def received_bytes(self) -> int:
+        """Bytes of response bodies read through this fetcher so far, across threads."""
+        return self._received
 
     def get_bytes(self, url: str, max_size: int, accept: str | None = None) -> bytes:
         """Fetch a whole response body, revalidating a cached copy when possible.
@@ -214,7 +222,11 @@ class Fetcher:
                     status = response.status_code
                     if status == 200 or (status == 304 and allow_not_modified):
                         # Errors raised while the caller reads the body propagate; only opening is retried.
-                        yield response
+                        try:
+                            yield response
+                        finally:
+                            with self._lock:
+                                self._received += response.num_bytes_downloaded
                         return
                     if status in (404, 410):
                         raise NotFoundError(f"{url} returned {status}")

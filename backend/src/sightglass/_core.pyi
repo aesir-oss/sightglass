@@ -1,5 +1,6 @@
 """Type stubs for the Rust extension module built from crates/sightglass-py."""
 
+from collections.abc import Collection
 from os import PathLike
 from typing import Final, Literal, final
 
@@ -107,11 +108,15 @@ def index_archive(path: str | PathLike[str], limits: Limits | None = None) -> li
     """
 
 def extract_archive(
-    path: str | PathLike[str], dest: str | PathLike[str], limits: Limits | None = None
+    path: str | PathLike[str],
+    dest: str | PathLike[str],
+    limits: Limits | None = None,
+    only: Collection[str] | None = None,
 ) -> list[ArchiveEntry]:
     """Extract an archive into ``dest``, which must not exist yet, and return its index.
 
-    Only regular files and directories are written. On any error, ``dest`` is removed.
+    Only regular files and directories are written; with ``only``, just the files at those paths, though every entry
+    is still checked, hashed and returned. On any error, ``dest`` is removed.
 
     Raises:
         UnsafeArchiveError: If the archive is refused.

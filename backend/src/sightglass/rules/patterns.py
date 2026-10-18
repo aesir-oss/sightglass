@@ -6,6 +6,7 @@ through the module's imports, so ``from subprocess import run`` then ``run(...)`
 """
 
 import ast
+import functools
 import hashlib
 import re
 from collections import Counter
@@ -125,17 +126,27 @@ def _call_matches(tree: ast.Module, wanted: Callable[[str], bool]) -> list[Match
     return found
 
 
+def _compact(value: str | bytes) -> bytes:
+    # surrogatepass: a literal like "\\udce2" is valid Python but not encodable UTF-8.
+    raw = value.encode("utf-8", "surrogatepass") if isinstance(value, str) else value
+    return re.sub(rb"\s+", b"", raw)
+
+
+def _is_encoded(value: str | bytes) -> bool:
+    if len(value) < ENCODED_MIN_LENGTH:
+        return False
+    compact = _compact(value)
+    return len(compact) >= ENCODED_MIN_LENGTH and bool(_ENCODED_RE.match(compact.decode("ascii", "replace")))
+
+
 def _encoded(tree: ast.Module) -> list[Match]:
     found = []
     for node in ast.walk(tree):
-        if isinstance(node, ast.Constant) and isinstance(node.value, str | bytes):
-            # surrogatepass: a literal like "\\udce2" is valid Python but not encodable UTF-8.
-            raw = node.value.encode("utf-8", "surrogatepass") if isinstance(node.value, str) else node.value
-            compact = re.sub(rb"\s+", b"", raw)
-            if len(compact) >= ENCODED_MIN_LENGTH and _ENCODED_RE.match(compact.decode("ascii", "replace")):
-                key = hashlib.sha256(compact).hexdigest()
-                lines = range(node.lineno, (node.end_lineno or node.lineno) + 1)
-                found.append(Match(f"a {len(compact)}-character encoded string", key, lines))
+        if isinstance(node, ast.Constant) and isinstance(node.value, str | bytes) and _is_encoded(node.value):
+            compact = _compact(node.value)
+            key = hashlib.sha256(compact).hexdigest()
+            lines = range(node.lineno, (node.end_lineno or node.lineno) + 1)
+            found.append(Match(f"a {len(compact)}-character encoded string", key, lines))
     return found
 
 
@@ -143,20 +154,26 @@ def _decode_calls(tree: ast.Module) -> list[Match]:
     return _call_matches(tree, _DECODE_NAMES.__contains__) + _encoded(tree)
 
 
+@functools.lru_cache(maxsize=1024)
+def _matches(tree: ast.Module, finder: Callable[[ast.Module], list[Match]]) -> tuple[Match, ...]:
+    """A finder's matches in a tree, cached: the old and new file are each read by every pattern rule."""
+    return tuple(finder(tree))
+
+
 def _new_matches(analysis: PairAnalysis, pair: FilePair, finder: Callable[[ast.Module], list[Match]]) -> list[Match]:
     """Matches on added lines whose key occurs more often than in the old file."""
     text = analysis.new_text.get(pair.path)
     added = pyast.added_lines(analysis, pair)
-    if text is None or not added or (tree := pyast.parse(text, pair.path)) is None:
+    if text is None or not added or (tree := pyast.parsed(text, pair.path)) is None:
         return []
-    candidates = [m for m in finder(tree) if not added.isdisjoint(m.lines)]
+    candidates = [m for m in _matches(tree, finder) if not added.isdisjoint(m.lines)]
     if not candidates:
         return []
     before: Counter[str] = Counter()
     old_text = analysis.old_text.get(pair.path) if pair.status == "changed" else None
-    if old_text is not None and (old_tree := pyast.parse(old_text, pair.path)) is not None:
-        before.update(m.key for m in finder(old_tree))
-    after = Counter(m.key for m in finder(tree))
+    if old_text is not None and (old_tree := pyast.parsed(old_text, pair.path)) is not None:
+        before.update(m.key for m in _matches(old_tree, finder))
+    after = Counter(m.key for m in _matches(tree, finder))
     return [m for m in candidates if after[m.key] > before[m.key]]
 
 
@@ -199,11 +216,11 @@ def risky_added(analysis: PairAnalysis, pair: FilePair) -> bool:
     """Whether the lines this release added to a Python file make a network, subprocess, exec or decoding call."""
     text = analysis.new_text.get(pair.path)
     added = pyast.added_lines(analysis, pair)
-    if text is None or (tree := pyast.parse(text, pair.path)) is None:
+    if text is None or (tree := pyast.parsed(text, pair.path)) is None:
         return True  # Unknown counts as risky: the hook still runs.
     if added is None:
         return True
-    return any(not added.isdisjoint(m.lines) for finder in FINDERS.values() for m in finder(tree))
+    return any(not added.isdisjoint(m.lines) for finder in FINDERS.values() for m in _matches(tree, finder))
 
 
 def capabilities(sources: Iterable[tuple[str, bytes]]) -> frozenset[str]:
@@ -220,10 +237,28 @@ def capabilities(sources: Iterable[tuple[str, bytes]]) -> frozenset[str]:
         if len(found) == len(FINDERS) or not _PREFILTER.search(data):
             continue
         text = data.decode("utf-8", "replace")
-        if (tree := pyast.parse(text, path)) is None:
-            continue
-        found.update(rule_id for rule_id, finder in FINDERS.items() if rule_id not in found and finder(tree))
+        if (tree := pyast.parse(text, path)) is not None:
+            found |= _kinds_in(tree)
     return frozenset(found)
+
+
+def _kinds_in(tree: ast.Module) -> set[str]:
+    """The pattern rules a module has a match for, in one walk of its tree (the finders take one walk each)."""
+    names = pyast.aliases(tree)
+    kinds: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and (name := pyast.qualified_name(node.func, names)) is not None:
+            if name in _NETWORK_NAMES:
+                kinds.add("behavior.network")
+            elif _SUBPROCESS_RE.match(name):
+                kinds.add("behavior.subprocess")
+            elif name in _EXEC_NAMES:
+                kinds.add("behavior.dynamic_exec")
+            elif name in _DECODE_NAMES:
+                kinds.add("behavior.encoded_payload")
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str | bytes) and _is_encoded(node.value):
+            kinds.add("behavior.encoded_payload")
+    return kinds
 
 
 def _level(analysis: PairAnalysis, rule_id: str, path: str) -> Level:

@@ -4,6 +4,7 @@ Code is only parsed with :func:`ast.parse`, never compiled, imported or run.
 """
 
 import ast
+import functools
 from collections.abc import Iterable, Iterator
 
 from sightglass.log import get_logger
@@ -29,11 +30,18 @@ def parse(text: str, path: str) -> ast.Module | None:
         return None
 
 
+@functools.lru_cache(maxsize=256)
+def parsed(text: str, path: str) -> ast.Module | None:
+    """:func:`parse`, cached: several rules read the same changed file. The tree is shared, so don't change it."""
+    return parse(text, path)
+
+
+@functools.lru_cache(maxsize=1024)
 def aliases(tree: ast.Module) -> dict[str, str]:
     """Map each name the module's imports bind to the qualified name it refers to.
 
     ``import urllib.request as r`` maps ``r`` to ``urllib.request``; ``from subprocess import run`` maps ``run`` to
-    ``subprocess.run``. Relative imports keep their dots.
+    ``subprocess.run``. Relative imports keep their dots. Cached per tree; don't change the result.
     """
     names: dict[str, str] = {}
     for node in ast.walk(tree):
