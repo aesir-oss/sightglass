@@ -1,12 +1,13 @@
 // Page routes mirror the API paths without /api.
 import type { RouteObject } from "react-router";
+import { ErrorPage } from "./pages/ErrorPage";
 import { HomePage } from "./pages/HomePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PackagePage } from "./pages/PackagePage";
 import { ReleaseDiffPage } from "./pages/ReleaseDiffPage";
 import { ReviewPage } from "./pages/ReviewPage";
 
-export const routes: RouteObject[] = [
+const pages: RouteObject[] = [
   { path: "/", element: <HomePage /> },
   // A pull request's lockfile review.
   { path: "/reviews/:owner/:repo/:number", element: <ReviewPage /> },
@@ -16,3 +17,6 @@ export const routes: RouteObject[] = [
   { path: "/:ecosystem/:package/:versions", element: <ReleaseDiffPage /> },
   { path: "*", element: <NotFoundPage /> },
 ];
+
+// A page that throws while rendering shows the error page rather than React Router's developer screen.
+export const routes: RouteObject[] = pages.map((route) => ({ ...route, errorElement: <ErrorPage /> }));

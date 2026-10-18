@@ -133,14 +133,29 @@ def preferred_sdist(release: PypiRelease) -> PypiFile | None:
     return min(sdists, key=lambda f: (not f.filename.endswith(".tar.gz"), f.filename), default=None)
 
 
+def _cpython(wheel: _Wheel) -> int:
+    return max((int(m.group(2)) for t in wheel.tags if (m := _CPYTHON_RE.match(t.interpreter))), default=0)
+
+
+def _free_threaded(wheel: _Wheel) -> bool:
+    return any(t.abi.startswith("cp") and t.abi.endswith("t") for t in wheel.tags)
+
+
+def _closeness(old: _Wheel, new: _Wheel) -> tuple[bool, int, str]:
+    """How well an old wheel stands in for a new one: same free-threading build, then the nearest CPython."""
+    return (_free_threaded(old) != _free_threaded(new), abs(_cpython(old) - _cpython(new)), old.file.filename)
+
+
 def _wheel_pairs(old: list[_Wheel], new: list[_Wheel]) -> list[ArtifactPair]:
-    ranked: list[tuple[tuple[int, int, int, int, str], ArtifactPair]] = []
+    """One pair per new wheel, best first: an old wheel with a shared tag, else the closest one for the platform."""
+    ranked: list[tuple[tuple[int, int, int, int, str], tuple[bool, int, str], ArtifactPair]] = []
     exact_old: set[str] = set()
     exact_new: set[str] = set()
     for n in new:
         for o in old:
             if o.tags & n.tags:
-                ranked.append((_rank(pair := ArtifactPair("wheel", o.file, n.file), n), pair))
+                pair = ArtifactPair("wheel", o.file, n.file)
+                ranked.append((_rank(pair, n), _closeness(o, n), pair))
                 exact_old.add(o.file.filename)
                 exact_new.add(n.file.filename)
     for n in new:
@@ -149,9 +164,14 @@ def _wheel_pairs(old: list[_Wheel], new: list[_Wheel]) -> list[ArtifactPair]:
         for o in old:
             if o.file.filename not in exact_old and o.platforms & n.platforms:
                 pair = ArtifactPair("wheel", o.file, n.file, "platform_changed")
-                ranked.append((_rank(pair, n), pair))
-    ranked.sort(key=lambda r: (r[0], r[1].old.filename))
-    return [pair for _, pair in ranked]
+                ranked.append((_rank(pair, n), _closeness(o, n), pair))
+    ranked.sort(key=lambda r: (r[0], r[1]))
+    # A new wheel can match several old ones (cp315 and cp315t for one cp310 wheel); the picker and `?wheel=` name a
+    # pair by its new wheel, so each keeps only its best match.
+    pairs: dict[str, ArtifactPair] = {}
+    for _, _, pair in ranked:
+        pairs.setdefault(pair.new.filename, pair)
+    return list(pairs.values())
 
 
 def select_artifacts(old: PypiRelease, new: PypiRelease) -> Selection:
