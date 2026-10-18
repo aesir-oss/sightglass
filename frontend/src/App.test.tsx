@@ -36,7 +36,7 @@ function renderAt(path: string) {
 
 test("the start page navigates to the pair the user asks for", () => {
   const router = renderAt("/");
-  expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Sightglass");
+  expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("See what you’re merging.");
   fireEvent.change(screen.getByLabelText(/PyPI package/), { target: { value: " orbit-client " } });
   fireEvent.change(screen.getByLabelText(/Releases/), { target: { value: "2.4.1...2.5.0" } });
   fireEvent.click(screen.getByRole("button", { name: "Compare" }));
@@ -152,5 +152,5 @@ test("unknown paths get the not-found page", () => {
 test("the app builds its own router and query client when none are given", () => {
   window.history.pushState({}, "", "/");
   render(<App />);
-  expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Sightglass");
+  expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("See what you’re merging.");
 });
