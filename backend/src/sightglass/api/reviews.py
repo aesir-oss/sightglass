@@ -5,7 +5,8 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.orm import Session, aliased
 
 from sightglass.api.deps import get_session
@@ -64,6 +65,28 @@ class Review(BaseModel):
     changes: list[ReviewChangeOut]
 
 
+class ReviewSummary(BaseModel):
+    """A pull request's latest review, for the list of reviews."""
+
+    repository: str
+    number: int
+    head_sha: str
+    lockfile_path: str
+    created_at: datetime
+    # Changes by kind: added, changed, removed.
+    counts: dict[str, int]
+
+
+class ReviewList(BaseModel):
+    """The most recently reviewed pull requests, newest first."""
+
+    reviews: list[ReviewSummary]
+
+
+# The most pull requests the list shows.
+LIST_LIMIT = 200
+
+
 def _analysis(session: Session, change: models.ReviewChange) -> ChangeAnalysis:
     """The state of the analyses of ``compare_from`` to ``to_version``, from the database alone."""
     if change.ecosystem != "pypi" or change.compare_from is None or change.to_version is None:
@@ -103,6 +126,46 @@ _KIND = {"added": 0, "changed": 1, "removed": 2}
 def _rank(change: ReviewChangeOut) -> tuple[int, int, str]:
     key = change.analysis.level if change.analysis.state == "done" and change.analysis.level else change.analysis.state
     return (_RANK[key], _KIND[change.kind], change.package)
+
+
+@router.get("/api/reviews", operation_id="listReviews")
+def list_reviews(response: Response, session: Annotated[Session, Depends(get_session)]) -> ReviewList:
+    """Each pull request's latest review, newest first."""
+    latest = (
+        select(models.Review)
+        .ext(distinct_on(models.Review.repository, models.Review.pull_number))
+        .order_by(
+            models.Review.repository,
+            models.Review.pull_number,
+            models.Review.created_at.desc(),
+            models.Review.id.desc(),
+        )
+        .subquery()
+    )
+    review = aliased(models.Review, latest)
+    rows = list(session.scalars(select(review).order_by(review.created_at.desc(), review.id.desc()).limit(LIST_LIMIT)))
+    counts: dict[int, dict[str, int]] = {r.id: {} for r in rows}
+    for review_id, kind, count in session.execute(
+        select(models.ReviewChange.review_id, models.ReviewChange.kind, func.count())
+        .where(models.ReviewChange.review_id.in_(counts))
+        .group_by(models.ReviewChange.review_id, models.ReviewChange.kind)
+    ):
+        counts[review_id][kind] = count
+    # New reviews appear as they are recorded.
+    response.headers["Cache-Control"] = "no-store"
+    return ReviewList(
+        reviews=[
+            ReviewSummary(
+                repository=r.repository,
+                number=r.pull_number,
+                head_sha=r.head_sha,
+                lockfile_path=r.lockfile_path,
+                created_at=r.created_at,
+                counts=counts[r.id],
+            )
+            for r in rows
+        ]
+    )
 
 
 @router.get(

@@ -19,3 +19,5 @@ export type DiffLine = components["schemas"]["DiffLine"];
 export type SdistCheck = components["schemas"]["SdistCheck"];
 export type Review = components["schemas"]["Review"];
 export type ReviewChange = components["schemas"]["ReviewChangeOut"];
+export type ReviewList = components["schemas"]["ReviewList"];
+export type ReviewSummary = components["schemas"]["ReviewSummary"];

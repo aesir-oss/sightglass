@@ -1,5 +1,5 @@
 import { useState, type ReactNode, type SubmitEvent } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ReleaseExample, SignalList, type ExampleSignal } from "../home/ReleaseExample";
 import { ThemeSwitch } from "../ThemeSwitch";
 import "../home/home.css";
@@ -224,6 +224,7 @@ export function HomePage() {
           <a href="#why">Why</a>
           <a href="#how">How it works</a>
           <a href="#results">Results</a>
+          <Link to="/reviews">Reviews</Link>
           <a href={REPO}>GitHub</a>
         </nav>
         <ThemeSwitch />

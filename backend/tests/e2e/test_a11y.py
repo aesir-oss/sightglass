@@ -14,6 +14,7 @@ PAGES = {
     "pair": PAIR,
     "pair, a file selected": f"{PAIR}?file=orbit%2Ftelemetry.py",
     "review": REVIEW,
+    "reviews": "/reviews",
 }
 
 

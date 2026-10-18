@@ -1070,6 +1070,66 @@
         "title": "ReviewChangeOut",
         "type": "object"
       },
+      "ReviewList": {
+        "description": "The most recently reviewed pull requests, newest first.",
+        "properties": {
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewSummary"
+            },
+            "title": "Reviews",
+            "type": "array"
+          }
+        },
+        "required": [
+          "reviews"
+        ],
+        "title": "ReviewList",
+        "type": "object"
+      },
+      "ReviewSummary": {
+        "description": "A pull request's latest review, for the list of reviews.",
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "head_sha": {
+            "title": "Head Sha",
+            "type": "string"
+          },
+          "lockfile_path": {
+            "title": "Lockfile Path",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          }
+        },
+        "required": [
+          "repository",
+          "number",
+          "head_sha",
+          "lockfile_path",
+          "created_at",
+          "counts"
+        ],
+        "title": "ReviewSummary",
+        "type": "object"
+      },
       "SdistCheck": {
         "description": "The wheel compared with the release's sdist.",
         "properties": {
@@ -1371,6 +1431,25 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/reviews": {
+      "get": {
+        "description": "Each pull request's latest review, newest first.",
+        "operationId": "listReviews",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Reviews"
       }
     },
     "/api/reviews/{owner}/{repo}/{number}": {

@@ -21,6 +21,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/reviews": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Reviews
+     * @description Each pull request's latest review, newest first.
+     */
+    get: operations["listReviews"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/reviews/{owner}/{repo}/{number}": {
     parameters: {
       query?: never;
@@ -536,6 +556,37 @@ export interface components {
       to_version: string | null;
     };
     /**
+     * ReviewList
+     * @description The most recently reviewed pull requests, newest first.
+     */
+    ReviewList: {
+      /** Reviews */
+      reviews: components["schemas"]["ReviewSummary"][];
+    };
+    /**
+     * ReviewSummary
+     * @description A pull request's latest review, for the list of reviews.
+     */
+    ReviewSummary: {
+      /** Counts */
+      counts: {
+        [key: string]: number;
+      };
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Head Sha */
+      head_sha: string;
+      /** Lockfile Path */
+      lockfile_path: string;
+      /** Number */
+      number: number;
+      /** Repository */
+      repository: string;
+    };
+    /**
      * SdistCheck
      * @description The wheel compared with the release's sdist.
      */
@@ -658,6 +709,26 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Health"];
+        };
+      };
+    };
+  };
+  listReviews: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReviewList"];
         };
       };
     };

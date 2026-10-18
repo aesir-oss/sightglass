@@ -1,6 +1,14 @@
 // TanStack Query hooks for the API. A pending pair is polled until its analysis is done.
 import { QueryClient, useQuery } from "@tanstack/react-query";
-import { ApiError, fetchFileDiff, fetchPairAnalysis, fetchReleaseHistory, fetchReview, type Artifact } from "./client";
+import {
+  ApiError,
+  fetchFileDiff,
+  fetchPairAnalysis,
+  fetchReleaseHistory,
+  fetchReview,
+  fetchReviews,
+  type Artifact,
+} from "./client";
 import type { Review } from "./types";
 
 export const POLL_MS = 3000;
@@ -55,6 +63,10 @@ export function useFileDiff(
 /** Poll every POLL_MS while any change's analysis is still pending. */
 export function pollWhileAnalyzing(data: Review | undefined): number | false {
   return data?.changes.some((c) => c.analysis.state === "pending") ? POLL_MS : false;
+}
+
+export function useReviews() {
+  return useQuery({ queryKey: ["reviews"], queryFn: fetchReviews });
 }
 
 export function useReview(owner: string, repo: string, number: number) {

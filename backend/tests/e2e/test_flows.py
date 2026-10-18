@@ -171,3 +171,17 @@ def test_review_queue_with_keyboard_and_platform_filter(page: Page, viewport: st
     expect(detail).to_contain_text("not every platform the environment resolves")
     page.get_by_role("button", name="osx-arm64").click()
     expect(options).to_have_count(1)
+
+
+@pytest.mark.e2e
+def test_reviews_are_reached_from_the_start_page(page: Page) -> None:
+    """The start page links to the reviews list, which links to each review and back."""
+    page.goto("/")
+    page.get_by_role("navigation", name="Sections").get_by_role("link", name="Reviews").click()
+    expect(page).to_have_url(re.compile(r"/reviews$"))
+    reviews = page.get_by_role("list", name="Reviews")
+    expect(reviews.get_by_role("listitem")).to_have_count(1)
+    reviews.get_by_role("link", name="kestrel-weather/orbit #7").click()
+    expect(page.get_by_role("listbox", name="Package changes")).to_be_visible()
+    page.get_by_role("navigation", name="Breadcrumb").get_by_role("link", name="Reviews").click()
+    expect(page).to_have_url(re.compile(r"/reviews$"))
