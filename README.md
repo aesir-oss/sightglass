@@ -1,17 +1,31 @@
-# Sightglass
+# Project: Sightglass
 
 [![CI](https://github.com/aesir-oss/sightglass/actions/workflows/ci.yml/badge.svg)](https://github.com/aesir-oss/sightglass/actions/workflows/ci.yml)
 
-See what a package release actually ships.
+**See what you're merging.**
 
-Sightglass compares the files people install from a package index with the previous release and with the project's
-git tag, and shows the differences that matter for supply chain security: a dropped attestation, files that aren't in
-the source, new code that runs on import. Later, a GitHub App brings the same view into pull requests that update a
-lockfile.
+Dependency updates get approved on a version number. Sightglass shows what the release actually contains, compared
+with the previous release and with the git tag it claims to come from, before you merge.
 
-Status: early development. The Python backend, its Rust core and the React frontend are scaffolded; nothing runs yet.
+It compares the files people install from a package index and reports the differences that matter for supply chain
+security: a dropped attestation, a change of publisher, files that aren't in the source, new code that runs on import.
+Later, a GitHub App brings the same view into pull requests that update a lockfile.
+
+- **Evidence, not alarms.** Every signal is an observation with its file, line or attestation field attached. It never
+  labels a package safe or malicious; a reviewer decides.
+- **Checked against the source.** Each file in the wheel is compared with the git tag and the sdist.
+- **Provenance over time.** The release history shows who published each release and whether it was attested.
+- **Never runs package code.** It only reads archives and text.
+- **Open and linkable.** Every comparison is a stable URL anyone can open, and the whole service can be self-hosted.
+
+It isn't a vulnerability scanner: no CVE database, and it works alongside OSV, Grype and dependency review.
+
+Status: phase 1, the release diff for PyPI. The analysis engine runs locally (see [Quick start](#quick-start)) and
+`pixi run dev` serves the release diff page; there is no public instance yet. The rules are tuned against 600 routine
+release pairs of popular packages ([research](docs/research/)).
 
 - [Design](docs/design.md)
+- [Writing signal rules](docs/rules.md)
 - [Background](docs/background.md): why this project, and the ideas it was chosen over
 - [Naming](docs/naming.md)
 - [Mockups](docs/mockups/README.md) (open the HTML files in a browser):
