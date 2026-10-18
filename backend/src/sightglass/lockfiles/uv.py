@@ -204,6 +204,7 @@ def _resolve(entries: list[_Entry], platform: str, python: str) -> Resolution:
                         Dependency("pypi", canonicalize_name(d["name"]), d.get("marker"))
                         for d in _followed(e, frozenset(asked), env)
                     ),
+                    first_party=e.member,
                 )
             )
     return Resolution("default", platform, tuple(packages))

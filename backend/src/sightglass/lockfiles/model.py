@@ -40,6 +40,8 @@ class LockedPackage:
         dependencies: Its requirements, in lockfile order.
         provides: Other names the package satisfies; a conda package lists the PyPI projects it installs, so a
             Python requirement on one of them is met by the conda package.
+        first_party: Whether it's the project's own code (a uv workspace member, a local path in pixi.lock) rather
+            than something installed from an index.
     """
 
     ecosystem: Ecosystem
@@ -48,6 +50,7 @@ class LockedPackage:
     location: str
     dependencies: tuple[Dependency, ...] = ()
     provides: tuple[tuple[Ecosystem, str], ...] = ()
+    first_party: bool = False
 
     @property
     def key(self) -> tuple[Ecosystem, str]:

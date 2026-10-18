@@ -28,6 +28,8 @@ ANALYSIS_STATUSES = ("pending", "running", "done", "failed")
 SIGNAL_LEVELS = ("high", "check", "note", "clean")
 SOURCE_ORIGINS = ("attestation", "tag")
 PROVENANCE_STATUSES = ("unknown", "absent", "present")
+CHANGE_KINDS = ("added", "removed", "changed")
+LOCKFILE_ECOSYSTEMS = ("conda", "pypi")
 
 SHA256_RE = "^[0-9a-f]{64}$"
 GIT_COMMIT_RE = "^[0-9a-f]{40}([0-9a-f]{24})?$"
@@ -268,3 +270,59 @@ class OwnershipSnapshot(Base):
     seen_at: Mapped[datetime] = mapped_column(server_default=func.now())
     organization: Mapped[str | None] = mapped_column(Text)
     roles: Mapped[list[Any]]
+
+
+class Review(Base):
+    """A pull request's lockfile change, as one push left it."""
+
+    __tablename__ = "review"
+    __table_args__ = (
+        UniqueConstraint("repository", "pull_number", "head_sha", "lockfile_path"),
+        CheckConstraint(f"base_sha ~ '{GIT_COMMIT_RE}'", name="base_sha_hex"),
+        CheckConstraint(f"head_sha ~ '{GIT_COMMIT_RE}'", name="head_sha_hex"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    # `owner/name` on GitHub.
+    repository: Mapped[str] = mapped_column(Text)
+    pull_number: Mapped[int]
+    base_sha: Mapped[str] = mapped_column(String(64))
+    head_sha: Mapped[str] = mapped_column(String(64))
+    # The lockfile within the repository, such as `pixi.lock` or `services/api/uv.lock`.
+    lockfile_path: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    changes: Mapped[list[ReviewChange]] = relationship(back_populates="review", passive_deletes=True)
+
+
+class ReviewChange(Base):
+    """One package a review's lockfile change adds, removes or moves (sightglass.lockfiles.diff.Change)."""
+
+    __tablename__ = "review_change"
+    __table_args__ = (
+        Index(None, "review_id"),
+        CheckConstraint(_one_of("kind", CHANGE_KINDS), name="kind"),
+        CheckConstraint(_one_of("ecosystem", LOCKFILE_ECOSYSTEMS), name="ecosystem"),
+        CheckConstraint(
+            "(kind = 'added' AND from_version IS NULL AND to_version IS NOT NULL)"
+            " OR (kind = 'removed' AND from_version IS NOT NULL AND to_version IS NULL)"
+            " OR (kind = 'changed' AND from_version IS NOT NULL AND to_version IS NOT NULL)",
+            name="versions_match_kind",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    review_id: Mapped[int] = mapped_column(ForeignKey("review.id", ondelete="CASCADE"))
+    ecosystem: Mapped[str] = mapped_column(Text)
+    # The normalized package name.
+    package: Mapped[str] = mapped_column(Text)
+    kind: Mapped[str] = mapped_column(Text)
+    from_version: Mapped[str | None] = mapped_column(Text)
+    to_version: Mapped[str | None] = mapped_column(Text)
+    environments: Mapped[list[Any]]
+    platforms: Mapped[list[Any]]
+    only_some_platforms: Mapped[bool]
+    # Package names from a direct dependency of the project to this package.
+    path: Mapped[list[Any]]
+
+    review: Mapped[Review] = relationship(back_populates="changes")
