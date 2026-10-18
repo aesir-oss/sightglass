@@ -13,31 +13,34 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-test("auto is the default and the current choice is checked", () => {
+const button = () => screen.getByRole("button", { name: /^Theme: / });
+
+test("auto is the default, and the button names the current choice", () => {
   render(<ThemeSwitch />);
-  const group = screen.getByRole("group", { name: "Theme" });
-  expect(group).toBeTruthy();
-  expect(screen.getByRole<HTMLInputElement>("radio", { name: "Auto" }).checked).toBe(true);
+  expect(button().getAttribute("aria-label")).toBe("Theme: Auto");
+  expect(button().getAttribute("title")).toBe("Theme: Auto. Switch to Light.");
 });
 
-test("choosing light or dark applies and remembers it; auto clears the override", () => {
+test("each press steps light, dark, auto; light and dark are remembered and auto clears the override", () => {
   render(<ThemeSwitch />);
-  fireEvent.click(screen.getByRole("radio", { name: "Dark" }));
+  fireEvent.click(button());
+  expect(document.documentElement.dataset.theme).toBe("light");
+  expect(localStorage.getItem(THEME_KEY)).toBe("light");
+  fireEvent.click(button());
   expect(document.documentElement.dataset.theme).toBe("dark");
   expect(localStorage.getItem(THEME_KEY)).toBe("dark");
-  expect(screen.getByRole<HTMLInputElement>("radio", { name: "Dark" }).checked).toBe(true);
-  fireEvent.click(screen.getByRole("radio", { name: "Light" }));
-  expect(document.documentElement.dataset.theme).toBe("light");
-  fireEvent.click(screen.getByRole("radio", { name: "Auto" }));
+  expect(button().getAttribute("aria-label")).toBe("Theme: Dark");
+  fireEvent.click(button());
   expect(document.documentElement.dataset.theme).toBeUndefined();
   expect(localStorage.getItem(THEME_KEY)).toBeNull();
+  expect(button().getAttribute("aria-label")).toBe("Theme: Auto");
 });
 
 test("a saved choice is read back; anything else is auto", () => {
   localStorage.setItem(THEME_KEY, "dark");
   expect(savedTheme()).toBe("dark");
   render(<ThemeSwitch />);
-  expect(screen.getByRole<HTMLInputElement>("radio", { name: "Dark" }).checked).toBe(true);
+  expect(button().getAttribute("aria-label")).toBe("Theme: Dark");
   localStorage.setItem(THEME_KEY, "sepia");
   expect(savedTheme()).toBe("auto");
 });
