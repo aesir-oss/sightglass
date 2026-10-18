@@ -40,6 +40,10 @@ class ResponseTooLargeError(HttpError):
     """A response body exceeded the caller's size limit."""
 
 
+class RateLimitedError(HttpError):
+    """The server refused the request because the client's rate limit is used up (GitHub answers 403)."""
+
+
 @dataclass(frozen=True)
 class CachedResponse:
     """A response body with the validators needed to revalidate it."""
@@ -230,6 +234,10 @@ class Fetcher:
                         return
                     if status in (404, 410):
                         raise NotFoundError(f"{url} returned {status}")
+                    if status == 403 and response.headers.get("X-RateLimit-Remaining") == "0":
+                        raise RateLimitedError(
+                            f"{url} is rate limited until {response.headers.get('X-RateLimit-Reset')}"
+                        )
                     if status not in RETRY_STATUSES:
                         raise HttpError(f"{url} returned unexpected status {status}")
                     retry_after = response.headers.get("Retry-After")

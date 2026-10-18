@@ -1,4 +1,5 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, expect, test } from "vitest";
 import { HomePage } from "./HomePage";
@@ -7,7 +8,11 @@ afterEach(cleanup);
 
 function renderHome() {
   const router = createMemoryRouter([{ path: "/", element: <HomePage /> }], { initialEntries: ["/"] });
-  render(<RouterProvider router={router} />);
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
 }
 
 test("the start page leads with the tagline and the compare form", () => {
@@ -15,6 +20,8 @@ test("the start page leads with the tagline and the compare form", () => {
   expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("See what you’re merging.");
   const form = screen.getByRole("form", { name: "Compare releases" });
   expect(within(form).getByRole("button", { name: "Compare" })).toBeTruthy();
+  const review = screen.getByRole("form", { name: "Review a pull request" });
+  expect(within(review).getByRole("button", { name: "Review" })).toBeTruthy();
 });
 
 test("the example release diff is marked as invented", () => {

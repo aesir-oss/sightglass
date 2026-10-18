@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { useReviews } from "../api/queries";
 import type { ReviewSummary } from "../api/types";
+import { ReviewForm } from "../review/ReviewForm";
 import { ThemeSwitch } from "../ThemeSwitch";
 import "../release/release.css";
 import "../review/review.css";
@@ -32,6 +33,7 @@ export function ReviewsPage() {
         </div>
       </header>
       <main className="wrap stack">
+        <ReviewForm />
         {reviews.isPending && (
           <p className="notice" role="status">
             Loading…
@@ -43,9 +45,7 @@ export function ReviewsPage() {
           </p>
         )}
         {reviews.data && rows.length === 0 && (
-          <p className="notice">
-            No reviews yet. Record one with <code>pixi run review</code>.
-          </p>
+          <p className="notice">No reviews yet. Paste a pull request URL above to start one.</p>
         )}
         {rows.length > 0 && (
           <ul className="review-list panel" aria-label="Reviews">
@@ -54,10 +54,10 @@ export function ReviewsPage() {
                 <Link to={`/reviews/${r.repository}/${String(r.number)}`}>
                   {r.repository} <span className="vs">#{r.number}</span>
                 </Link>
-                <span className="review-meta">
+                <span className="review-meta review-what">
                   <code>{r.lockfile_path}</code> at <code>{r.head_sha.slice(0, 7)}</code>, {describeCounts(r.counts)}
                 </span>
-                <time className="review-meta" dateTime={r.created_at}>
+                <time className="review-meta review-when" dateTime={r.created_at}>
                   {DATE.format(new Date(r.created_at))}
                 </time>
               </li>

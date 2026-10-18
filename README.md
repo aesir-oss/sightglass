@@ -57,6 +57,11 @@ It downloads and verifies the artifacts, finds the source on GitHub, and runs th
 executed. Results go to `SIGHTGLASS_DATABASE_URL` if set, or to a local Postgres under `~/.cache/sightglass`
 (`SIGHTGLASS_CACHE_DIR`), which also caches downloads between runs.
 
+To review a pull request's lockfile change, run `pixi run dev`, open `/reviews` and paste the URL of a public pull
+request that changes a `pixi.lock` or `uv.lock`. Sightglass reads it through GitHub's REST API, unauthenticated by
+default (60 requests an hour, three per review); set `SIGHTGLASS_GITHUB_TOKEN` to a token with no scopes to raise
+that. `pixi run review owner/name <number> <base> <head>` does the same from a local checkout.
+
 ## Development
 
 | Command | What it runs |
