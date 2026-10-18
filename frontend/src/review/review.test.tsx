@@ -18,6 +18,7 @@ function change(overrides: Partial<ReviewChange>): ReviewChange {
     kind: "changed",
     from_version: "1.4.0",
     to_version: "1.5.0",
+    downgrade: false,
     compare_from: "1.4.0",
     environments: ["default"],
     platforms: ["linux-64", "osx-arm64"],
@@ -127,4 +128,16 @@ test("descriptions say what was found, and polling continues while anything is a
   expect(pollWhileAnalyzing({ ...REVIEW, changes: [high] })).toBe(false);
   expect(pollWhileAnalyzing(undefined)).toBe(false);
   vi.restoreAllMocks();
+});
+
+test("a downgrade is labelled in the queue, the description and the detail", async () => {
+  const down = change({ package: "sqlalchemy", from_version: "2.1.5", to_version: "2.0.55", downgrade: true });
+  expect(describeChange(down)).toBe("sqlalchemy, 2.1.5 → 2.0.55, a downgrade, 2 high signals");
+  fakeApi({ "/api/reviews/kestrel-weather/orbit/7": { body: { ...REVIEW, changes: [down] } } });
+  renderAt("/reviews/kestrel-weather/orbit/7");
+  const list = await screen.findByRole("listbox", { name: "Package changes" });
+  expect(within(list).getByText("downgrade")).toBeTruthy();
+  expect(screen.getByRole("region", { name: "Package detail" }).textContent).toContain(
+    "2.1.5 → 2.0.55, a downgrade to an older version",
+  );
 });

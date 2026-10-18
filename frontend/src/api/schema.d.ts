@@ -315,6 +315,11 @@ export interface components {
       alternatives: components["schemas"]["ArtifactRef"][];
       artifact: components["schemas"]["ArtifactRef"];
       /**
+       * Downgrade
+       * @default false
+       */
+      downgrade: boolean;
+      /**
        * Ecosystem
        * @constant
        */
@@ -356,6 +361,11 @@ export interface components {
       /** Alternatives */
       alternatives: components["schemas"]["ArtifactRef"][];
       artifact: components["schemas"]["ArtifactRef"];
+      /**
+       * Downgrade
+       * @default false
+       */
+      downgrade: boolean;
       /**
        * Ecosystem
        * @constant
@@ -498,6 +508,8 @@ export interface components {
       analysis: components["schemas"]["ChangeAnalysis"];
       /** Compare From */
       compare_from: string | null;
+      /** Downgrade */
+      downgrade: boolean;
       /**
        * Ecosystem
        * @enum {string}

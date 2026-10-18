@@ -19,7 +19,7 @@ from sightglass.db import models
 from sightglass.ecosystems.artifacts import ArtifactPair, select_artifacts
 from sightglass.ecosystems.http import HttpError, NotFoundError
 from sightglass.ecosystems.pypi import PypiProject, PypiRelease
-from sightglass.ecosystems.versions import predecessor
+from sightglass.ecosystems.versions import is_downgrade, predecessor
 from sightglass.log import get_logger
 from sightglass.rules.ruleset import RULES
 from sightglass.rules.store import requeue_failed
@@ -125,6 +125,8 @@ class PairAnalysis(BaseModel):
     package: str
     from_version: str
     to_version: str
+    # Whether to_version is older than from_version, as when a lockfile moves a package back.
+    downgrade: bool = False
     ruleset_version: str
     artifact: ArtifactRef
     alternatives: list[ArtifactRef]
@@ -144,6 +146,7 @@ class PairPending(BaseModel):
     package: str
     from_version: str
     to_version: str
+    downgrade: bool = False
     artifact: ArtifactRef
     alternatives: list[ArtifactRef]
     step: Literal["downloading", "provenance", "diffing", "source", "rules"] | None = None
@@ -295,6 +298,7 @@ def get_pair_analysis(
         "package": project.normalized_name,
         "from_version": old.version,
         "to_version": new.version,
+        "downgrade": is_downgrade("pypi", old.version, new.version),
         "artifact": _ref(pair),
         "alternatives": [_ref(p) for p in alternatives],
     }
@@ -354,6 +358,7 @@ def retry_pair_analysis(
         "package": project.normalized_name,
         "from_version": old.version,
         "to_version": new.version,
+        "downgrade": is_downgrade("pypi", old.version, new.version),
         "artifact": _ref(pair),
         "alternatives": [_ref(p) for p in alternatives],
     }

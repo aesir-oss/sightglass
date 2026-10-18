@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, aliased
 
 from sightglass.api.deps import get_session
 from sightglass.db import models
+from sightglass.ecosystems.versions import is_downgrade
 from sightglass.rules.base import LEVELS
 from sightglass.rules.ruleset import RULES
 
@@ -37,6 +38,8 @@ class ReviewChangeOut(BaseModel):
     kind: Literal["added", "removed", "changed"]
     from_version: str | None
     to_version: str | None
+    # Whether a changed package moves to an older version.
+    downgrade: bool
     # The release the new version is compared with: from_version, or an added package's predecessor.
     compare_from: str | None
     environments: list[str]
@@ -133,6 +136,7 @@ def get_review(
             kind=c.kind,  # type: ignore[arg-type]
             from_version=c.from_version,
             to_version=c.to_version,
+            downgrade=c.kind == "changed" and is_downgrade(c.ecosystem, c.from_version or "", c.to_version or ""),
             compare_from=c.compare_from,
             environments=[str(e) for e in c.environments],
             platforms=[str(p) for p in c.platforms],

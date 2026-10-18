@@ -466,6 +466,11 @@
           "artifact": {
             "$ref": "#/components/schemas/ArtifactRef"
           },
+          "downgrade": {
+            "default": false,
+            "title": "Downgrade",
+            "type": "boolean"
+          },
           "ecosystem": {
             "const": "pypi",
             "title": "Ecosystem",
@@ -578,6 +583,11 @@
           },
           "artifact": {
             "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "downgrade": {
+            "default": false,
+            "title": "Downgrade",
+            "type": "boolean"
           },
           "ecosystem": {
             "const": "pypi",
@@ -970,6 +980,10 @@
             ],
             "title": "Compare From"
           },
+          "downgrade": {
+            "title": "Downgrade",
+            "type": "boolean"
+          },
           "ecosystem": {
             "enum": [
               "conda",
@@ -1045,6 +1059,7 @@
           "kind",
           "from_version",
           "to_version",
+          "downgrade",
           "compare_from",
           "environments",
           "platforms",

@@ -17,6 +17,7 @@ const pending: PairPending = {
   package: "orbit-client",
   from_version: "2.4.1",
   to_version: "2.5.0",
+  downgrade: false,
   artifact: { kind: "wheel", old_filename: "a-2.4.1.whl", new_filename: "a-2.5.0.whl", match: "same_tag" },
   alternatives: [],
   step: "diffing",
